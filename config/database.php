@@ -7,7 +7,7 @@ return [
     // 自定义时间查询规则
     'time_query_rule' => [],
 
-    // 自动写入时间戳字段
+    // 自动写入时间戳字段aaaaaaaa
     // true为自动识别类型 false关闭
     // 字符串则明确指定时间字段类型 支持 int timestamp datetime date
     'auto_timestamp'  => true,
