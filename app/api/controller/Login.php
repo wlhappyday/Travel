@@ -1,14 +1,18 @@
 <?php
-declare (strict_types = 1);
+
 
 namespace app\api\controller;
+
+
 use app\api\model\Admin;
-class Index
+
+class Login
 {
     public function login(){
         $phone = input('post.phone','123456','htmlspecialchars'); // 获取get变量 并用htmlspecialchars函数过滤
         $username = input('post.username','123456','htmlspecialchars'); // 获取param变量 并用strip_tags函数过滤
         $passwd = input('post.passwd','123456','htmlspecialchars'); // 获取post变量 并用org\Filter类的safeHtml方法过滤
+        $type = input('post.type/d','1');
         if ($username!=null){
             $where=['user_name'=>$username];
         }elseif ($phone!=null){
@@ -24,4 +28,5 @@ class Index
             return returnData(['msg'=>'账号密码错误'],201);
         }
     }
+
 }
