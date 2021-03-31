@@ -21,13 +21,13 @@ return [
             // 数据库类型
             'type'            => env('database.type', 'mysql'),
             // 服务器地址
-            'hostname'        => env('database.hostname', '42.192.159.206'),
+            'hostname'        => env('database.hostname', 'localhost'),
             // 数据库名
-            'database'        => env('database.database', 'travel'),
+            'database'        => env('database.database', 'www_lvyou_com'),
             // 用户名
-            'username'        => env('database.username', 'jiamao'),
+            'username'        => env('database.username', 'www_lvyou_com'),
             // 密码
-            'password'        => env('database.password', 'jiamao'),
+            'password'        => env('database.password', 'www_lvyou_com'),
             // 端口
             'hostport'        => env('database.hostport', '3306'),
             // 数据库连接参数
