@@ -3,6 +3,8 @@ declare (strict_types = 1);
 
 namespace app\api\controller;
 use app\api\model\Admin;
+use thans\jwt\facade\JWTAuth;
+
 class Index
 {
     public function login(){
@@ -23,5 +25,6 @@ class Index
         if(!checkPasswd($passwd,$admin)){
             return returnData(['msg'=>'账号密码错误'],201);
         }
+        echo JWTAuth::builder($admin);
     }
 }

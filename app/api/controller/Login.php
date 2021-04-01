@@ -8,14 +8,16 @@ use app\api\model\Admin;
 use app\api\model\Juser;
 use app\api\model\Padmin;
 use app\api\model\Xuser;
+use thans\jwt\facade\JWTAuth;
+use think\Request;
 
 class Login
 {
     public function login(){
-        $phone = input('post.phone','','htmlspecialchars'); // 获取get变量 并用htmlspecialchars函数过滤
-        $username = input('post.username','','htmlspecialchars'); // 获取param变量 并用strip_tags函数过滤
-        $passwd = input('post.passwd','','htmlspecialchars'); // 获取post变量 并用org\Filter类的safeHtml方法过滤
-        $type = input('post.type/d','');
+        $phone = input('post.phone','123456','htmlspecialchars'); // 获取get变量 并用htmlspecialchars函数过滤
+        $username = input('post.username','123456','htmlspecialchars'); // 获取param变量 并用strip_tags函数过滤
+        $passwd = input('post.passwd','123456','htmlspecialchars'); // 获取post变量 并用org\Filter类的safeHtml方法过滤
+        $type = input('post.type/d','1');
         if ($username!=null){
             $where=['user_name'=>$username];
         }elseif ($phone!=null){
@@ -46,6 +48,10 @@ class Login
         if(!checkPasswd($passwd,$userDate)){
             return returnData(['msg'=>'账号密码错误'],201);
         }
+        return returnData($userDate->toArray(),200,['Authorization'=>"Bearer ".JWTAuth::builder($userDate->toArray())]);
+    }
+    public function jiemi(){
+        var_dump(getDecodeToken());
     }
     public function adminLogin($where){
         return Admin::where($where)->find();

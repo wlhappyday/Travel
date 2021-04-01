@@ -1,5 +1,6 @@
 <?php
     return [
-        'think\middleware\SessionInit',
+        \app\middleware\Auth::class,
+        \app\middleware\After::class
     ]
 ?>
