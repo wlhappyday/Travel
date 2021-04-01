@@ -48,7 +48,13 @@ class Login
         if(!checkPasswd($passwd,$userDate)){
             return returnData(['msg'=>'账号密码错误'],201);
         }
-        return returnData($userDate->toArray(),200,['Authorization'=>"Bearer ".JWTAuth::builder($userDate->toArray())]);
+        $userDate=$userDate->toArray();
+        $userInfo=[
+
+
+
+        ];
+        return returnData($userInfo,200,['Authorization'=>"Bearer ".JWTAuth::builder($userInfo)]);
     }
     public function jiemi(){
         var_dump(getDecodeToken());
