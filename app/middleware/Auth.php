@@ -10,9 +10,9 @@ class Auth
     /**
      * 处理请求
      *
-     * @param \think\Request $request
-     * @param \Closure       $next
-     * @return
+     * @param  $request
+     * @param Closure $next
+     * @return mixed $next
      */
     public function handle($request, Closure $next)
     {
