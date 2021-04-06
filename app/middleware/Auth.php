@@ -16,9 +16,9 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
-        if($request->server()['REQUEST_URI']!="/api/login/login"){
-                JWTAuth::auth();
-        }
+//        if($request->server()['REQUEST_URI']!="/api/login/login"){
+//                JWTAuth::auth();
+//        }
         return $next($request);
     }
 }

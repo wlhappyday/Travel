@@ -21,9 +21,9 @@ return [
             // 数据库名
             'database'        => env('database.database', 'travel'),
             // 用户名
-            'username'        => env('database.username', 'jiamao'),
+            'username'        => env('database.username', 'travel'),
             // 密码
-            'password'        => env('database.password', 'jiamao'),
+            'password'        => env('database.password', 'PTazLET3LzZ3ZXDk'),
             // 端口
             'hostport'        => env('database.hostport', '3306'),
             // 数据库连接参数
