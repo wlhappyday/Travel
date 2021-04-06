@@ -23,7 +23,7 @@ class Login
         }elseif ($phone!=null){
             $where=['phone'=>$phone];
         }else{
-            return returnData(['msg'=>'请输入完整账号密码'],201);
+            return returnData(["code"=>201,'msg'=>'请输入完整账号密码']);
         }
         switch ($type)
         {
@@ -43,17 +43,18 @@ class Login
                 return returnData(['msg'=>'非法参数'],201);
         }
         if (empty($userDate)){
-            return returnData(['msg'=>'用户不存在'],201);
+            return returnData(["code"=>201,'msg'=>'用户不存在']);
         }
         if(!checkPasswd($passwd,$userDate)){
-            return returnData(['msg'=>'账号密码错误'],201);
+            return returnData(["code"=>201,'msg'=>'账号密码错误']);
         }
         $userDate=$userDate->toArray();
         $userInfo=[
             'userName'=>$userDate['user_name'],
             'phone'=>$userDate['phone'],
             'id'=>$userDate['id'],
-            'avatar'=>isset($userDate['avatar'])?$userDate['avatar']:''
+            'avatar'=>isset($userDate['avatar'])?$userDate['avatar']:'',
+            'type'=>$type
         ];
         return returnData($userInfo,200,['Authorization'=>"Bearer ".JWTAuth::builder($userInfo)]);
     }
