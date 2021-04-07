@@ -64,3 +64,28 @@ function getDecodeToken(){
     }
     return $date;
 }
+
+/**
+ * @author liujiong
+ * @Note  验证Token
+ */
+function isUserToken($data,$type){
+    if($type != $data['type']){
+        return ['msg'=>'Token传输错误','code'=>'201'];
+    }
+    if($type == '1'){
+        $data = app\api\model\Admin::where(['id'=>$data['id'],'phone'=>$data['phone']])->value('id');
+    }elseif ($type == '2'){
+        $data = app\api\model\Padmin::where(['id'=>$data['id'],'phone'=>$data['phone'],'status'=>'0'])->value('id');
+    }elseif ($type == '3'){
+        $data = app\api\model\Juser::where(['id'=>$data['id'],'phone'=>$data['phone'],'status'=>'0'])->value('id');
+    }elseif ($type == '4'){
+        $data = app\api\model\Xuser::where(['id'=>$data['id'],'phone'=>$data['phone'],'status'=>'0'])->value('id');
+    }
+    if($data){
+        return ['msg'=>'验证成功','code'=>'200'];
+    }else{
+        return ['msg'=>'用户不存在或已被禁用！','code'=>'201'];
+    }
+
+}

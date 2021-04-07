@@ -9,6 +9,7 @@ use app\api\model\Juser;
 use app\api\model\Padmin;
 use app\api\model\Xuser;
 use thans\jwt\facade\JWTAuth;
+use think\Request;
 
 class Login
 {
@@ -19,11 +20,14 @@ class Login
         $passwd = input('post.passwd','123456','htmlspecialchars');
         $type = input('post.type/d','1');
         if ($username!=null){
-            $where=['user_name'=>$username];
+            $where['user_name'] = $username;
         }elseif ($phone!=null){
-            $where=['phone'=>$phone];
+            $where['phone'] = $phone;
         }else{
             return returnData(["code"=>201,'msg'=>'请输入完整账号密码']);
+        }
+        if($type != '1'){
+            $where['status'] = '0';
         }
         switch ($type)
         {
@@ -57,6 +61,9 @@ class Login
             'type'=>$type
         ];
         return returnData($userInfo,200,['Authorization'=>"Bearer ".JWTAuth::builder($userInfo)]);
+    }
+    public function jiemi(){
+        var_dump(getDecodeToken());
     }
     public function adminLogin($where){
         return Admin::where($where)->find();
