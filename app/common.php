@@ -71,7 +71,7 @@ function getDecodeToken(){
  */
 function isUserToken($data,$type){
     if($type != $data['type']){
-        return ['msg'=>'Token传输错误','code'=>'201'];
+        return false;
     }
     if($type == '1'){
         $data = app\api\model\Admin::where(['id'=>$data['id'],'phone'=>$data['phone']])->value('id');
@@ -83,9 +83,9 @@ function isUserToken($data,$type){
         $data = app\api\model\Xuser::where(['id'=>$data['id'],'phone'=>$data['phone'],'status'=>'0'])->value('id');
     }
     if($data){
-        return ['msg'=>'验证成功','code'=>'200'];
+        return true;
     }else{
-        return ['msg'=>'用户不存在或已被禁用！','code'=>'201'];
+        return false;
     }
 
 }
