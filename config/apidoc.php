@@ -12,12 +12,15 @@ return [
     'default_method'=>'GET',
     // 设置应用/版本（必须设置）
     'apps'           => [
-        ['title'=>'平台商','path'=>'app\platform\controller','folder'=>'V2.0'],
+        ['title'=>'平台商','path'=>'app\platform\controller','folder'=>'v2'],
     ],
     // 控制器分组
-    'groups'             => [],
+    'groups'             => [
+        ['title'=>'产品模块','name'=>'product'],
+        ['title'=>'用户模块','name'=>'user'],
+    ],
     // 指定公共注释定义的文件地址
-    'definitions'        => "app\controller\Definitions",
+    'definitions'        => "app\api\controller\Login",
     //指定生成文档的控制器
     'controllers'        => [],
     // 过滤，不解析的控制器

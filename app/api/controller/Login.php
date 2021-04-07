@@ -9,14 +9,14 @@ use app\api\model\Juser;
 use app\api\model\Padmin;
 use app\api\model\Xuser;
 use thans\jwt\facade\JWTAuth;
-use think\Request;
 
 class Login
 {
+
     public function login(){
-        $phone = input('post.phone','123456','htmlspecialchars'); // 获取get变量 并用htmlspecialchars函数过滤
-        $username = input('post.username','123456','htmlspecialchars'); // 获取param变量 并用strip_tags函数过滤
-        $passwd = input('post.passwd','123456','htmlspecialchars'); // 获取post变量 并用org\Filter类的safeHtml方法过滤
+        $phone = input('post.phone','123456','htmlspecialchars');
+        $username = input('post.username','123456','htmlspecialchars');
+        $passwd = input('post.passwd','123456','htmlspecialchars');
         $type = input('post.type/d','1');
         if ($username!=null){
             $where=['user_name'=>$username];
@@ -50,14 +50,12 @@ class Login
         }
         $userDate=$userDate->toArray();
         $userInfo=[
-
-
-
+            'userName'=>$userDate['user_name'],
+            'phone'=>$userDate['phone'],
+            'id'=>$userDate['id'],
+            'avatar'=>isset($userDate['avatar'])?$userDate['avatar']:''
         ];
         return returnData($userInfo,200,['Authorization'=>"Bearer ".JWTAuth::builder($userInfo)]);
-    }
-    public function jiemi(){
-        var_dump(getDecodeToken());
     }
     public function adminLogin($where){
         return Admin::where($where)->find();

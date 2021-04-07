@@ -11,7 +11,7 @@ use hg\apidoc\annotation as Apidoc;
 /**
  *
  * @Apidoc\Title("产品接口")
- * @Apidoc\Group("base")
+ * @Apidoc\Group("product")
  */
 class Product
 {
@@ -73,6 +73,21 @@ class Product
         }
     }
 
+    public function disassociate(Request $request){
+        $uid = $request->get('uid');//平台商用户id
+        $product_id = $request->get('product_id');//产品id
+        Db::startTrans();
+        try {
+            $j_product = product_relation::where(['product_id'=>$product_id,'uid'=>$uid])->delete();
+            return json(['code'=>'200','msg'=>'操作成功']);
+            Db::commit();
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'-1','msg'=>$e->getMessage()]);
+        }
+
+    }
+
     /**
      * @Apidoc\Title("获取应用平台商绑定产品接口")
      * @Apidoc\Desc("平台商关联产品，推送给用户")
@@ -97,7 +112,7 @@ class Product
         }
         $admin = admin::where($where)->with(['product'=>function($query) use($map){
             $query->where($map);
-        }])->field('id,phone,nickname,avatar')->select();
+        }])->field('id,phone,nickname,avatar')->find()->toArray();
         return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin,'product'=>$admin['product']]);
     }
 
