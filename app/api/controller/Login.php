@@ -57,6 +57,7 @@ class Login
             'userName'=>$userDate['user_name'],
             'phone'=>$userDate['phone'],
             'id'=>$userDate['id'],
+            'type'=>$type,
             'avatar'=>isset($userDate['avatar'])?$userDate['avatar']:''
         ];
         return returnData($userInfo,200,['Authorization'=>"Bearer ".JWTAuth::builder($userInfo)]);
