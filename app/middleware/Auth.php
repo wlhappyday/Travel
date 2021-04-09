@@ -3,10 +3,21 @@ declare (strict_types = 1);
 
 namespace app\middleware;
 
+use app\common\model\ErrorLog;
+use Closure;
 use thans\jwt\facade\JWTAuth;
-use \Closure;
+
 class Auth
 {
+    private $array = [
+        '0' => 'api',
+        '1' => 'admin',
+        '2' => 'platform',
+        '3' => 'scenic',
+        '4' => 'line',
+        '5' => 'user',
+    ];
+
     /**
      * 处理请求
      * @param  $request
@@ -15,8 +26,15 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
-        if($request->server()['REQUEST_URI']!="/api/login/login"){
-                JWTAuth::auth();
+        if ($request->server()['REQUEST_URI'] != "/api/login/login") {
+            $auth = JWTAuth::auth();
+            $modular = explode("/", $request->server()['REQUEST_URI'])[1];
+            if ($modular != 'api') {
+                if ($this->array[$auth['type']->getValue()] != $modular) {
+                    ErrorLog::create(["creat_time" => time(), 'date' => json_encode($request->server()), 'ip' => getIp(1111)['ip']]);
+                    return returnData(['code' => 404, 'msg' => '无权限访问，访问有记录!请谨慎！']);
+                }
+            }
         }
         return $next($request);
     }
