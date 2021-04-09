@@ -13,6 +13,7 @@ use app\platform\model\p_user;
  */
 class User
 {
+
     /**
      * @Apidoc\Title("用户列表")
      * @Apidoc\Desc("平台商管理自己的用户端用户")
@@ -20,7 +21,6 @@ class User
      * @Apidoc\Method("POST")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("uid", type="number",require=true, desc="用户id" )
      * @Apidoc\Returned ("admin",type="object",desc="平台商列表",
      *     @Apidoc\Returned ("total",type="number",desc="分页总数"),
      *     @Apidoc\Returned ("per_page",type="int",desc="首页"),
@@ -32,7 +32,7 @@ class User
      */
     public function list(Request $request)
     {
-        $uid = $request->uid;
+        $uid =$request->uid;//平台商用户id
         $user = p_user::where(['status'=>'0','uid'=>$uid])->paginate(10);
         return json(['code'=>'200','admin'=>$user]);
     }
@@ -44,7 +44,6 @@ class User
      * @Apidoc\Method("POST")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("uid", type="number",require=true, desc="用户id" )
      * @Apidoc\Param("username", type="number",require=true, desc="账号" )
      * @Apidoc\Param("password", type="number",require=true, desc="密码 长度为6-16" )
      * @Apidoc\Param("newpassword", type="number",require=true, desc="确定密码" )
@@ -70,7 +69,6 @@ class User
      * @Apidoc\Method("POST")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("uid", type="number",require=true, desc="平台商" )
      * @Apidoc\Param("id", type="number",require=true, desc="操作用户的id" )
      * @Apidoc\Param("username", type="number",require=true, desc="账号" )
      * @Apidoc\Returned("sign",type="string",desc="错误提示")

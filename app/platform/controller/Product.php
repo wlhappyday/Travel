@@ -22,13 +22,13 @@ class Product
      * @Apidoc\Method("GET")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("uid", type="number",require=true, desc="用户id" )
      * @Apidoc\Returned("scenic_spot",type="object",desc="景区",ref="app\platform\model\j_product\scenic_spot")
      * @Apidoc\Returned("route",type="object",desc="路线",ref="app\platform\model\j_product\route")
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      */
+
     public function list(Request $request){
-        $uid = $request->get('uid');
+        $uid =$request->uid;
         $scenic_spot = j_product::where(['type'=>'1','status'=>'0'])->field('name,jq_name,mp_name,product_code,title,money,number,img_url,video_url')->select();//景区
         $route = j_product::where(['type'=>'2','status'=>'0'])->field('name,yw_name,cx_name,jt_qname,jt_fname,xl_name,product_code,set_city,get_city,day,title,standard,end_day,address,money,number,img_url,video_url')->select();//景区
         return json(['scenic_spot'=>$scenic_spot,'route'=>$route]);
@@ -42,13 +42,12 @@ class Product
      * @Apidoc\Method("POST")
      * @Apidoc\Tag("关联产品")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("uid", type="number",require=true, desc="平台商用户id" )
      * @Apidoc\Param("type", type="number",require=true, desc="产品类型" )
      * @Apidoc\Param("product_id", type="number",require=true, desc="产品id" )
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      */
     public function relation(Request $request){
-        $uid = $request->get('uid');//平台商用户id
+        $uid =$request->uid;//平台商用户id
         $type = $request->get('type');//产品类型
         $product_id = $request->get('product_id');//产品id
         $j_product = j_product::where(['type'=>$type,'status'=>'0','id'=>$product_id])->find();
@@ -66,15 +65,15 @@ class Product
                 return json(['code'=>'200','msg'=>'操作成功']);
             }catch (\Exception $e){
                 Db::rollback();
-                return json(['code'=>'-1','msg'=>'数据操作错误，请检查','sign'=>$e->getMessage()]);
+                return json(['code'=>'-1','msg'=>'操作成功','sign'=>$e->getMessage()]);
             }
         }else{
-            return json(['code'=>'-1','msg'=>'数据操作错误，请检查','sign'=>'请检查参数']);
+            return json(['code'=>'-1','msg'=>'操作成功','sign'=>'请检查参数']);
         }
     }
 
     public function disassociate(Request $request){
-        $uid = $request->get('uid');//平台商用户id
+        $uid =$request->uid;//平台商用户id
         $product_id = $request->get('product_id');//产品id
         Db::startTrans();
         try {
@@ -83,7 +82,7 @@ class Product
             Db::commit();
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'-1','msg'=>$e->getMessage()]);
+            return json(['code'=>'-1','sign'=>$e->getMessage(),'msg'=>'操作成功']);
         }
 
     }
@@ -95,15 +94,13 @@ class Product
      * @Apidoc\Method("GET")
      * @Apidoc\Tag("关联产品")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("uid", type="number",require=true, desc="平台商用户id" )
-     * @Apidoc\Param("type", type="number",require=true, desc="产品类型" )
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      * @Apidoc\Returned("admin",type="object",desc="平台商信息",ref="app\platform\model\admin\info")
      * @Apidoc\Returned("product",type="object",desc="路线",ref="app\platform\model\j_product\route")
      */
     public function relationproducts(Request $request){
-        $uid = $request->get('uid');
-        $type = $request->get('type');
+        $uid =$request->uid;//平台商用户id
+        $type = $request->type;
         $where['id'] = $uid;
         $where['status'] = 0;
         $map=[];

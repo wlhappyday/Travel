@@ -16,6 +16,12 @@ class After
      */
     public function handle($request, \Closure $next)
     {
+        if ($request->server()['REQUEST_URI']!="/apidoc/config"){
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI']!="/data"){
+            return $next($request);
+        }
         $response = $next($request);
         if($request->server()['REQUEST_URI']!="/api/login/login"){
             $response->header(["Authorization"=>"Bearer ".JWTAuth::refresh()]);

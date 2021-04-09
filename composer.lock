@@ -136,16 +136,16 @@
         },
         {
             "name": "hg/apidoc",
-            "version": "v2.4.2",
+            "version": "v2.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/HGthecode/thinkphp-apidoc.git",
-                "reference": "db07561a4f1ae08908f6e84a6d537e950cf1d3d8"
+                "reference": "8a83bb48d5cbe6bf283658e3391b743941a81cb1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/HGthecode/thinkphp-apidoc/zipball/db07561a4f1ae08908f6e84a6d537e950cf1d3d8",
-                "reference": "db07561a4f1ae08908f6e84a6d537e950cf1d3d8",
+                "url": "https://api.github.com/repos/HGthecode/thinkphp-apidoc/zipball/8a83bb48d5cbe6bf283658e3391b743941a81cb1",
+                "reference": "8a83bb48d5cbe6bf283658e3391b743941a81cb1",
                 "shasum": ""
             },
             "require": {
@@ -189,7 +189,7 @@
                 "注释生成",
                 "自动生成"
             ],
-            "time": "2021-04-01T15:59:07+00:00"
+            "time": "2021-04-07T07:25:35+00:00"
         },
         {
             "name": "lcobucci/jwt",
@@ -663,16 +663,16 @@
         },
         {
             "name": "thans/tp-jwt-auth",
-            "version": "v1.1.1",
+            "version": "v1.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/QThans/jwt-auth.git",
-                "reference": "e1a4f3634333f86f68398fccf753949f666d9b4e"
+                "reference": "cbd596ef27a938a9176880a3340529842930d5da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/QThans/jwt-auth/zipball/e1a4f3634333f86f68398fccf753949f666d9b4e",
-                "reference": "e1a4f3634333f86f68398fccf753949f666d9b4e",
+                "url": "https://api.github.com/repos/QThans/jwt-auth/zipball/cbd596ef27a938a9176880a3340529842930d5da",
+                "reference": "cbd596ef27a938a9176880a3340529842930d5da",
                 "shasum": ""
             },
             "require": {
@@ -710,7 +710,7 @@
                 }
             ],
             "description": "thinkphp  jwt auth composer",
-            "time": "2020-11-26T03:39:46+00:00"
+            "time": "2021-04-09T01:06:29+00:00"
         },
         {
             "name": "topthink/framework",

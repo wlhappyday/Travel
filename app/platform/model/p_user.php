@@ -7,6 +7,7 @@ use think\Model;
 use hg\apidoc\annotation\Field;
 use hg\apidoc\annotation\WithoutField;
 use hg\apidoc\annotation\AddField;
+use think\model\concern\SoftDelete;
 use think\facade\Db;
 /**
  * @mixin \think\Model
@@ -14,6 +15,7 @@ use think\facade\Db;
 class p_user extends Model
 {
     //
+    use SoftDelete;
     protected $name = 'p_user';
     protected $autoWriteTimestamp = true;
 
