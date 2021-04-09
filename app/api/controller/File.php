@@ -2,8 +2,6 @@
 
 namespace app\api\controller;
 
-use think\db\exception\DbException;
-use think\db\exception\ModelNotFoundException;
 use think\exception\ValidateException;
 use think\facade\Filesystem;
 
@@ -24,11 +22,11 @@ class File
             $savePath = $this->savePath($this->saveFile($files), 1);
             return returnData($savePath);
         } catch (ValidateException $e) {
-            echo $e->getMessage();
+            return returnData(['code' => 404, 'msg' => $e->getMessage()]);
         }
     }
 
-    private function savePath($saveName, $type)
+    private function savePath($saveName, $type): array
     {
         $savePath = [];
         foreach ($saveName as $filepath) {
@@ -42,7 +40,7 @@ class File
         return $savePath;
     }
 
-    private function saveFile($files)
+    private function saveFile($files): array
     {
         $saveName = [];
         foreach ($files as $file1) {
@@ -63,14 +61,10 @@ class File
             $savePath = $this->savePath($this->saveFile($files), 2);
             return returnData($savePath);
         } catch (ValidateException $e) {
-            echo $e->getMessage();
+            return returnData(['code' => 404, 'msg' => $e->getMessage()]);
         }
     }
 
-    /**
-     * @throws ModelNotFoundException
-     * @throws DbException
-     */
     public function getFiles()
     {
         $type = input('post.type', '', 'strip_tags');
