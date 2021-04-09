@@ -9,11 +9,9 @@ use app\api\model\Juser;
 use app\api\model\Padmin;
 use app\api\model\Xuser;
 use thans\jwt\facade\JWTAuth;
-use think\Request;
 
 class Login
 {
-
     public function login(){
         $phone = input('post.phone','123456','htmlspecialchars');
         $username = input('post.username','123456','htmlspecialchars');
@@ -44,7 +42,7 @@ class Login
                 $userDate = $this->xLogin($where);
                 break;
             default:
-                return returnData(['msg'=>'非法参数'],201);
+                return returnData(["code" => 201, 'msg' => '非法参数']);
         }
         if (empty($userDate)){
             return returnData(['msg'=>'用户不存在'],201);
