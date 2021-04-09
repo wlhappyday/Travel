@@ -104,6 +104,10 @@ function addJuserLog($data,$info){
     $x_user_log = new \app\common\model\j_user_log();
     return $x_user_log->addData($data,$info);
 }
+function addPadminLog($data,$info){
+    $x_user_log = new \app\common\model\p_admin_log();
+    return $x_user_log->addData($data,$info);
+}
 
 /**
  * @author xi 2019/5/23 12:44
