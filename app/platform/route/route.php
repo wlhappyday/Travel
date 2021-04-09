@@ -1,5 +1,4 @@
 <?php
-
 use think\facade\Route;
 //产品模块
 Route::group('product', function () {
@@ -18,6 +17,7 @@ Route::group('user', function () {
 Route::group('account', function () {
     Route::post('personal', 'Account/personal');/*个人信息*/
     Route::post('enterprise', 'Account/enterprise');/*个人信息*/
+    Route::post('personal_save', 'Account/personalsave');/*个人信息保存*/
 });
 
 ?>
