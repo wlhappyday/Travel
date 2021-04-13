@@ -26,6 +26,16 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
+        if ($request['s'] == '/apidoc/config'){
+            return $next($request);
+        }
+        if ($request['s'] == '/apidoc/data'){
+            return $next($request);
+        }
+        if ($request['s'] == '/apidoc/auth'){
+            return $next($request);
+        }
+
         if ($request->server()['REQUEST_URI'] != "/api/login/login") {
             $auth = JWTAuth::auth();
             $modular = explode("/", $request->server()['REQUEST_URI'])[1];

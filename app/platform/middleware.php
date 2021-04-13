@@ -1,5 +1,5 @@
 <?php
     return [
-//        \app\middleware\swagger::class,
+        \app\middleware\swagger::class,
     ]
 ?>
