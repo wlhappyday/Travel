@@ -26,26 +26,25 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
-        if ($request['s'] == '/apidoc/config'){
+        if ($request['s'] == '/apidoc/config') {
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/data'){
+        if ($request['s'] == '/apidoc/data') {
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/auth'){
+        if ($request['s'] == '/apidoc/auth') {
             return $next($request);
         }
-
-//        if ($request->server()['REQUEST_URI'] != "/api/login/login") {
-//            $auth = JWTAuth::auth();
-//            $modular = explode("/", $request->server()['REQUEST_URI'])[1];
-//            if ($modular != 'api') {
-//                if ($this->array[$auth['type']->getValue()] != $modular) {
-//                    ErrorLog::create(["creat_time" => time(), 'date' => json_encode($request->server()), 'ip' => getIp(1111)['ip']]);
-//                    return returnData(['code' => 404, 'msg' => '无权限访问，访问有记录!请谨慎！']);
-//                }
-//            }
-//        }
+        if ($request->server()['REQUEST_URI'] != "/api/login/login") {
+            $auth = JWTAuth::auth();
+            $modular = explode("/", $request->server()['REQUEST_URI'])[1];
+            if ($modular != 'api') {
+                if ($this->array[$auth['type']->getValue()] != $modular) {
+                    ErrorLog::create(["creat_time" => time(), 'date' => json_encode($request->server()), 'ip' => getIp(1111)['ip']]);
+                    return returnData(['code' => 404, 'msg' => '无权限访问，访问有记录!请谨慎！']);
+                }
+            }
+        }
         return $next($request);
     }
 }
