@@ -19,6 +19,7 @@ Route::group('account', function () {
     Route::post('enterprise', 'Account/enterprise');/*个人信息*/
     Route::post('personal_save', 'Account/personalsave');/*个人信息保存*/
     Route::post('enterprise_save', 'Account/enterprisesave');/*企业信息保存*/
+    Route::post('password', 'Account/password');/*企业信息保存*/
 });
 
 ?>

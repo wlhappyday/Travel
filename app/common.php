@@ -46,6 +46,7 @@ function encryptionPasswd($passwd)
  */
 function checkPasswd($passwd, $data)
 {
+
     return $data['passwd'] == md5($data['passwd_salt'] . $passwd);
 }
 function returnData(array $data,int $code = 200,array $header=[]){

@@ -14,9 +14,6 @@ class swagger
      */
     public function handle($request, \Closure $next)
     {
-        if(!isUserToken(getDecodeToken(),2)){
-            return json(['msg'=>'操作成功','code'=>'202','sign'=>'Token错误或用户不存在或已被禁用']);
-        }
         $request->uid = getDecodeToken()['id'];
         $request->type = getDecodeToken()['type'];
         return $next($request);
