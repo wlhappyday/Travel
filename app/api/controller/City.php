@@ -21,6 +21,10 @@ echo json_encode($data,320);
         return returnData(['data'=>$data,'code'=>'200']);
     }
 
+    /**
+     * @author liujiong
+     * @Note  获取城市名称
+     */
     public function getcity(){
         $code = input('post.code/d');
         if(empty($code)){
