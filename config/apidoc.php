@@ -18,6 +18,7 @@ return [
     'groups'             => [
         ['title'=>'产品模块','name'=>'product'],
         ['title'=>'用户模块','name'=>'user'],
+        ['title'=>'账户中心','name'=>'account'],
     ],
     // 指定公共注释定义的文件地址
     'definitions'        => "app\api\controller\Login",
