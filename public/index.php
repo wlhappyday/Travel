@@ -14,15 +14,6 @@ namespace think;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// 设置允许其他域名访问
-header('Access-Control-Allow-Origin:*');
-
-// 设置允许的响应类型
-header('Access-Control-Allow-Methods:POST, GET');
-
-//
-header('Access-Control-Allow-Headers:x-requested-with,content-type,Authorization');
-
 // 执行HTTP应用并响应
 $http = (new App())->http;
 

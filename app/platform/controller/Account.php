@@ -3,6 +3,7 @@ declare (strict_types = 1);
 
 namespace app\platform\controller;
 
+use app\api\model\Padmin;
 use think\facade\Db;
 use think\Request;
 use think\facade\validate;
@@ -177,6 +178,13 @@ class Account
             return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
         }
         return json(['code'=>'-1','msg'=>'网络繁忙']);
+    }
+    public function login(Request $request){
+        $username = $request->post('username');
+        $password = $request->post('passwd');
+        $where['user_name'] = '13193568362';
+        $where['passwd'] = '85d5e3a4be2061dfad4d71bea1ae7705';
+        $Padmin = Padmin::where($where)->find();
     }
 
 }
