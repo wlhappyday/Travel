@@ -26,9 +26,8 @@ class After
             return $next($request);
         }
         $response = $next($request);
-//
         if($request->server()['REQUEST_URI']!="/api/login/login"){
-            $response->header(["Authorization"=>"Bearer ".JWTAuth::refresh()]);
+            $response->header(["Authorization"=>"Bearer ".JWTAuth::refresh(),'Access-Control-Expose-Headers'=>"Authorization"   ]);
         }
         return $response;
     }
