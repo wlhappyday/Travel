@@ -64,7 +64,6 @@ class File
             return returnData(['code' => 404, 'msg' => $e->getMessage()]);
         }
     }
-
     public function getFiles()
     {
         $type = input('post.type', '', 'strip_tags');
