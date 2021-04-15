@@ -98,15 +98,15 @@ function isUserToken($data,$type){
  * @param $info   操作内容
  */
 function addXuserLog($data,$info){
-    $x_user_log = new \app\common\model\x_user_log();
+    $x_user_log = new \app\common\model\XuserLog();
     return $x_user_log->addData($data,$info);
 }
 function addJuserLog($data,$info){
-    $x_user_log = new \app\common\model\j_user_log();
+    $x_user_log = new \app\common\model\JuserLog();
     return $x_user_log->addData($data,$info);
 }
 function addPadminLog($data,$info){
-    $x_user_log = new \app\common\model\p_admin_log();
+    $x_user_log = new \app\common\model\PadminLog();
     return $x_user_log->addData($data,$info);
 }
 

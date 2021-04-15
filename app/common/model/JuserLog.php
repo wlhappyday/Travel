@@ -10,10 +10,10 @@ use hg\apidoc\annotation\AddField;
 /**
  * @mixin \think\Model
  */
-class x_user_log extends Model
+class JuserLog extends Model
 {
     //
-    protected $name = 'x_user_log';
+    protected $name = 'j_user_log';
 
     public function addData($data,$info){
         $arr = getIp();
