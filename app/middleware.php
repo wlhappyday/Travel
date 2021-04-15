@@ -1,12 +1,7 @@
 <?php
+    return [
+        \app\middleware\Auth::class,
+        \app\middleware\After::class
 
-use app\middleware\After;
-use app\middleware\Auth;
-use think\middleware\AllowCrossDomain;
-
-return [
-    Auth::class,
-    After::class,
-    AllowCrossDomain::class
-]
+    ]
 ?>

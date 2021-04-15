@@ -14,8 +14,8 @@ class swagger
      */
     public function handle($request, \Closure $next)
     {
-        $request->uid = getDecodeToken()['id'];
-        $request->type = getDecodeToken()['type'];
+       /* $request->uid = getDecodeToken()['id'];
+        $request->type = getDecodeToken()['type'];*/
         return $next($request);
     }
 }
