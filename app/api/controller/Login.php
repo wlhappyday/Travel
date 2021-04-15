@@ -69,11 +69,7 @@ class Login
             'ip' => getIp(1111)['ip'],
         ];
         Log::create($logData);
-<<<<<<< HEAD
         return returnData($userInfo, 200, ['Authorization' => "Bearer " . JWTAuth::builder($userInfo),'Access-Control-Expose-Headers'=>"Authorization"]);
-=======
-        return returnData($userInfo, 200, ['Authorization' => "Bearer " . JWTAuth::builder($userInfo), 'Access-Control-Expose-Headers' => "Authorization"]);
->>>>>>> 1d60d9487a575e51b12943ce63dab7df264506df
     }
     public function adminLogin($where){
         return Admin::where($where)->find();

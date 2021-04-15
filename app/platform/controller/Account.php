@@ -185,7 +185,6 @@ class Account
         $where['user_name'] = '13193568362';
         $where['passwd'] = '85d5e3a4be2061dfad4d71bea1ae7705';
         $Padmin = Padmin::where($where)->find();
-
     }
 
 }
