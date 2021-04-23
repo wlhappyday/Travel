@@ -52,9 +52,10 @@ class User
      */
     public function create(Request $request)
     {
-        $data = $request->get();
+        $uid = $request->uid;
+        $data = $request->post();
+        $data['uid'] = $uid;
         $user= new p_user();
-
         $flag  = $user->add($data);
         if($flag != 1){
             return json(['code'=>'201','msg'=>$flag]);
@@ -74,15 +75,8 @@ class User
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      * @Apidoc\Returned("msg",type="string",desc="任务提示")
      */
-    public function save(Request $request)
-    {
+    public function save(Request $request){
         $data = $request->get();
-        $user= new p_user();
-        $flag  = $user->edit($data);
-        if($flag != 1){
-            return json(['code'=>'201','msg'=>$flag]);
-        }
-        return json(['code'=>'200','msg'=>'修改成功']);
     }
 
 }

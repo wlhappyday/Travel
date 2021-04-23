@@ -10,7 +10,7 @@ use hg\apidoc\annotation\AddField;
 /**
  * @mixin \think\Model
  */
-class x_product_class extends Model
+class XproductClass extends Model
 {
     //
     protected $name = 'x_product_class';

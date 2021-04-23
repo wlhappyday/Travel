@@ -73,7 +73,7 @@ class Login
             'ip' => getIp(1111)['ip'],
         ];
         Log::create($logData);
-        return returnData($userInfo, 200, ['Authorization' => "Bearer " . JWTAuth::builder($userInfo), 'Access-Control-Expose-Headers' => "Authorization"]);
+        return returnData($userInfo, 200, ['Authorization' => "Bearer " . JWTAuth::builder($userInfo),'Access-Control-Expose-Headers'=>"Authorization"]);
     }
 
     public function adminLogin($where)

@@ -7,12 +7,15 @@ use think\Model;
 use hg\apidoc\annotation\Field;
 use hg\apidoc\annotation\WithoutField;
 use hg\apidoc\annotation\AddField;
+use think\model\concern\SoftDelete;
+
 /**
  * @mixin \think\Model
  */
-class j_product_class extends Model
+class Xuser extends Model
 {
-    //
-    protected $name = 'j_product_class';
+    use SoftDelete;
+    protected $name = 'x_user';
     protected $autoWriteTimestamp = true;
+    protected $deleteTime = 'delete_time';
 }

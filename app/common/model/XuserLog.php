@@ -7,15 +7,14 @@ use think\Model;
 use hg\apidoc\annotation\Field;
 use hg\apidoc\annotation\WithoutField;
 use hg\apidoc\annotation\AddField;
-use think\model\concern\SoftDelete;
 /**
  * @mixin \think\Model
  */
-class p_admin_log extends Model
+class XuserLog extends Model
 {
     //
-    protected $name = 'p_admin_log';
-    use SoftDelete;
+    protected $name = 'x_user_log';
+
     public function addData($data,$info){
         $arr = getIp();
         return $this->insert([
