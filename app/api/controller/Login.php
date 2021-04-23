@@ -7,6 +7,7 @@ namespace app\api\controller;
 use app\api\model\Admin;
 use app\api\model\Juser;
 use app\api\model\Padmin;
+use app\api\model\Puser;
 use app\api\model\Xuser;
 use app\common\model\Log;
 use thans\jwt\facade\JWTAuth;
@@ -43,6 +44,9 @@ class Login
             case 4:
                 $userDate = $this->xLogin($where);
                 break;
+            case 5:
+                $userDate = $this->pLogin($where);
+                break;
             default:
                 return returnData(["code" => 201, 'msg' => '非法参数']);
         }
@@ -71,17 +75,30 @@ class Login
         Log::create($logData);
         return returnData($userInfo, 200, ['Authorization' => "Bearer " . JWTAuth::builder($userInfo), 'Access-Control-Expose-Headers' => "Authorization"]);
     }
-    public function adminLogin($where){
+
+    public function adminLogin($where)
+    {
         return Admin::where($where)->find();
     }
-    public function jLogin($where){
+
+    public function jLogin($where)
+    {
         return Juser::where($where)->find();
     }
-    public function xLogin($where){
+
+    public function xLogin($where)
+    {
         return Xuser::where($where)->find();
     }
-    public function pAdmin($where){
+
+    public function pAdmin($where)
+    {
         return Padmin::where($where)->find();
+    }
+
+    public function pLogin($where)
+    {
+        return Puser::where($where)->find();
     }
 
 }
