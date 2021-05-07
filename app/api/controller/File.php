@@ -36,7 +36,7 @@ class File
                 'create_time' => time(),
                 'file_path' => "/storage" . $filepath1
             ]);
-            $savePath[] = ['fileId' => $file->id];
+            $savePath[] = ['fileId' => $file->id, "file_path" => "/storage" . $filepath1];
         }
         return $savePath;
     }
