@@ -1,8 +1,12 @@
 <?php
 // 这是系统自动生成的公共文件
+use app\common\model\JuserLog;
+use app\common\model\PadminLog;
+use app\common\model\XuserLog;
 use thans\jwt\facade\JWTAuth;
 
-function p($arr){
+function p($arr)
+{
     echo "<pre>";
     var_dump($arr);
     die();
@@ -67,7 +71,6 @@ function getDecodeToken(){
 }
 
 /**
- * @author liujiong
  * @Note  验证Token
  */
 function isUserToken($data,$type){
@@ -92,21 +95,20 @@ function isUserToken($data,$type){
 }
 
 /**
- * @author liujiong
  * @Note   增加日志记录
  * @param $data   token解密信息
  * @param $info   操作内容
  */
 function addXuserLog($data,$info){
-    $x_user_log = new \app\common\model\XuserLog();
+    $x_user_log = new XuserLog();
     return $x_user_log->addData($data,$info);
 }
 function addJuserLog($data,$info){
-    $x_user_log = new \app\common\model\JuserLog();
+    $x_user_log = new JuserLog();
     return $x_user_log->addData($data,$info);
 }
 function addPadminLog($data,$info){
-    $x_user_log = new \app\common\model\PadminLog();
+    $x_user_log = new PadminLog();
     return $x_user_log->addData($data,$info);
 }
 

@@ -3,9 +3,7 @@ declare (strict_types = 1);
 
 namespace app\middleware;
 
-use app\common\model\ErrorLog;
 use Closure;
-use thans\jwt\facade\JWTAuth;
 
 class Auth
 {
@@ -26,28 +24,32 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
-        if ($request['s'] == '/apidoc/config'){
-            return $next($request);
-        }
-        if ($request['s'] == '/apidoc/data'){
-            return $next($request);
-        }
-        if ($request['s'] == '/apidoc/auth'){
-            return $next($request);
-        }
-        header("Access-Control-Allow-Origin:*");
-        header("Access-Control-Allow-Methods:GET, POST, OPTIONS, DELETE");
-        header("Access-Control-Allow-Headers:token,DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type, Accept-Language, Origin, Accept-Encoding");
-        if ($request->server()['REQUEST_URI'] != "/api/login/login") {
-            $auth = JWTAuth::auth();
-            $modular = explode("/", $request->server()['REQUEST_URI'])[1];
-            if ($modular != 'api') {
-                if ($this->array[$auth['type']->getValue()] != $modular) {
-                    ErrorLog::create(["creat_time" => time(), 'date' => json_encode($request->server()), 'ip' => getIp(1111)['ip']]);
-                    return returnData(['code' => 404, 'msg' => '无权限访问，访问有记录!请谨慎！']);
-                }
-            }
-        }
+//        if ($request['s'] == '/apidoc/config'){
+//            return $next($request);
+//        }
+//        if ($request['s'] == '/apidoc/data'){
+//            return $next($request);
+//        }
+//        if ($request['s'] == '/apidoc/auth'){
+//            return $next($request);
+//        }
+//        if ($request->server()['REQUEST_URI'] != "/api/login/ceshi") {
+//            return $next($request);
+//        }
+//        header("Access-Control-Allow-Origin:*");
+//        header("Access-Control-Allow-Methods:GET, POST, OPTIONS, DELETE");
+//        header("Access-Control-Allow-Headers:token,DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type, Accept-Language, Origin, Accept-Encoding");
+//        if ($request->server()['REQUEST_URI'] != "/api/login/login") {
+//            $auth = JWTAuth::auth();
+//            $modular = explode("/", $request->server()['REQUEST_URI'])[1];
+//            if ($modular != 'api') {
+//                if ($this->array[$auth['type']->getValue()] != $modular) {
+//                    ErrorLog::create(["creat_time" => time(), 'date' => json_encode($request->server()), 'ip' => getIp(1111)['ip']]);
+//                    return returnData(['code' => 404, 'msg' => '无权限访问，访问有记录!请谨慎！']);
+//                }
+//            }
+//        }
+
         return $next($request);
     }
 }

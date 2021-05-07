@@ -73,7 +73,74 @@ class Login
             'ip' => getIp(1111)['ip'],
         ];
         Log::create($logData);
-        return returnData($userInfo, 200, ['Authorization' => "Bearer " . JWTAuth::builder($userInfo),'Access-Control-Expose-Headers'=>"Authorization"]);
+        return returnData($userInfo, 200, ['Authorization' => "Bearer " . JWTAuth::builder($userInfo), 'Access-Control-Expose-Headers' => "Authorization"]);
+    }
+
+    public static function sendRequest($url, $params = [], $method = 'POST', $options = [])
+    {
+        $method = strtoupper($method);
+        $protocol = substr($url, 0, 5);
+        $query_string = is_array($params) ? http_build_query($params) : $params;
+
+        $ch = curl_init();
+        $defaults = [];
+        if ('GET' == $method) {
+            $geturl = $query_string ? $url . (stripos($url, "?") !== FALSE ? "&" : "?") . $query_string : $url;
+            $defaults[CURLOPT_URL] = $geturl;
+        } else {
+            $defaults[CURLOPT_URL] = $url;
+            if ($method == 'POST') {
+                $defaults[CURLOPT_POST] = 1;
+            } else {
+                $defaults[CURLOPT_CUSTOMREQUEST] = $method;
+            }
+            $defaults[CURLOPT_POSTFIELDS] = $query_string;
+        }
+        $defaults[CURLOPT_HEADER] = FALSE;
+        $defaults[CURLOPT_USERAGENT] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.98 Safari/537.36";
+        $defaults[CURLOPT_FOLLOWLOCATION] = TRUE;
+        $defaults[CURLOPT_RETURNTRANSFER] = TRUE;
+        $defaults[CURLOPT_CONNECTTIMEOUT] = 5;
+        $defaults[CURLOPT_TIMEOUT] = 5;
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
+        if ('https' == $protocol) {
+            $defaults[CURLOPT_SSL_VERIFYPEER] = FALSE;
+            $defaults[CURLOPT_SSL_VERIFYHOST] = FALSE;
+        }
+
+        curl_setopt_array($ch, (array)$options + $defaults);
+
+        $ret = curl_exec($ch);
+        $err = curl_error($ch);
+
+        if (FALSE === $ret || !empty($err)) {
+            $errno = curl_errno($ch);
+            $info = curl_getinfo($ch);
+            curl_close($ch);
+            return [
+                'ret' => FALSE,
+                'errno' => $errno,
+                'msg' => $err,
+                'info' => $info,
+            ];
+        } else {
+            curl_close($ch);
+            return [
+                'ret' => TRUE,
+                'msg' => $ret,
+            ];
+        }
+
+    }
+
+    public function ceshi()
+    {
+        $post_data = array(
+            "title" => "1290800466",
+            "content" => "3424243243"
+        );
+        $data = $this->sendRequest("http://127.0.0.1:9999/pay/notify", $post_data);
+        print_r($data);
     }
 
     public function adminLogin($where)

@@ -30,10 +30,11 @@ class File
     {
         $savePath = [];
         foreach ($saveName as $filepath) {
+            $filepath1 = str_replace("\\", "/", $filepath);
             $file = \app\common\model\File::create([
                 'type' => $type,
                 'create_time' => time(),
-                'file_path' => $filepath
+                'file_path' => "/storage" . $filepath1
             ]);
             $savePath[] = ['fileId' => $file->id];
         }
