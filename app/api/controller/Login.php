@@ -19,7 +19,7 @@ class Login
         $phone = input('post.phone', '123456', 'strip_tags');
         $username = input('post.username', '123456', 'strip_tags');
         $passwd = input('post.passwd', '123456', 'strip_tags');
-        $type = input('post.type/d', '5');
+        $type = input('post.type/d', '1');
         if ($username != null) {
             $where['user_name'] = $username;
         } elseif ($phone != null) {

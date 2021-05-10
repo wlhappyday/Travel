@@ -31,17 +31,18 @@ function get_rand_char($length){
     return $str;
 }
 /**
+ * @param $passwd
+ * @return array
  * @author WjngJiamao
  * @Note   密码加密
- * @param $passwd   明文密码
- * @return array
  */
-function encryptionPasswd($passwd)
+function encryptionPasswd($passwd): array
 {
     $passwdSalt = get_rand_char(20);
 
     return ['passwd' => md5($passwdSalt . $passwd), 'passwd_salt' => $passwdSalt];
 }
+
 /**
  * @author WjngJiamao
  * @Note  验证密码
@@ -155,15 +156,23 @@ function getIp($type='') {
 }
 function getCity($ip = '')//获取地区
 {
-    $url = "http://api.map.baidu.com/location/ip?ak=M7Mc1jF8vmzGNx7XL1TAgHbBWB8oyuwv&ip=".$ip;
-    $ip=json_decode(file_get_contents($url),true);
-    if(!isset($ip['content'])){
-        return ['city'=>'未知','province'=>'未知'];
+    $url = "http://api.map.baidu.com/location/ip?ak=M7Mc1jF8vmzGNx7XL1TAgHbBWB8oyuwv&ip=" . $ip;
+    $ip = json_decode(file_get_contents($url), true);
+    if (!isset($ip['content'])) {
+        return ['city' => '未知', 'province' => '未知'];
     }
-    if(!isset($ip['content']['address'])){
-        return ['city'=>'未知','province'=>'未知'];
+    if (!isset($ip['content']['address'])) {
+        return ['city' => '未知', 'province' => '未知'];
     }
     $data['city'] = $ip['content']['address'];
     $data['province'] = $ip['content']['address_detail']['province'];
     return $data;
+}
+
+function startwith($str, $pattern)
+{
+    if (strpos($str, $pattern) === 0)
+        return true;
+    else
+        return false;
 }
