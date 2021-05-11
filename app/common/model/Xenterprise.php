@@ -14,6 +14,5 @@ use think\model\concern\SoftDelete;
  */
 class Xenterprise extends Model
 {
-    use SoftDelete;
     protected $name = 'x_enterprise';
 }
