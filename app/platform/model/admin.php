@@ -12,7 +12,7 @@ use think\model\concern\SoftDelete;
 /**
  * @mixin \think\Model
  */
-class admin extends Model
+class Admin extends Model
 {
     //
     use SoftDelete;

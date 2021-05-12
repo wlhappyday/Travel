@@ -75,7 +75,6 @@ class JWT
      */
     public function getPayload()
     {
-
         $this->requireToken();
 
         return $this->manager->decode($this->token);

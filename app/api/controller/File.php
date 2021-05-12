@@ -34,9 +34,9 @@ class File
             $file = \app\common\model\File::create([
                 'type' => $type,
                 'create_time' => time(),
-                'file_path' => "/storage" . $filepath1
+                'file_path' => "/storage/" . $filepath1
             ]);
-            $savePath[] = ['fileId' => $file->id, "file_path" => "/storage" . $filepath1];
+            $savePath[] = ['fileId' => $file->id, "file_path" => http()."/storage/" . $filepath1];
         }
         return $savePath;
     }

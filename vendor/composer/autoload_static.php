@@ -26,6 +26,10 @@ class ComposerStaticInitdee8034762420b50e5bc0f0aec919779
             'think\\' => 6,
             'thans\\jwt\\' => 10,
         ),
+        'h' => 
+        array (
+            'hg\\apidoc\\' => 10,
+        ),
         'a' => 
         array (
             'app\\' => 4,
@@ -36,6 +40,7 @@ class ComposerStaticInitdee8034762420b50e5bc0f0aec919779
             'Symfony\\Polyfill\\Php72\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Component\\VarDumper\\' => 28,
+            'Symfony\\Component\\ClassLoader\\' => 30,
         ),
         'P' => 
         array (
@@ -51,6 +56,15 @@ class ComposerStaticInitdee8034762420b50e5bc0f0aec919779
             'League\\Flysystem\\Cached\\' => 24,
             'League\\Flysystem\\' => 17,
             'Lcobucci\\JWT\\' => 13,
+        ),
+        'F' => 
+        array (
+            'Firebase\\JWT\\' => 13,
+        ),
+        'D' => 
+        array (
+            'Doctrine\\Common\\Lexer\\' => 22,
+            'Doctrine\\Common\\Annotations\\' => 28,
         ),
     );
 
@@ -82,6 +96,10 @@ class ComposerStaticInitdee8034762420b50e5bc0f0aec919779
         array (
             0 => __DIR__ . '/..' . '/thans/tp-jwt-auth/src',
         ),
+        'hg\\apidoc\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/hg/apidoc/src',
+        ),
         'app\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
@@ -101,6 +119,10 @@ class ComposerStaticInitdee8034762420b50e5bc0f0aec919779
         'Symfony\\Component\\VarDumper\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/var-dumper',
+        ),
+        'Symfony\\Component\\ClassLoader\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/class-loader',
         ),
         'Psr\\SimpleCache\\' => 
         array (
@@ -138,6 +160,28 @@ class ComposerStaticInitdee8034762420b50e5bc0f0aec919779
         array (
             0 => __DIR__ . '/..' . '/lcobucci/jwt/src',
         ),
+        'Firebase\\JWT\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
+        'Doctrine\\Common\\Lexer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/lexer/lib/Doctrine/Common/Lexer',
+        ),
+        'Doctrine\\Common\\Annotations\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/annotations/lib/Doctrine/Common/Annotations',
+        ),
+    );
+
+    public static $prefixesPsr0 = array (
+        'P' => 
+        array (
+            'PHPExcel' => 
+            array (
+                0 => __DIR__ . '/..' . '/phpoffice/phpexcel/Classes',
+            ),
+        ),
     );
 
     public static $fallbackDirsPsr0 = array (
@@ -157,6 +201,7 @@ class ComposerStaticInitdee8034762420b50e5bc0f0aec919779
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInitdee8034762420b50e5bc0f0aec919779::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitdee8034762420b50e5bc0f0aec919779::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitdee8034762420b50e5bc0f0aec919779::$prefixesPsr0;
             $loader->fallbackDirsPsr0 = ComposerStaticInitdee8034762420b50e5bc0f0aec919779::$fallbackDirsPsr0;
             $loader->classMap = ComposerStaticInitdee8034762420b50e5bc0f0aec919779::$classMap;
 

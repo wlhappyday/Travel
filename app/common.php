@@ -2,7 +2,6 @@
 // 这是系统自动生成的公共文件
 use app\common\model\JuserLog;
 use app\common\model\PadminLog;
-use app\common\model\AdminLog;
 use app\common\model\XuserLog;
 use thans\jwt\facade\JWTAuth;
 
@@ -31,18 +30,17 @@ function get_rand_char($length){
     return $str;
 }
 /**
- * @param $passwd
- * @return array
  * @author WjngJiamao
  * @Note   密码加密
+ * @param $passwd   明文密码
+ * @return array
  */
-function encryptionPasswd($passwd): array
+function encryptionPasswd($passwd)
 {
     $passwdSalt = get_rand_char(20);
 
     return ['passwd' => md5($passwdSalt . $passwd), 'passwd_salt' => $passwdSalt];
 }
-
 /**
  * @author WjngJiamao
  * @Note  验证密码
@@ -52,7 +50,6 @@ function encryptionPasswd($passwd): array
  */
 function checkPasswd($passwd, $data)
 {
-
     return $data['passwd'] == md5($data['passwd_salt'] . $passwd);
 }
 function returnData(array $data,int $code = 200,array $header=[]){
@@ -113,10 +110,6 @@ function addPadminLog($data,$info){
     $x_user_log = new PadminLog();
     return $x_user_log->addData($data,$info);
 }
-function addAdminLog($data,$info){
-    $x_user_log = new AdminLog();
-    return $x_user_log->addData($data,$info);
-}
 
 /**
  * @author xi 2019/5/23 12:44
@@ -156,23 +149,36 @@ function getIp($type='') {
 }
 function getCity($ip = '')//获取地区
 {
-    $url = "http://api.map.baidu.com/location/ip?ak=M7Mc1jF8vmzGNx7XL1TAgHbBWB8oyuwv&ip=" . $ip;
-    $ip = json_decode(file_get_contents($url), true);
-    if (!isset($ip['content'])) {
-        return ['city' => '未知', 'province' => '未知'];
+    $url = "http://api.map.baidu.com/location/ip?ak=M7Mc1jF8vmzGNx7XL1TAgHbBWB8oyuwv&ip=".$ip;
+    $ip=json_decode(file_get_contents($url),true);
+    if(!isset($ip['content'])){
+        return ['city'=>'未知','province'=>'未知'];
     }
-    if (!isset($ip['content']['address'])) {
-        return ['city' => '未知', 'province' => '未知'];
+    if(!isset($ip['content']['address'])){
+        return ['city'=>'未知','province'=>'未知'];
     }
     $data['city'] = $ip['content']['address'];
     $data['province'] = $ip['content']['address_detail']['province'];
     return $data;
 }
+//获取域名
+function http(){
+    $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
+    $SERVER_NAME = $_SERVER['SERVER_NAME'];
+    $SERVER_NAME = '192.168.0.115';
+    return $http_type.$SERVER_NAME;
+}
 
-function startwith($str, $pattern)
-{
-    if (strpos($str, $pattern) === 0)
-        return true;
-    else
-        return false;
+//GET提交
+function httpGet($url) {
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 500);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($curl, CURLOPT_URL, $url);
+
+    $res = curl_exec($curl);
+    curl_close($curl);
+    return $res;
 }

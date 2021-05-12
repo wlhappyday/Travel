@@ -73,8 +73,7 @@ class Lcobucci extends Provider
         try {
             $jwt = $this->parser->parse($token);
         } catch (Exception $e) {
-            return null;
-            p('Could not decode token: '
+            throw new TokenInvalidException('Could not decode token: '
                 .$e->getMessage(), $e->getCode(), $e);
         }
 

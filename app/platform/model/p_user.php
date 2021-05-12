@@ -12,7 +12,7 @@ use think\facade\Db;
 /**
  * @mixin \think\Model
  */
-class p_user extends Model
+class P_user extends Model
 {
     //
     use SoftDelete;
@@ -64,6 +64,14 @@ class p_user extends Model
      * @field("username,last_time,create_time,last_ip,status")
      */
     public function info($id){
+        $res = $this->get($id);
+        return $res;
+    }
+
+    /**
+     * @field("weach,QQ,avatar,nickname,phone,position,address")
+     */
+    public function personal($id){
         $res = $this->get($id);
         return $res;
     }

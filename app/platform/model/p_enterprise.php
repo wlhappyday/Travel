@@ -10,7 +10,7 @@ use hg\apidoc\annotation\AddField;
 /**
  * @mixin \think\Model
  */
-class p_enterprise extends Model
+class P_enterprise extends Model
 {
     protected $name = 'p_enterprise';
     protected $autoWriteTimestamp = true;

@@ -9,8 +9,14 @@ use app\api\model\Juser;
 use app\api\model\Padmin;
 use app\api\model\Puser;
 use app\api\model\Xuser;
+use app\common\model\Puseruser;
 use app\common\model\Log;
+use app\common\model\File;
+use app\user\model\Config;
 use thans\jwt\facade\JWTAuth;
+use \Firebase\JWT\JWT;
+use think\facade\Db;
+use think\Request;
 
 class Login
 {
@@ -19,7 +25,7 @@ class Login
         $phone = input('post.phone', '123456', 'strip_tags');
         $username = input('post.username', '123456', 'strip_tags');
         $passwd = input('post.passwd', '123456', 'strip_tags');
-        $type = input('post.type/d', '1');
+        $type = input('post.type/d', '5');
         if ($username != null) {
             $where['user_name'] = $username;
         } elseif ($phone != null) {
@@ -37,6 +43,8 @@ class Login
                 break;
             case 2:
                 $userDate = $this->pAdmin($where);
+
+                $userDate['avatar'] = http().File::where('id',$userDate['avatar'])->value('file_path');
                 break;
             case 3:
                 $userDate = $this->jLogin($where);
@@ -47,6 +55,7 @@ class Login
             case 5:
                 $userDate = $this->pLogin($where);
                 break;
+
             default:
                 return returnData(["code" => 201, 'msg' => '非法参数']);
         }
@@ -167,5 +176,56 @@ class Login
     {
         return Puser::where($where)->find();
     }
+    public function SignLogin(Request $request){
+        if ($request->isPost()){
+            $appid = trim($request->post('appid'));
+            $nickName = trim($request->post('nickName'));
+            $address = trim($request->post('address'));
+            $gender = trim($request->post('gender'));
+            $avatar = trim($request->post('avatar'));
+            $code = trim($request->post('code'));
+            if ($appid && $nickName && $address && $gender && $avatar && $code) {
+                $appid = Config::where(['value'=>$appid])->value('value');
+                if ($address){
+                    $secret = Config::where(['title'=>'AppSecret'])->value('value');
+                    $session_key = json_decode(httpGet("https://api.weixin.qq.com/sns/jscode2session?appid=".$appid."&secret=".$secret."&js_code=".$code."&grant_type=authorization_code"),true);
+                    Db::startTrans();
+                    try{
+                        $uid = Puseruser::where(['openid'=>$session_key['openid'],'appid'=>$appid])->find();
 
+                        if ($uid){
+                            $save['appid']= $uid['appid'];
+                            $save['nickname'] = $uid['nickname'];
+                            $save['sex'] = $uid['sex'];
+                            $save['address'] = $uid['address'];
+                            $save['avatar'] = $uid['avatar'];
+                            $save['openid']=$uid['openid'];
+                        }else{
+                            $user = new Puseruser;
+                            $save['appid']= $appid;
+                            $save['nickname'] = $nickName;
+                            $save['sex'] = $gender;
+                            $save['address'] = $address;
+                            $save['avatar'] = $avatar;
+                            $save['openid']=$session_key['openid'];
+                            $user->save($save);
+                            DB::commit();
+                        }
+                        header('Authorization:'."Bearer " . JWTAuth::builder($save));
+                        return json(['code'=>'200','msg'=>'操作成功','session_key'=>$session_key]);
+                    }catch (\Exception $e){
+                        Db::rollback();
+                        return json(['code'=>'-1','msg'=>$e->getMessage()]);
+                    }
+                }else{
+                    return json(['code'=>'-1','msg'=>'门店不存在']);
+                }
+
+            }else{
+                return json(['code'=>'-1','msg'=>'请检查参数']);
+            }
+        }else{
+            return json(['code'=>'-1','msg'=>'请使用Post提交']);
+        }
+    }
 }

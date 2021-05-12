@@ -6,11 +6,47 @@
     'aliases' => 
     array (
     ),
-    'reference' => '6e4a9a7e7b05886e31e34d3c8cff0bf40477d077',
+    'reference' => '635304670ab220769898fc1d621ae029acb236fe',
     'name' => 'topthink/think',
   ),
   'versions' => 
   array (
+    'doctrine/annotations' => 
+    array (
+      'pretty_version' => '1.12.1',
+      'version' => '1.12.1.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'b17c5014ef81d212ac539f07a1001832df1b6d3b',
+    ),
+    'doctrine/lexer' => 
+    array (
+      'pretty_version' => '1.2.1',
+      'version' => '1.2.1.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'e864bbf5904cb8f5bb334f99209b48018522f042',
+    ),
+    'firebase/php-jwt' => 
+    array (
+      'pretty_version' => 'v5.2.1',
+      'version' => '5.2.1.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'f42c9110abe98dd6cfe9053c49bc86acc70b2d23',
+    ),
+    'hg/apidoc' => 
+    array (
+      'pretty_version' => 'v2.5.2',
+      'version' => '2.5.2.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'c36c77081a17586cc9ff873afd34dc6d78409dea',
+    ),
     'lcobucci/jwt' => 
     array (
       'pretty_version' => '3.3.3',
@@ -47,6 +83,15 @@
       ),
       'reference' => '3b9dff8aaf7323590c1d2e443db701eb1f9aa0d3',
     ),
+    'phpoffice/phpexcel' => 
+    array (
+      'pretty_version' => '1.8.2',
+      'version' => '1.8.2.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => '1441011fb7ecdd8cc689878f54f8b58a6805f870',
+    ),
     'psr/cache' => 
     array (
       'pretty_version' => '1.0.1',
@@ -82,6 +127,15 @@
       array (
       ),
       'reference' => '408d5eafb83c57f6365a3ca330ff23aa4a5fa39b',
+    ),
+    'symfony/class-loader' => 
+    array (
+      'pretty_version' => 'v3.2.14',
+      'version' => '3.2.14.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'e192d96b15fdd168bdb1c91001d26c93ba4af482',
     ),
     'symfony/polyfill-mbstring' => 
     array (
@@ -121,12 +175,12 @@
     ),
     'thans/tp-jwt-auth' => 
     array (
-      'pretty_version' => 'v1.1.1',
-      'version' => '1.1.1.0',
+      'pretty_version' => 'v1.1.2',
+      'version' => '1.1.2.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'e1a4f3634333f86f68398fccf753949f666d9b4e',
+      'reference' => 'cbd596ef27a938a9176880a3340529842930d5da',
     ),
     'topthink/framework' => 
     array (
@@ -144,7 +198,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => '6e4a9a7e7b05886e31e34d3c8cff0bf40477d077',
+      'reference' => '635304670ab220769898fc1d621ae029acb236fe',
     ),
     'topthink/think-helper' => 
     array (
