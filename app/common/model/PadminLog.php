@@ -15,7 +15,6 @@ class PadminLog extends Model
 {
     //
     protected $name = 'p_admin_log';
-    use SoftDelete;
     public function addData($data,$info){
         $arr = getIp();
         return $this->insert([
