@@ -178,21 +178,20 @@ class Login
     }
     public function SignLogin(Request $request){
         if ($request->isPost()){
-            $appid = trim($request->post('appid'));
-            $nickName = trim($request->post('nickName'));
-            $address = trim($request->post('address'));
-            $gender = trim($request->post('gender'));
-            $avatar = trim($request->post('avatar'));
-            $code = trim($request->post('code'));
+            $appid = $request->post('appid');
+            $nickName = $request->post('nickName');
+            $address = $request->post('address');
+            $gender = $request->post('gender');
+            $avatar = $request->post('avatar');
+            $code = $request->post('code');
             if ($appid && $nickName && $address && $gender && $avatar && $code) {
-                $appid = Config::where(['value'=>$appid])->value('value');
-                if ($address){
-                    $secret = Config::where(['title'=>'AppSecret'])->value('value');
+                $user = Puser::where(['appid'=>$appid])->field('appkey,id')->find();
+                if ($user){
+                    $secret =Puser::where(['appid'=>$appid])->value('appkey');
                     $session_key = json_decode(httpGet("https://api.weixin.qq.com/sns/jscode2session?appid=".$appid."&secret=".$secret."&js_code=".$code."&grant_type=authorization_code"),true);
                     Db::startTrans();
                     try{
                         $uid = Puseruser::where(['openid'=>$session_key['openid'],'appid'=>$appid])->find();
-
                         if ($uid){
                             $save['appid']= $uid['appid'];
                             $save['nickname'] = $uid['nickname'];
@@ -200,15 +199,20 @@ class Login
                             $save['address'] = $uid['address'];
                             $save['avatar'] = $uid['avatar'];
                             $save['openid']=$uid['openid'];
+                            $save['puser_id'] = $uid['id'];
+                            $uid->last_time = time();
+                            $uid->save();
                         }else{
-                            $user = new Puseruser;
+                            $Puseruser = new Puseruser;
                             $save['appid']= $appid;
                             $save['nickname'] = $nickName;
                             $save['sex'] = $gender;
                             $save['address'] = $address;
                             $save['avatar'] = $avatar;
+                            $save['puser_id'] = $user['id'];
                             $save['openid']=$session_key['openid'];
-                            $user->save($save);
+                            $save['last_time']=time();
+                            $Puseruser->save($save);
                             DB::commit();
                         }
                         header('Authorization:'."Bearer " . JWTAuth::builder($save));
@@ -220,8 +224,17 @@ class Login
                 }else{
                     return json(['code'=>'-1','msg'=>'门店不存在']);
                 }
-
             }else{
+                if ($appid){
+                    $user = Puser::where(['appid'=>$appid])->find();
+                    if ($user){
+                        $save['appid']=$appid;
+                        $save['puser_id']=$user['id'];
+                        header('Authorization:'."Bearer " . JWTAuth::builder($save));
+                        return json(['code'=>'200','msg'=>'操作成功']);
+                    }
+                    return json(['code'=>'-1','msg'=>'抱歉，门店不存在']);
+                }
                 return json(['code'=>'-1','msg'=>'请检查参数']);
             }
         }else{

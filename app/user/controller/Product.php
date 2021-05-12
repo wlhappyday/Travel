@@ -26,7 +26,6 @@ class Product
      * @Apidoc\Method("GET")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("title", type="number",require=true, desc="产品标题")
      * @Apidoc\Param("name", type="number",require=true, desc="产品名称")
      * @Apidoc\Param("type", type="number",require=true, desc="产品类型1 或者 2")
      * @Apidoc\Param("end_time", type="number",require=true, desc="结束时间")
@@ -45,7 +44,7 @@ class Product
     public function list(Request $request){
         $uid =$request->uid;
         $pagenum = $request->get('pagenum');
-        $title = $request->get('title');
+        $name = $request->get('name');
         $start_time = $request->get('start_time');
         $end_time = $request->get('end_time');
         $type = $request->get('type');
@@ -53,7 +52,7 @@ class Product
         $where[] = ['JP.id','NOT IN',$Productuser];
         $product = J_product::alias('JP')
             ->join('p_product_relation pr','pr.product_id=JP.id')
-            ->where([['JP.title', 'like','%'.$title.'%']])->where($where)->where('JP.status','0')
+            ->where([['JP.name', 'like','%'.$name.'%']])->where($where)->where('JP.status','0')
             ->where('pr.uid',$uid)->order('pr.id','desc');
         if($type){
             $product->where([['JP.type','=',$type]]);
@@ -138,7 +137,6 @@ class Product
      * @Apidoc\Method("GET")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("title", type="number",require=true, desc="产品标题")
      * @Apidoc\Param("name", type="number",require=true, desc="产品名称")
      * @Apidoc\Param("type", type="number",require=true, desc="产品类型1 或者 2")
      * @Apidoc\Param("end_time", type="number",require=true, desc="结束时间")
@@ -157,14 +155,13 @@ class Product
     public function product_relatio_list(Request $request){
         $uid =$request->uid;
         $id =$request->id;
-        $title = $request->get('title');
         $name = $request->get('name');
         $start_time = $request->get('start_time');
         $end_time = $request->get('end_time');
         $type = $request->get('type');
         $Productuser = Productuser::with(['Product' => function ($quert){
-            $quert->where('status','0')->field('id,name,yw_name,cx_name,class_name,jt_qname,jt_fname,xl_name,jq_name,mp_name,cp_type,yp_type,cp_type_str,yp_type_str,product_code,set_city,get_city,title,standard,address,money,number,day,not_time,end_time,end_day,img_id,video_id,material,desc,create_time,status');
-        }])->where([['title', 'like','%'.$title.'%'],['name', 'like','%'.$name.'%']]);
+            $quert->where('status','0')->field('id,name,yw_name,cx_name,class_name,jt_qname,jt_fname,xl_name,jq_name,mp_name,cp_type,yp_type,cp_type_str,yp_type_str,product_code,set_city,get_city,title,standard,address,money,number,day,not_time,end_time,end_day,img_id,video_id,material,desc,create_time');
+        }])->where([['name', 'like','%'.$name.'%']]);
         if($type){
             $Productuser->where([['type','=',$type]]);
         }
@@ -191,6 +188,7 @@ class Product
      * @Apidoc\Param("name", type="number",require=true, desc="产品名称")
      * @Apidoc\Param("desc", type="number",require=true, desc="产品详情")
      * @Apidoc\Param("img_id", type="array",require=true, desc="产品图片")
+     * @Apidoc\Param("first_id", type="array",require=true, desc="产品首图")
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      */
 
@@ -204,6 +202,8 @@ class Product
             'desc'=>'require|min:50',
             'price'=>'require',
             'img_id'=>'require',
+            'first_id'=>'require',
+            'video_id'=>'require',
         ];
         $msg = [
             'title.require'=>'产品标题不能为空',
@@ -213,7 +213,10 @@ class Product
             'desc.require'=>'产品简介不能为空',
             'desc.min'=>'产品简介最小字符为50',
             'price.require'=>'价格必填',
-            'img_id.require'=>'图片不能为空'
+            'img_id.require'=>'图片不能为空',
+            'first_id.require'=>'首图不能为空',
+            'video_id.require'=>'视频不能为空'
+
         ];
         if (!is_numeric($request->post('price'))) {
             return json(['code'=>'201','msg'=>'操作成功','sign'=>'价格格式错误必须为数字']);
@@ -224,14 +227,21 @@ class Product
         }
         Db::startTrans();
         try {
+            $mp_name = J_product::where('id',$product_id)->value('mp_name');
             $productuser = Productuser::where(['user_id'=>$id,'product_id'=>$product_id])->find();
             $data = $request->post();
             if($productuser){
                 $productuser->price = $data['price'];
                 $productuser->title = $data['title'];
+                if ($productuser['type']='1'){
+                    $productuser->class_name = $data['name'].'-'.$mp_name;
+                }
                 $productuser->name = $data['name'];
+                $productuser->first_id = $data['first_id'];
                 $productuser->desc = $data['desc'];
                 $productuser->img_id = $data['img_id'];
+                $productuser->video_id = $data['video_id'];
+
                 $productuser->save();
                 Db::commit();
                 return json(['code'=>'200','msg'=>'操作成功']);

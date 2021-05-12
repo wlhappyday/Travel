@@ -11,7 +11,7 @@ use think\model\concern\SoftDelete;
 /**
  * @mixin \think\Model
  */
-class j_product extends Model
+class J_product extends Model
 {
     //
     use SoftDelete;

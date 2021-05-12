@@ -33,7 +33,7 @@ class Systems
         $config = Config::where(['mid'=>$id,'type'=>$type])->where('title','<>','Carousel_img')->field('title,value')->select()->toArray();
         $carousel_img = Config::where(['mid'=>$id,'type'=>$type,'title'=>'Carousel_img'])->find()['value'];
         foreach ($carousel_img as $key => $value){
-            $carousel_img->$key = File::where('id',$value)->value('file_path');
+            $carousel_img->$key = http().File::where('id',$value)->value('file_path');
         }
         return json(['code'=>'200','msg'=>'操作成功','carousel_img'=>$carousel_img,'config'=>$config]);
     }

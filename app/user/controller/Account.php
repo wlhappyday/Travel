@@ -29,7 +29,7 @@ class Account
     {
         $id = $request->id;
         try{
-            $admin = P_user::field('phone,nickname,avatar,position,weach,QQ,address,user_name')->find($id);
+            $admin = P_user::field('phone,nickname,avatar,position,weach,QQ,address,user_name,appid,appkey,payment')->find($id);
             $admin['avatar'] = http().File::where('id',$admin['avatar'])->value('file_path');
             if ($admin){
                 return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
@@ -71,6 +71,9 @@ class Account
             $admin->phone = $data['phone'];
             $admin->position = $data['position'];
             $admin->address = $data['address'];
+            $admin->appid = $data['appid'];
+            $admin->appkey = $data['appkey'];
+            $admin->payment = $data['payment'];
             $admin->save();
 
             $res['info'] = '修改个人信息';

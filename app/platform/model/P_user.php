@@ -69,7 +69,7 @@ class P_user extends Model
     }
 
     /**
-     * @field("weach,QQ,avatar,nickname,phone,position,address")
+     * @field("weach,QQ,avatar,nickname,phone,position,address,appid,appkey,payment")
      */
     public function personal($id){
         $res = $this->get($id);

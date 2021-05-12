@@ -45,6 +45,7 @@ class Order
      *     @Apidoc\Returned ("create_time",type="datetime",desc="添加时间"),
      *     @Apidoc\Returned ("file_path",type="varchar(255)",desc="产品图片")
      *     )
+     *  @Apidoc\Returned("http",type="string",desc="域名")
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      * @Apidoc\Returned("msg",type="string",desc="任务提示")
      */
@@ -59,7 +60,7 @@ class Order
         }
         try {
             $product = J_product::alias('JP')
-                ->join('p_productuser pr','pr.product_id=JP.id')->where('JP.type',$type)->field('file.file_path,JP.mp_name,pr.name,pr.product_id,pr.price,JP.number,pr.create_time,JP.status')
+                ->join('p_productuser pr','pr.product_id=JP.id')->where('JP.type',$type)->field('file.file_path,JP.mp_name,JP.type,pr.class_name,pr.name,pr.product_id,pr.price,JP.number,pr.create_time,JP.status')
                 ->leftjoin('file file','file.id=JP.first_id')
                 ->where('JP.status','0')->where('pr.status','0')->where([['JP.name', 'like','%'.$name.'%']]);
             if ($start_time){
@@ -69,7 +70,7 @@ class Order
                 $product->whereTime('pr.create_time', '<=', strtotime($end_time));
             }
             $products = $product->order('pr.create_time','desc')->paginate($pagenum)->toArray();
-            return json(['code'=>'200','msg'=>'操作成功','product'=>$products]);
+            return json(['code'=>'200','msg'=>'操作成功','product'=>$products,'http'=>http()]);
         } catch (\Throwable $e) {
             return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
         }
@@ -99,7 +100,7 @@ class Order
         try {
             $product = J_product::alias('JP')->where(['JP.status'=>'0','JP.id'=>$product_id])
                 ->join('p_productuser pu','pu.product_id=JP.id')
-                ->field('pu.title,JP.type,pu.price,JP.uid,JP.type,pu.name,JP.number,JP.mp_id')
+                ->field('pu.title,JP.type,pu.price,JP.uid,JP.type,pu.name,JP.number,JP.mp_id,JP.money')
                 ->find();
             $file = $request->file('file');
             validate(['imgFile' => [
@@ -125,6 +126,8 @@ class Order
             $bcmul = bcmul(''.count($sheet).'',$price,2);
             $order = new orders();
             $order->order_status ='1';
+            $order->store_price =$product['money'];
+            $order->p_price =$price;
             $order->order_amount = $bcmul;
             $order->total_amount = $bcmul;
             $order->add_time = time();
@@ -209,8 +212,8 @@ class Order
         $end_time = $request->get('end_time');
         $order_status = $request->get('order_status');
         $store_type = $request->get('store_type');
-        $good_name = $request->get('good_name');
-        $order = orders::order('order_id','Desc')->where('p_user_id',$id)->where(['good_name','like','%'.$good_name.'%'])
+        $goods_name = $request->get('goods_name');
+        $order = orders::order('order_id','Desc')->where('p_user_id',$id)->where([['goods_name','like','%'.$goods_name.'%']])
             ->field('order_id,payment_order_id,order_status,coupon_price,order_amount,total_amount,add_time,pay_time,refund_price,surplus_price,is_checkout,store_type,goods_name,goods_num,goods_price,refund_num,refund_price');
 
         if ($start_time){
@@ -277,14 +280,10 @@ class Order
         if ($order_id && $coupon_price){
             Db::startTrans();
             try {
-                $order = orders::where('order_id', $order_id)->find();
+                $order = orders::where('order_id', $order_id)->field('p_price,order_amount,coupon_price')->find();
                 $count = Orderdetails::where('order_id', $order_id)->count();
-                $price = J_product::alias('JP')->where(['JP.status' => '0', 'JP.id' => $order['goods_id']])
-                    ->join('p_product_relation pu', 'pu.product_id=JP.id')
-                    ->field('JP.type,pu.price')
-                    ->value('pu.price');
-                $price = bcmul($price,''.$count.'',2);
-                $pprice =bcmul($price,'0.03',2);
+                $price = bcmul($order['p_price'],''.$count.'',2);
+                $pprice =bcmul($order['p_price'],'0.03',2);
                 $zprice =bcadd($pprice,$price,2);//平台商的价格
                 $zzprice = bcsub($order['order_amount'],$zprice,2);//总价减平台商的价格
 //                $zcouponprice = bcsub($order['order_amount'],$zprice,2);//总价减优惠价格
