@@ -66,7 +66,7 @@ class Product
         $data['material'] = input('post.material/s','','strip_tags');
         $data['desc'] = input('post.desc/s','','strip_tags');
         $data['class_name'] = $data['name'].'-'.$data['mp_name'];
-
+        $data['get_city'] = $data['address'];
         if(!Jproduct::where(['jq_name'=>$data['jq_name'],'name'=>$data['name'],'type'=>'1'])->value('id')){
             return returnData(['msg'=>'该类产品已存在','code'=>'201']);
         }
