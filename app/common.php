@@ -165,7 +165,7 @@ function getCity($ip = '')//获取地区
 function http(){
     $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
     $SERVER_NAME = $_SERVER['SERVER_NAME'];
-    return $http_type.$SERVER_NAME;
+    return 'travel.payunke.com';
 }
 
 //GET提交
