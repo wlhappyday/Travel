@@ -2,6 +2,7 @@
 // 这是系统自动生成的公共文件
 use app\common\model\JuserLog;
 use app\common\model\PadminLog;
+use app\common\model\AdminLog;
 use app\common\model\XuserLog;
 use thans\jwt\facade\JWTAuth;
 
@@ -108,6 +109,10 @@ function addJuserLog($data,$info){
 }
 function addPadminLog($data,$info){
     $x_user_log = new PadminLog();
+    return $x_user_log->addData($data,$info);
+}
+function addAdminLog($data,$info){
+    $x_user_log = new AdminLog();
     return $x_user_log->addData($data,$info);
 }
 
