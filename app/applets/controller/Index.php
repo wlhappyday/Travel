@@ -24,8 +24,9 @@ class Index
      * @Apidoc\Method("GET")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("img", type="number",require=false, desc="产品图片")
+     * @Apidoc\Returned("img", type="array",require=false, desc="轮播图")
      * @Apidoc\Param("http", type="number",require=false, desc="域名")
+     * @Apidoc\Param("city", type="number",require=false, desc="城市名称")
      * @Apidoc\Returned ("rjproduct",type="object",desc="产品",
      *     @Apidoc\Returned ("file_path",type="int",desc="产品图片"),
      *     @Apidoc\Returned ("class_name",type="varchar(11)",desc="产品名称"),
