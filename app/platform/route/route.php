@@ -16,6 +16,8 @@ Route::group('user', function () {
     Route::post('list', 'User/list');
     Route::post('create', 'User/create');
     Route::post('delete', 'User/delete');
+    Route::post('userrate', 'User/userrate');
+
 });
 //賬戶中心
 Route::group('account', function () {

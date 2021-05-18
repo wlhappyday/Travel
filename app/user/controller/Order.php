@@ -273,8 +273,8 @@ class Order
      * @Apidoc\Returned("msg",type="string",desc="任务提示")
      */
     public function ordercouponprice(Request $request){
-        $order_id = trim($request->post('order_id'));
-        $coupon_price = trim($request->post('coupon_price'));
+        $order_id = $request->post('order_id');
+        $coupon_price = $request->post('coupon_price');
         if ($order_id && $coupon_price){
             Db::startTrans();
             try {
@@ -285,6 +285,9 @@ class Order
                 $zprice =bcadd($pprice,$price,2);//平台商的价格
                 $zzprice = bcsub($order['order_amount'],$zprice,2);//总价减平台商的价格
 //                $zcouponprice = bcsub($order['order_amount'],$zprice,2);//总价减优惠价格
+                if($zzprice <= '0'){
+                    return json(['code'=>'201','sign'=>'该订单无法修改']);
+                }
                 if ($zzprice < $coupon_price){
                     return json(['code'=>'201','sign'=>'优惠价格不能高于'.$zzprice]);
                 }

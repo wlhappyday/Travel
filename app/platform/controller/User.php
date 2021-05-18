@@ -41,7 +41,8 @@ class User
         $phone = $request->get('phone');
         $start_time = $request->get('start_time');
         $end_time = $request->get('end_time');
-        $user = P_user::where(['status'=>'0','uid'=>$uid])->where([['user_name','like','%'.$user_name.'%'],['phone','like','%'.$phone.'%']]);
+        $user = P_user::where(['uid'=>$uid])->where([['user_name','like','%'.$user_name.'%'],['phone','like','%'.$phone.'%']])
+        ->field('id,nickname,user_name,phone,login_ip,login_time,login_address,Round(rate*100,2) rate,create_time,status');
         if ($start_time){
             $user->whereTime('create_time', '>=', strtotime($start_time));
         }
@@ -62,6 +63,7 @@ class User
      * @Apidoc\Param("user_name", type="char(15)",require=true, desc="账号" )
      * @Apidoc\Param("newpassword", type="char(32)",require=true, desc="密码 长度为6-16" )
      * @Apidoc\Param("newpassword_confirm", type="number",require=true, desc="确定密码" )
+     * @Apidoc\Param("rate", type="number",require=true, desc="费率" )
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      * @Apidoc\Returned("msg",type="string",desc="任务提示")
      */
@@ -72,7 +74,7 @@ class User
         $rule = [
             'user_name'=>'require|unique:p_user|length:4,15',
             'newpassword'=>'require|length:6,15|confirm',
-            'rate'=>'require|number'
+            'rate'=>'require|float'
         ];
         $msg = [
             'user_name.require'=>'账号必填',
@@ -82,7 +84,7 @@ class User
             'newpassword.length' => '密码必须6-15位之内',
             'newpassword.confirm' => '两次密码不一致',
             'rate.require' => '费率必填',
-            'rate.number' => '费率必须为数字',
+            'rate.float' => '费率必须为小数',
         ];
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($request->post())) {
@@ -176,6 +178,18 @@ class User
         return json(['code'=>'-1','msg'=>'网络延迟']);
     }
 
+    /**
+     * @Apidoc\Title("修改用户费率")
+     * @Apidoc\Desc("修改用户费率")
+     * @Apidoc\Url("platform/user/userrate")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Param("id", type="int(11)",require=true, desc="用户列表的id" )
+     * @Apidoc\Param("rate", type="int(11)",require=true, desc="修改的费率" )
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     * @Apidoc\Returned("msg",type="string",desc="任务提示")
+     */
     public function userrate(Request $request){
         $uid = $request->uid;
         $id = $request->post('id');

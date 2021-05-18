@@ -32,7 +32,7 @@ class Account
     public function personal(Request $request)
     {
         $uid = $request->uid;
-        $admin = Admin::field('phone,nickname,avatar,position,weach,QQ,address,user_name')->where('status',0)->find($uid);
+        $admin = Admin::field('phone,nickname,avatar,position,weach,QQ,address,user_name,rate')->find($uid);
         $admin['img_id'] =$admin['avatar'];
         $admin['avatar'] = http().File::where('id',$admin['avatar'])->value('file_path');
         if ($admin){
@@ -96,7 +96,18 @@ class Account
      */
     public function enterprise(Request $request){
         $uid = $request->uid;
-        $enterprise = P_enterprise::where(['uid'=>$uid])->find();
+        try{
+            $enterprise = P_enterprise::where(['uid'=>$uid])->find();
+            if ($enterprise['qualifications']){
+                $enterprise['qualifications_img'] = http(). File::where(['id'=>$enterprise['qualifications']])->value('file_path');
+            }
+            if ($enterprise['special_qualifications']){
+                $enterprise['special_qualifications_img'] = http(). File::where(['id'=>$enterprise['special_qualifications']])->value('file_path');
+            }
+            return json(['code'=>'200','msg'=>'操作成功','p_enterprise'=>$enterprise]);
+        }catch (\Exception $e){
+            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+        }
         return json(['code'=>'200','msg'=>'操作成功','p_enterprise'=>$enterprise]);
     }
 
