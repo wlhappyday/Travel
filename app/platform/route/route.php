@@ -32,4 +32,10 @@ Route::group('account', function () {
 Route::group('systems', function () {
     Route::get('list', 'Systems/list');
 });
+
+//订单
+Route::group('order', function () {
+    Route::get('list', 'Order/list');
+    Route::get('detail', 'Order/Detail');
+});
 ?>

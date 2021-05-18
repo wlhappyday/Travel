@@ -17,7 +17,7 @@ use hg\apidoc\annotation as Apidoc;
 use think\file\UploadedFile;
 /**
  *
- * @Apidoc\Title("订单导入")
+ * @Apidoc\Title("订单")
  * @Apidoc\Group("order")
  */
 class Order
@@ -100,7 +100,7 @@ class Order
         try {
             $product = J_product::alias('JP')->where(['JP.status'=>'0','JP.id'=>$product_id])
                 ->join('p_productuser pu','pu.product_id=JP.id')
-                ->field('pu.title,JP.type,pu.price,JP.uid,JP.type,pu.name,JP.number,JP.mp_id,JP.money')
+                ->field('pu.id,pu.title,JP.type,pu.price,JP.uid,JP.type,pu.name,JP.number,JP.mp_id,JP.money')
                 ->find();
             $file = $request->file('file');
             validate(['imgFile' => [
@@ -125,7 +125,6 @@ class Order
             }
             $bcmul = bcmul(''.count($sheet).'',$price,2);
             $order = new orders();
-            $order->order_status ='1';
             $order->store_price =$product['money'];
             $order->p_price =$price;
             $order->order_amount = $bcmul;
@@ -138,7 +137,7 @@ class Order
                 $order->admission_ticket_type = $product['mp_id'];
             }
             $order->p_user_id = $id;
-            $order->goods_id = $product_id;
+            $order->goods_id = $product['id'];
             $order->goods_name = $product['name'];
             $order->goods_num = count($sheet);
             $order->goods_price = $price;
@@ -214,8 +213,7 @@ class Order
         $store_type = $request->get('store_type');
         $goods_name = $request->get('goods_name');
         $order = orders::order('order_id','Desc')->where('p_user_id',$id)->where([['goods_name','like','%'.$goods_name.'%']])
-            ->field('order_id,payment_order_id,order_status,coupon_price,order_amount,total_amount,add_time,pay_time,refund_price,surplus_price,is_checkout,store_type,goods_name,goods_num,goods_price,refund_num,refund_price');
-
+            ->field('order_id,transaction_id,order_status,coupon_price,order_amount,total_amount,add_time,pay_time,refund_price,surplus_price,is_checkout,store_type,goods_name,goods_num,goods_price,refund_num,refund_price');
         if ($start_time){
             $order->whereTime('add_time', '>=', strtotime($start_time));
         }
@@ -245,7 +243,7 @@ class Order
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
      * @Apidoc\Param("order_id", type="number",require=true, desc="订单id")
-     * @Apidoc\Returned("order",type="object",desc="路线",ref="app\common\model\Orderdetails\order_detail")
+     * @Apidoc\Returned("Orderdetails",type="object",desc="订单用户列表",ref="app\common\model\Orderdetails\order_detail")
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      * @Apidoc\Returned("msg",type="string",desc="任务提示")
      */
@@ -253,8 +251,8 @@ class Order
         $order_id = $request->get('order_id');
         if ($order_id){
             try{
-                $Orderdetails = Orderdetails::where(['order_id'=>$order_id])->field('name,id_card,order_id,delete_time,admission_ticket_type,phone,type')->select()->toArray();
-                return json(['code'=>'200','msg'=>'操作成功','order'=>$Orderdetails]);
+                $Orderdetails = Orderdetails::where(['order_id'=>$order_id])->field('name,id_card,order_id,delete_time,admission_ticket_type,phone,price')->select()->toArray();
+                return json(['code'=>'200','msg'=>'操作成功','Orderdetails'=>$Orderdetails]);
             }catch (\Exception $e){
                 return json(['code'=>'201','sign'=>$e->getMessage()]);
             }
@@ -263,8 +261,8 @@ class Order
     }
 
     /**
-     * @Apidoc\Title("修改订单总价格")
-     * @Apidoc\Desc("修改订单总价格")
+     * @Apidoc\Title("修改订单优惠价格")
+     * @Apidoc\Desc("修改总订单优惠价格")
      * @Apidoc\Url("user/order/ordercouponprice")
      * @Apidoc\Method("POST")
      * @Apidoc\Tag("列表 基础")
@@ -288,9 +286,10 @@ class Order
                 $zzprice = bcsub($order['order_amount'],$zprice,2);//总价减平台商的价格
 //                $zcouponprice = bcsub($order['order_amount'],$zprice,2);//总价减优惠价格
                 if ($zzprice < $coupon_price){
-                    return json(['code'=>'201','msg'=>'操作成功','sign'=>'优惠价格不能高于'.$zzprice]);
+                    return json(['code'=>'201','sign'=>'优惠价格不能高于'.$zzprice]);
                 }
                 $order->coupon_price = $price;
+                $order->order_amount = bcsub($order['order_amount'],$price,2);
                 $order->save();
                 Db::commit();
                 return json(['code'=>'200','msg'=>'操作成功']);

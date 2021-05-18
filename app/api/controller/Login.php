@@ -229,7 +229,6 @@ class Login
                     $user = Puser::where(['appid'=>$appid])->find();
                     if ($user){
                         $save['appid']=$appid;
-                        $save['puser_id']=$user['id'];
                         header('Authorization:'."Bearer " . JWTAuth::builder($save));
                         return json(['code'=>'200','msg'=>'操作成功']);
                     }

@@ -15,7 +15,7 @@ class Order extends Model
     //
     protected $name='order';
     /**
-     * @field("order_id,payment_order_id,order_status,coupon_price,order_amount,total_amount,add_time,pay_time,refund_price,surplus_price,is_checkout,store_type,goods_name,goods_num,goods_price,refund_num,refund_price")
+     * @field("order_id,transaction_id,order_status,coupon_price,order_amount,total_amount,add_time,pay_time,refund_price,surplus_price,is_checkout,store_type,goods_name,goods_num,goods_price,refund_num,refund_price")
      */
     public function order_list($id){
         $res = $this->get($id);

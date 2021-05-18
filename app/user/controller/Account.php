@@ -13,6 +13,8 @@ use think\Request;
 use app\platform\model\P_user;
 use app\common\model\File;
 use hg\apidoc\annotation as Apidoc;
+use const http\Client\Curl\Features\HTTP2;
+
 class Account
 {
     /**
@@ -91,7 +93,7 @@ class Account
      * @Apidoc\Title("企业信息")
      * @Apidoc\Desc("查看用户端绑定的企业信息")
      * @Apidoc\Url("user/account/enterprise")
-     * @Apidoc\Method("POST")
+     * @Apidoc\Method("GET")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
      * @Apidoc\Returned("p_enterprise",type="object",desc="景区",ref="app\common\model\Puserenterprise\zhu")
@@ -101,11 +103,11 @@ class Account
         $id = $request->id;
         try{
             $enterprise = Puserenterprise::where(['user_id'=>$id])->find();
-            if (!$enterprise['qualifications']){
-                $enterprise['qualifications'] = File::where(['id'=>$enterprise['qualifications']])->value('file_path');
+            if ($enterprise['qualifications']){
+                $enterprise['qualifications_img'] = http(). File::where(['id'=>$enterprise['qualifications']])->value('file_path');
             }
-            if (!$enterprise['special_qualifications']){
-                $enterprise['special_qualifications'] = File::where(['id'=>$enterprise['special_qualifications']])->value('file_path');
+            if ($enterprise['special_qualifications']){
+                $enterprise['special_qualifications_img'] = http(). File::where(['id'=>$enterprise['special_qualifications']])->value('file_path');
             }
             return json(['code'=>'200','msg'=>'操作成功','p_enterprise'=>$enterprise]);
         }catch (\Exception $e){
