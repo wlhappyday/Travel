@@ -50,7 +50,7 @@ class Order
             ->join('p_user b','b.id=a.user_id','LEFT')
             ->join('p_admin c','c.id=a.p_id','LEFT')
             ->join('j_product d','d.id=a.store_good_id','LEFT')
-            ->field('a.order_id,a.order_status,a.payment_order_id,a.store_price,a.goods_num,a.surplus_num,a.refund_num,a.add_time,b.user_name uname,c.user_name pname,d.name product_name,d.class_name')
+            ->field('a.order_id,a.order_status,a.transaction_id,a.store_price,a.goods_num,a.surplus_num,a.refund_num,a.add_time,a.pay_time,b.user_name uname,c.user_name pname,d.name product_name,d.class_name')
             ->paginate($num)->toarray();
 
         return returnData(['data'=>$data,'code'=>'200']);
@@ -65,7 +65,7 @@ class Order
         }
 
         $order_result = new Orderdetails();
-        $data = $order_result->where($where)->field('order_id,name,id_card,phone,admission_ticket_type,inspect_ticket_details,inspect_ticket_status')->select();
+        $data = $order_result->where($where)->field('order_id,name,id_card,phone,price,admission_ticket_type,inspect_ticket_details,inspect_ticket_status')->select();
 
         return returnData(['data'=>$data,'code'=>'200']);
     }

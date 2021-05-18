@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace app\admin\controller;
 
 use app\common\model\Padmin as P_admin;
+use app\common\model\Puser;
 use thans\jwt\facade\JWTAuth;
 use think\facade\Db;
 use think\facade\Validate;
@@ -151,7 +152,7 @@ class Padmin
 
         $user_result = new P_admin();
         $data = $user_result->where($where)
-            ->field('id,user_name,phone,weach,QQ,position,address,login_time,weach,login_ip,login_time,login_address,rate')
+            ->field('id,user_name,phone,weach,QQ,position,address,weach,login_ip,login_time,login_address,Round(rate*100,2) rate,status')
             ->paginate($num);
 
         if($data){
@@ -217,6 +218,46 @@ class Padmin
             Db::rollback();
             return returnData(['msg'=>'数据操作错误，请检查','code'=>'201']);
         }
+    }
+
+    /**
+     * @author liujiong
+     * @Note  查看门店
+     */
+    public function getUser(){
+
+        $num = input('post.num/d','10','strip_tags');
+        $uid = input('post.id/d','','strip_tags');
+        $user_name = input('post.user_name/s','','strip_tags');
+        $where = [];
+        if ($user_name){
+            $where['user_name'] = $user_name;
+        }
+        $phone = input('post.phone/s','','strip_tags');
+        if ($phone){
+            $where['phone'] = $phone;
+        }
+        $status = input('post.status/d');
+
+        if (isset($status)){
+            $where['status'] = $status;
+        }
+        if (empty($uid)){
+            return returnData(['msg'=>'参数错误','code'=>'201']);
+        }
+
+        $user_result = new Puser();
+        $data = $user_result->where($where)
+            ->field('id,user_name,phone,weach,QQ,position,address,weach,login_ip,login_time,login_address,Round(rate*100,2) rate,status')
+            ->paginate($num);
+
+        if($data){
+            return returnData(['data'=>$data,'code'=>'200']);
+        }else{
+            return returnData(['msg'=>'该用户不存在或已被紧用','code'=>'201']);
+        }
+
+
     }
 
 
