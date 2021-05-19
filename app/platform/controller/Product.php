@@ -33,7 +33,11 @@ class Product
         $end_time = $request->get('end_time');
         $type = $request->get('type');
         $where[] = ['id','NOT IN',$Product_relation];
-        $J_product = J_product::where(['status'=>'0'])->where([['title','like','%'.$title.'%']])->where($where)->field('id,name,jq_name,mp_name,product_code,title,type,yw_name,cx_name,jt_qname,jt_fname,xl_name,product_code,set_city,get_city,day,standard,end_day,address,money,number');//景区
+        $J_product = J_product::where(['status'=>'0'])->with(['juser'=>function($query){
+            $query->where('status','0');
+        }])
+            ->where([['title','like','%'.$title.'%']])
+            ->where($where);
         if ($start_time){
             $J_product->whereTime('create_time', '>=', strtotime($start_time));
         }
@@ -43,7 +47,25 @@ class Product
         if ($end_time){
             $J_product->whereTime('create_time', '<=', strtotime($end_time));
         }
-        $product = $J_product->order('id','Desc')->paginate($pagenum);
+        $product = $J_product->order('id','Desc')->paginate($pagenum)->toarray();
+
+        if($type == 1){
+            $id = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+        }else if($type == 2){
+            $id = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+        }else {
+            $jid = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+            $xid = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+            $id = array_merge($jid,$xid);
+        }
+        $data = Jproduct::where($where)->alias('a')
+            ->whereIn('a.id',$id)
+            ->join('j_user b','b.id = a.uid and a.type = 1','left')
+            ->join('x_user c','c.id = a.uid and a.type = 2','left')
+            ->join('file d','d.id=a.first_id')
+            ->field('a.id,a.type,a.name,a.class_name,a.title,a.money,a.number,a.end_time,a.desc,b.user_name j_name,c.user_name x_name,d.file_path')
+            ->select();;
+        dd($product);
         return json(['code'=>'200','msg'=>'操作成功','scenic_spot'=>$product]);
     }
 

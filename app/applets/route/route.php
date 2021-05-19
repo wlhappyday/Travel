@@ -15,5 +15,7 @@ Route::group('product', function () {
 Route::group('order', function () {
     Route::post('orderadd', 'Order/orderadd');
     Route::get('orderlist', 'Order/orderlist');
+
+
 });
 ?>

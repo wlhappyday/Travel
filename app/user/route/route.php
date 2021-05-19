@@ -24,6 +24,9 @@ Route::group('order', function () {
     Route::get('orderlist', 'Order/order_list');
     Route::get('orderdetail', 'Order/order_detail');//订单详情
     Route::post('ordercouponprice', 'Order/ordercouponprice');//订单详情
+    Route::get('download', 'Order/download');//订单详情
+
+
 });
 
 //賬戶中心
