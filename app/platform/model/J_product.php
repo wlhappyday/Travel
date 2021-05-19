@@ -3,6 +3,7 @@ declare (strict_types = 1);
 
 namespace app\platform\model;
 
+use app\common\model\Juser;
 use think\Model;
 use hg\apidoc\annotation\Field;
 use hg\apidoc\annotation\WithoutField;
@@ -31,5 +32,9 @@ class J_product extends Model
     public function route($id){
         $res = $this->get($id);
         return $res;
+    }
+
+    public function juser(){
+        return $this->hasOne(Juser::Class, 'id', 'uid');
     }
 }

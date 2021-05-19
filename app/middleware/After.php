@@ -16,9 +16,6 @@ class After
      */
     public function handle($request, \Closure $next)
     {
-        if ($request['s'] == '/user/order/download'){
-            return $next($request);
-        }
         if ($request['s'] == '/apidoc/config'){
             return $next($request);
         }

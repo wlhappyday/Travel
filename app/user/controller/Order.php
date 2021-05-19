@@ -304,7 +304,7 @@ class Order
         return json(['code'=>'201','sign'=>'参数错误']);
     }
     public function download(){
-        return download('test.xls','test.xls');
+        return download('excel.xls','excel.xls');
     }
 
 }

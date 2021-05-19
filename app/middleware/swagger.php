@@ -14,9 +14,6 @@ class swagger
      */
     public function handle($request, \Closure $next)
     {
-        if ($request['s'] == '/user/order/download'){
-            return $next($request);
-        }
         $request->type = getDecodeToken()['type'];
         //如果登录账户为用户端进入判断主要是区分平台商id和用户端id
         //uid为平台商
