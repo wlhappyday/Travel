@@ -55,9 +55,7 @@ class Systems
             return json(['code'=>'200','msg'=>'操作成功']);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','sign'=>$e->getMessage(),'msg'=>'操作成功']);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络延迟']);
-
     }
 }

@@ -38,7 +38,7 @@ class Account
         if ($admin){
             return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
         }else{
-            return json(['code'=>'202','msg'=>'操作成功','sign'=>'没有该用户信息']);
+            return json(['code'=>'201','msg'=>'没有该用户信息']);
         }
     }
 
@@ -81,9 +81,8 @@ class Account
             return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络繁忙']);
     }
     /**
      * @Apidoc\Title("企业信息")
@@ -106,9 +105,8 @@ class Account
             }
             return json(['code'=>'200','msg'=>'操作成功','p_enterprise'=>$enterprise]);
         }catch (\Exception $e){
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'200','msg'=>'操作成功','p_enterprise'=>$enterprise]);
     }
 
     /**
@@ -182,9 +180,8 @@ class Account
             return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络繁忙']);
     }
 
     /**
@@ -230,9 +227,8 @@ class Account
             return json(['code'=>'200','msg'=>'操作成功']);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络繁忙']);
     }
     /**
      * @Apidoc\Title("账户明细")

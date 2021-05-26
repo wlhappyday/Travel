@@ -8,6 +8,8 @@ use app\platform\model\Product_relation;
 use app\platform\model\Admin;
 use app\platform\model\Adminlogin;
 use app\platform\model\Productuser;
+use app\api\model\Juser;
+use app\api\model\Xuser;
 use think\facade\Validate;
 use think\Request;
 use think\facade\Db;
@@ -32,23 +34,7 @@ class Product
         $start_time = $request->get('start_time');
         $end_time = $request->get('end_time');
         $type = $request->get('type');
-        $where[] = ['id','NOT IN',$Product_relation];
-        $J_product = J_product::where(['status'=>'0'])->with(['juser'=>function($query){
-            $query->where('status','0');
-        }])
-            ->where([['title','like','%'.$title.'%']])
-            ->where($where);
-        if ($start_time){
-            $J_product->whereTime('create_time', '>=', strtotime($start_time));
-        }
-        if($type){
-            $J_product->where([['type','=',$type]]);
-        }
-        if ($end_time){
-            $J_product->whereTime('create_time', '<=', strtotime($end_time));
-        }
-        $product = $J_product->order('id','Desc')->paginate($pagenum)->toarray();
-
+        $where[] = ['a.id','NOT IN',$Product_relation];
         if($type == 1){
             $id = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
         }else if($type == 2){
@@ -58,14 +44,20 @@ class Product
             $xid = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
             $id = array_merge($jid,$xid);
         }
-        $data = Jproduct::where($where)->alias('a')
+        $data = J_product::where($where)->where(['a.status'=>'0'])->alias('a')
             ->whereIn('a.id',$id)
+            ->where([['a.name', 'like','%'.$title.'%']])
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('file d','d.id=a.first_id')
-            ->field('a.id,a.type,a.name,a.class_name,a.title,a.money,a.number,a.end_time,a.desc,b.user_name j_name,c.user_name x_name,d.file_path')
-            ->select();;
-        dd($product);
+            ->field('a.id,a.type,a.name,a.class_name,a.title,a.money,a.number,a.end_time,a.desc,d.file_path');
+        if ($end_time){
+            $data->whereTime('a.create_time', '<=', strtotime($end_time));
+        }
+        if ($start_time){
+            $data->whereTime('a.create_time', '>=', strtotime($start_time));
+        }
+        $product = $data->order('a.id','Desc')->paginate($pagenum)->toarray();
         return json(['code'=>'200','msg'=>'操作成功','scenic_spot'=>$product]);
     }
 
@@ -86,7 +78,7 @@ class Product
         $product_id = $request->post('product_id');//产品id
         $J_product = J_product::where(['status'=>'0','id'=>$product_id])->find()->toArray();//景区
         foreach ($J_product['img_id'] as $key=>$val){
-            $J_product['img_id']->$key = File::where('id',$val)->value('file_path');
+            $J_product['img_id']->$key = http().File::where('id',$val)->value('file_path');
         }
         return json(['code'=>'200','msg'=>'操作成功','scenic_spot'=>$J_product]);
     }
@@ -155,7 +147,7 @@ class Product
                 return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
             }
         }else{
-            return json(['code'=>'-1','msg'=>'操作成功','sign'=>'请检查参数']);
+            return json(['code'=>'201','msg'=>'没有该产品']);
         }
     }
     /**
@@ -183,10 +175,10 @@ class Product
                 Db::commit();
                 return json(['code'=>'200','msg'=>'操作成功']);
             }
-            return json(['code'=>'201','sign'=>'没有这条数据们无法解除','msg'=>'操作成功']);
+            return json(['code'=>'201','msg'=>'没有改产品信息']);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','sign'=>$e->getMessage(),'msg'=>'操作成功']);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
 
     }
@@ -208,18 +200,30 @@ class Product
         $start_time = $request->get('start_time');
         $end_time = $request->get('end_time');
         $type = $request->get('type');
-        $product = J_product::alias('JP')->where([['JP.title','like','%'.$title.'%']])->where(['JP.status'=>'0'])
-            ->join('p_product_relation pr','pr.product_id=JP.id');
-        if ($start_time){
-            $product->whereTime('pr.create_time', '>=', strtotime($start_time));
+        if($type == 1){
+            $id = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+        }else if($type == 2){
+            $id = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+        }else {
+            $jid = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+            $xid = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+            $id = array_merge($jid,$xid);
         }
-        if($type){
-            $product->where([['JP.type','=',$type]]);
+        $data = J_product::where(['a.status'=>'0'])->alias('a')
+            ->whereIn('a.id',$id)
+            ->where([['a.name', 'like','%'.$title.'%']])
+            ->join('j_user b','b.id = a.uid and a.type = 1','left')
+            ->join('x_user c','c.id = a.uid and a.type = 2','left')
+            ->join('file d','d.id=a.first_id')
+            ->join('p_product_relation pr','pr.product_id=a.id')
+            ->field('pr.id,pr.product_id,a.type,a.name,a.class_name,a.title,pr.price,a.number,a.end_time,a.desc,d.file_path');
+        if ($start_time){
+            $data->whereTime('a.create_time', '>=', strtotime($start_time));
         }
         if ($end_time){
-            $product->whereTime('pr.create_time', '<=', strtotime($end_time));
+            $data->whereTime('a.create_time', '<=', strtotime($end_time));
         }
-        $j_product = $product->where('pr.uid',$uid)->order('pr.id','desc')->paginate($pagenum);
+        $j_product = $data->where('pr.uid',$uid)->order('pr.id','desc')->paginate($pagenum)->toarray();
         return json(['code'=>'200','msg'=>'操作成功','product'=>$j_product]);
     }
     /**
@@ -248,15 +252,20 @@ class Product
         }
         Db::startTrans();
         try {
+            $price = $request->post('price');
             $Product_relation = Product_relation::where(['id'=>$id])->find();
-            $Product_relation->price = $request->post('price');
+            $product = J_product::where(['id'=>$Product_relation['product_id']])->value('money');
+            if ($price < $product){
+                return json(['code'=>'201','msg'=>'不能低于成本价']);
+            }
+            $Product_relation->price = $price;
             $Product_relation->save();
             addPadminLog(getDecodeToken(),'修改绑定产品'.$id.'价格为'.$request->post('price'));
             Db::commit();
             return json(['code'=>'200','msg'=>'操作成功']);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','sign'=>$e->getMessage(),'msg'=>'操作成功']);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
     }
 }

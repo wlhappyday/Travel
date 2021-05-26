@@ -111,7 +111,7 @@ class Account
             }
             return json(['code'=>'200','msg'=>'操作成功','p_enterprise'=>$enterprise]);
         }catch (\Exception $e){
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
     }
 
@@ -169,7 +169,7 @@ class Account
 
             if (empty($admin)){
                 $admin = new P_enterprise();
-                $admin->uid = $uid;
+                $admin->uid = $id;
             }
             $admin->title = $data['title'];
             $admin->content = $data['content'];
@@ -188,9 +188,8 @@ class Account
             return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络繁忙']);
     }
     /**
      * @Apidoc\Title("账户明细")

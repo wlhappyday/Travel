@@ -72,7 +72,7 @@ class Order
             $products = $product->order('pr.create_time','desc')->paginate($pagenum)->toArray();
             return json(['code'=>'200','msg'=>'操作成功','product'=>$products,'http'=>http()]);
         } catch (\Throwable $e) {
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
     }
 
@@ -177,9 +177,8 @@ class Order
             return json(['code'=>'200','msg'=>'操作成功']);
         } catch (\Exception $e) {
             Db::rollback();
-            return json(['code'=>'201','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络繁忙']);
     }
 
 
@@ -257,7 +256,7 @@ class Order
                 return json(['code'=>'201','sign'=>$e->getMessage()]);
             }
         }
-        return json(['code'=>'201','sign'=>'缺失参数order_id']);
+        return json(['code'=>'201','msg'=>'缺失参数order_id']);
     }
 
     /**
@@ -301,7 +300,7 @@ class Order
                 return json(['code'=>'201','sign'=>$e->getMessage()]);
             }
         }
-        return json(['code'=>'201','sign'=>'参数错误']);
+        return json(['code'=>'201','msg'=>'参数错误']);
     }
     public function download(){
         return download('excel.xls','excel.xls');

@@ -107,9 +107,8 @@ class User
             return json(['code'=>'200','msg'=>'操作成功','user'=>$user]);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络延迟']);
     }
     /**
      * @Apidoc\Title("用户删除")
@@ -138,9 +137,8 @@ class User
             return json(['code'=>'200','msg'=>'操作成功','user'=>$user]);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络延迟']);
     }
 
     /**
@@ -173,9 +171,8 @@ class User
             return json(['code'=>'200','msg'=>'操作成功','user'=>$user]);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'-1','msg'=>'网络延迟']);
     }
 
     /**
@@ -206,10 +203,9 @@ class User
                 return json(['code'=>'200','msg'=>'操作成功','user'=>$user]);
             }catch (\Exception $e){
                 Db::rollback();
-                return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+                return json(['code'=>'201','msg'=>'网络繁忙']);
             }
         }
-        return json(['code'=>'201','msg'=>'操作成功','sign'=>'参数不能为空']);
     }
 
 }

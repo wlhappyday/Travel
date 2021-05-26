@@ -3,6 +3,7 @@ declare (strict_types = 1);
 
 namespace app\platform\model;
 
+use app\api\model\Xuser;
 use app\common\model\Juser;
 use think\Model;
 use hg\apidoc\annotation\Field;
@@ -19,6 +20,7 @@ class J_product extends Model
     protected $name = 'j_product';
     protected $autoWriteTimestamp = true;
     protected $hidden=['pivot'];
+    protected $json = ['img_id'];
     /**
      * @field("name,jq_name,mp_name,product_code,title,money,number,img_url,video_url")
      */
@@ -35,6 +37,12 @@ class J_product extends Model
     }
 
     public function juser(){
-        return $this->hasOne(Juser::Class, 'id', 'uid');
+        if ($this['type']=='1'){
+            return $this->hasOne(Juser::Class, 'id', 'uid');
+        }else{
+            return $this->hasOne(Xuser::class, 'id', 'uid');
+
+        }
+
     }
 }
