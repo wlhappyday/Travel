@@ -106,6 +106,14 @@ class Padmin
             unset($data['phone']);
             unset($rule['phone']);
         }
+        if(empty($data['passwd'])){
+            unset($data['passwd']);
+            unset($rule['passwd']);
+        }else{
+            $passwd = encryptionPasswd($data['passwd']);
+            $data['passwd'] = $passwd['passwd'];
+            $data['passwd_salt'] = $passwd['passwd_salt'];
+        }
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($data)) {
             return json(['code'=>'201','msg'=>$validate->getError()]);

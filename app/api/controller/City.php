@@ -3,22 +3,41 @@
 namespace app\api\controller;
 
 use app\common\model\Area;
+use app\common\model\Jproduct;
 use think\exception\ValidateException;
 
 class City
 {
     public function list(){
-        $data = Area::where(['type'=>2])->field('code,name')->order('code asc')->select()->toArray();
+        $data = Area::where(['type'=>2])->field('code value,name label')->order('code asc')->select()->toArray();
+
+        $data = Jproduct::where(['id'=>23])->find();
+        var_dump(htmlspecialchars($data['cp_type_str']));die;
+        return returnData(['data'=>$data,'code'=>'200']);
+        $arr = ['dfgdf','dfgdfgd'];
+        p(json_encode($arr));
+
+        $time = date('Y-m-d H:i:s',time());
+//        $time = strtotime($time);
+        p($time);
+
 
         foreach ($data as $k=>$v){
-            $arr = Area::where(['parent_code'=>$v['code']])->field('code,name')->order('code asc')->select()->toArray();
+            $arr = Area::where(['parent_code'=>$v['value']])->field('code value,name label')->order('code asc')->select()->toArray();
+            $data[$k]['value'] = $data[$k]['label'];
+
+
             foreach ($arr as $key=>$val){
-                $arr[$key]['data'] = Area::where(['parent_code'=>$val['code']])->field('code,name')->order('code asc')->select()->toArray();
+//                $arr[$key]['children'] = Area::where(['parent_code'=>$val['value']])->field('code value,name label')->order('code asc')->select()->toArray();
+
+                $arr[$key]['value'] = $arr[$key]['label'];
             }
-            $data[$k]['data'] = $arr;
+            $data[$k]['children'] = $arr;
         }
+
+
 echo json_encode($data,320);
-        return returnData(['data'=>$data,'code'=>'200']);
+//        return returnData(['data'=>$data,'code'=>'200']);
     }
 
     /**

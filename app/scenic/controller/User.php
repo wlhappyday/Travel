@@ -55,7 +55,7 @@ class User
      */
     public function getFind(){
         $uid = getDecodeToken()['id'];
-        $data = Juser::where(['id'=>$uid,'status'=>'0'])->field('nickname,phone,avatar,weach,QQ,address')->find();
+        $data = Juser::where(['a.id'=>$uid,'a.status'=>'0'])->alias('a')->join('file b','b.id = a.avatar','LEFT')->field('a.nickname,a.phone,b.file_path avatar,a.weach,a.QQ,a.address')->find();
         if($data){
             return returnData(['data'=>$data,'code'=>'200']);
         }else{

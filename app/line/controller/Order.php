@@ -57,11 +57,14 @@ class Order
     }
     public function listDetail(){
         $where = [];
-        $where['store_id'] = getDecodeToken()['id'];
-        $where['store_type'] = '2';
+        $store_id = getDecodeToken()['id'];
         $order_id = input('post.order_id/s','','strip_tags');
         if ($order_id){
             $where['order_id'] = $order_id;
+        }
+        $order_result = new Orders();
+        if(!$order_result->where(['store_id'=>$store_id,'store_type'=>'2','order_id'=>$order_id])->value('order_id')){
+            return returnData(['msg'=>'不符合规则','code'=>'201']);
         }
 
         $order_result = new Orderdetails();

@@ -23,7 +23,7 @@ class Product
         $data['type'] = '2';
 //        $data = input('post.');
         $data['name'] = input('post.name/s','','strip_tags');
-        $data['yw_name'] = input('post.yw_name/s','','strip_tags');
+//        $data['yw_name'] = input('post.yw_name/s','','strip_tags');
         $data['cx_name'] = input('post.cx_name/s','','strip_tags');
         $data['jt_qname'] = input('post.jt_qname/s','','strip_tags');
         $data['jt_fname'] = input('post.jt_fname/s','','strip_tags');
@@ -38,7 +38,7 @@ class Product
 
         $data['day'] = input('post.day/d','','strip_tags');
         $data['end_day'] = input('post.end_day/d');
-        $data['end_time'] = input('post.end_time/d','','strip_tags');
+        $data['end_time'] = strtotime(input('post.end_time/s','','strip_tags'));
 //        $data['not_time'] = input('post.not_time/s','','strip_tags');
         $data['first_id'] = input('post.first_id/s','','strip_tags');
         $data['img_id'] = input('post.img_id/s','','strip_tags');
@@ -46,11 +46,11 @@ class Product
         $data['material'] = input('post.material/s','','strip_tags');
         $data['desc'] = input('post.desc/s','','strip_tags');
 
-        $data['class_name'] = $data['yw_name'].'-'.$data['cx_name'].'-'.$data['jt_qname'].'-'.$data['jt_fname'].'-'.$data['xl_name'];
+        $data['class_name'] = $data['cx_name'].'-'.$data['jt_qname'].'-'.$data['jt_fname'].'-'.$data['xl_name'];
 
         $rule = [
             'name' => 'require|unique:j_product',
-            'yw_name' => 'require',
+//            'yw_name' => 'require',
             'cx_name' => 'require',
             'jt_qname' => 'require',
             'jt_fname' => 'require',
@@ -64,7 +64,7 @@ class Product
         ];
         $msg = [
             'name.require' => '产品名称不能为空',
-            'yw_name.require' => '业务分类不能为空',
+//            'yw_name.require' => '业务分类不能为空',
 //            'yw_name.unique' => '业务分类名称不存在11',
             'cx_name.require' => '出行方式不能为空',
             'jt_qname.require' => '交通方式(去程)不能为空',
@@ -84,9 +84,9 @@ class Product
         if (!$validate->check($data)) {
             return json(['code'=>'201','msg'=>$validate->getError()]);
         }
-        if(!XproductClass::where(['name'=>$data['yw_name'],'status'=>'0','type'=>'2'])->value('id')){
-            return returnData(['msg'=>'业务分类名称不存在','code'=>'201']);
-        }
+//        if(!XproductClass::where(['name'=>$data['yw_name'],'status'=>'0','type'=>'2'])->value('id')){
+//            return returnData(['msg'=>'业务分类名称不存在','code'=>'201']);
+//        }
         if(!XproductClass::where(['name'=>$data['cx_name'],'status'=>'0','type'=>'4'])->value('id')){
             return returnData(['msg'=>'出行方式名称不存在','code'=>'201']);
         }
@@ -118,14 +118,15 @@ class Product
         $where = [];
         $where['uid'] = $uid;
         $where['type'] = '2';
+        $num = input('post.num/d','10','strip_tags');
         $name = input('post.name/s','','strip_tags');
         if ($name){
             $where['name'] = $name;
         }
-        $yw_name = input('post.yw_name/s','','strip_tags');
-        if ($yw_name){
-            $where['yw_name'] = $yw_name;
-        }
+//        $yw_name = input('post.yw_name/s','','strip_tags');
+//        if ($yw_name){
+//            $where['yw_name'] = $yw_name;
+//        }
         $cx_name = input('post.cx_name/s','','strip_tags');
         if ($cx_name){
             $where['cx_name'] = $cx_name;
@@ -142,7 +143,11 @@ class Product
         if ($xl_name){
             $where['xl_name'] = $xl_name;
         }
-        $data = Jproduct::where($where)->field('id,type,name,yw_name,cx_name,jt_qname,jt_fname,xl_name,title,money,set_city,get_city,day,end_time,end_day,product_code,address,desc,status,img_id,video_id')->select();
+        $status = input('post.status');
+        if ($status == '0' || $status == '9'){
+            $where['status'] = $status;
+        }
+        $data = Jproduct::where($where)->field('id,type,name,yw_name,cx_name,jt_qname,jt_fname,xl_name,title,money,set_city,get_city,day,end_time,end_day,product_code,address,desc,status,img_id,video_id')->paginate($num);
 //        p($data);
         return returnData(['data'=>$data,'code'=>'200']);
     }
@@ -157,8 +162,8 @@ class Product
         if (empty($id)){
             return returnData(['msg'=>'产品id不能为空','code'=>'201']);
         }
-        if(!Jproduct::where(['uid'=>$uid,'status'=>'0','type'=>'2','id'=>$id])->value('id')){
-            return returnData(['msg'=>'该产品不存在或没有权限','code'=>'201']);
+        if(!Jproduct::where(['uid'=>$uid,'status'=>'9','type'=>'2','id'=>$id])->value('id')){
+            return returnData(['msg'=>'该产品暂未下架，无法操作！','code'=>'201']);
         }
         $data['money'] = input('post.money/f','','strip_tags');
         if (empty($data['money'])){
@@ -178,7 +183,7 @@ class Product
 
         Db::startTrans();
         try {
-            Jproduct::where(['uid'=>$uid,'status'=>'0','type'=>'2','id'=>$id])->update($data);
+            Jproduct::where(['uid'=>$uid,'status'=>'9','type'=>'2','id'=>$id])->update($data);
             addXuserLog(getDecodeToken(),'修改线路：'.$id);
             Db::commit();
             return returnData(['msg'=>'操作成功','code'=>'200']);
@@ -199,13 +204,13 @@ class Product
         if (empty($id)){
             return returnData(['msg'=>'产品id不能为空','code'=>'201']);
         }
-        if(!Jproduct::where(['uid'=>$uid,'status'=>'0','type'=>'2','id'=>$id])->value('id')){
-            return returnData(['msg'=>'该产品不存在或没有权限','code'=>'201']);
+        if(!Jproduct::where(['uid'=>$uid,'status'=>'9','type'=>'2','id'=>$id])->value('id')){
+            return returnData(['msg'=>'该产品暂未下架，无法操作！','code'=>'201']);
         }
 
         Db::startTrans();
         try {
-            Jproduct::where(['uid'=>$uid,'status'=>'0','type'=>'2','id'=>$id])->update(['delete_time'=>time()]);
+            Jproduct::where(['uid'=>$uid,'status'=>'9','type'=>'2','id'=>$id])->update(['delete_time'=>time()]);
             addXuserLog(getDecodeToken(),'删除线路：'.$id);
             Db::commit();
             return returnData(['msg'=>'操作成功','code'=>'200']);
@@ -223,23 +228,26 @@ class Product
     public function update_status(){
         $uid = getDecodeToken()['id'];
         $id = input('post.id/d','','strip_tags');
+        $status = input('post.status');
         if (empty($id)){
             return returnData(['msg'=>'产品id不能为空','code'=>'201']);
         }
-        if(!Jproduct::where(['uid'=>$uid,'status'=>'0','type'=>'2','id'=>$id])->value('id')){
+        if(!Jproduct::where(['uid'=>$uid,'type'=>'2','id'=>$id])->value('id')){
             return returnData(['msg'=>'该产品不存在或没有权限','code'=>'201']);
         }
-
-        Db::startTrans();
-        try {
-            Jproduct::where(['uid'=>$uid,'type'=>'2','id'=>$id])->update(['status'=>'9']);
-            addXuserLog(getDecodeToken(),'删除线路：'.$id);
-            Db::commit();
-            return returnData(['msg'=>'操作成功','code'=>'200']);
-        }catch (\Exception $e){
-            Db::rollback();
-            return returnData(['msg'=>'数据操作错误，请检查','code'=>'201']);
+        if ($status == '0' || $status == '9'){
+            Db::startTrans();
+            try {
+                Jproduct::where(['uid'=>$uid,'type'=>'2','id'=>$id])->update(['status'=>$status,'update_time'=>time()]);
+                addXuserLog(getDecodeToken(),'上下架线路：'.$id);
+                Db::commit();
+                return returnData(['msg'=>'操作成功','code'=>'200']);
+            }catch (\Exception $e){
+                Db::rollback();
+                return returnData(['msg'=>'数据操作错误，请检查','code'=>'201']);
+            }
         }
+        return returnData(['msg'=>'产品状态不符合规则','code'=>'201']);
 
     }
 }
