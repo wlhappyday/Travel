@@ -23,13 +23,11 @@ class Product
         $data['type'] = '2';
 //        $data = input('post.');
         $data['name'] = input('post.name/s','','strip_tags');
-//        $data['yw_name'] = input('post.yw_name/s','','strip_tags');
+        $data['yw_name'] = input('post.yw_name/s','','strip_tags');
         $data['cx_name'] = input('post.cx_name/s','','strip_tags');
         $data['jt_qname'] = input('post.jt_qname/s','','strip_tags');
         $data['jt_fname'] = input('post.jt_fname/s','','strip_tags');
-        $data['xl_name'] = input('post.xl_name/s','','strip_tags');
-        $data['set_city'] = input('post.set_city/d','','strip_tags');
-        $data['get_city'] = input('post.get_city/d','','strip_tags');
+//        $data['xl_name'] = input('post.xl_name/s','','strip_tags');
         $data['product_code'] = input('post.product_code/s','','strip_tags');
         $data['title'] = input('post.title/s','','strip_tags');
         $data['standard'] = input('post.standard/s','','strip_tags');
@@ -37,39 +35,51 @@ class Product
         $data['money'] = input('post.money/f','','strip_tags');
 
         $data['day'] = input('post.day/d','','strip_tags');
-        $data['end_day'] = input('post.end_day/d');
+        $data['end_day'] = input('post.end_day/s');
         $data['end_time'] = strtotime(input('post.end_time/s','','strip_tags'));
 //        $data['not_time'] = input('post.not_time/s','','strip_tags');
         $data['first_id'] = input('post.first_id/s','','strip_tags');
         $data['img_id'] = input('post.img_id/s','','strip_tags');
         $data['video_id'] = input('post.video_id/s','','strip_tags');
-        $data['material'] = input('post.material/s','','strip_tags');
+//        $data['material'] = input('post.material/s','','strip_tags');
         $data['desc'] = input('post.desc/s','','strip_tags');
+        $data['state'] = input('post.state/d','','strip_tags');
 
-        $data['class_name'] = $data['cx_name'].'-'.$data['jt_qname'].'-'.$data['jt_fname'].'-'.$data['xl_name'];
+        $set_city = input('post.set_city','','strip_tags');
+        $get_city = input('post.get_city','','strip_tags');
+
+        $set_city = json_decode($set_city,true);
+        $data['set_province'] = $set_city['0'];
+        $data['set_city'] = $set_city['1'];
+        $get_city = json_decode($get_city,true);
+        $data['get_province'] = $get_city['0'];
+        $data['get_city'] = $get_city['1'];
+//p($data);
+        $data['class_name'] = $data['name'].'-'.$data['yw_name'].'-'.$data['jt_qname'].'-'.$data['jt_fname'].'-'.$data['cx_name'];
 
         $rule = [
             'name' => 'require|unique:j_product',
-//            'yw_name' => 'require',
+            'yw_name' => 'require',
             'cx_name' => 'require',
             'jt_qname' => 'require',
             'jt_fname' => 'require',
-            'xl_name' => 'require',
+//            'xl_name' => 'require',
             'set_city' => 'require|different:get_city',
             'get_city' => 'require|different:set_city',
             'day' => 'require',
             'end_day' => 'require',
             'title' => 'require',
             'money' => 'require',
+            'state' => 'require|in:1,2',
         ];
         $msg = [
             'name.require' => '产品名称不能为空',
-//            'yw_name.require' => '业务分类不能为空',
-//            'yw_name.unique' => '业务分类名称不存在11',
+            'yw_name.require' => '业务分类不能为空',
+            'yw_name.unique' => '业务分类名称不存在11',
             'cx_name.require' => '出行方式不能为空',
             'jt_qname.require' => '交通方式(去程)不能为空',
             'jt_fname.require' => '交通方式(反程)不能为空',
-            'xl_name.require' => '线路产品分类不能为空',
+//            'xl_name.require' => '线路产品分类不能为空',
             'set_city.require' => '出发城市不能为空',
             'set_city.different' => '出发城市与目的城市一致',
             'get_city.require' => '目的城市不能为空',
@@ -78,15 +88,17 @@ class Product
             'title.require' => '产品标题不能为空',
             'money.require' => '团期价格不能为空',
             'name.unique' => '产品名称已存在',
+            'state.require' => '请选择是否可以改变单价',
+            'state.in' => '状态取值范围是1或2',
         ];
 
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($data)) {
             return json(['code'=>'201','msg'=>$validate->getError()]);
         }
-//        if(!XproductClass::where(['name'=>$data['yw_name'],'status'=>'0','type'=>'2'])->value('id')){
-//            return returnData(['msg'=>'业务分类名称不存在','code'=>'201']);
-//        }
+        if(!XproductClass::where(['name'=>$data['yw_name'],'status'=>'0','type'=>'2'])->value('id')){
+            return returnData(['msg'=>'业务分类名称不存在','code'=>'201']);
+        }
         if(!XproductClass::where(['name'=>$data['cx_name'],'status'=>'0','type'=>'4'])->value('id')){
             return returnData(['msg'=>'出行方式名称不存在','code'=>'201']);
         }
@@ -96,9 +108,14 @@ class Product
         if(!XproductClass::where(['name'=>$data['jt_fname'],'status'=>'0','type'=>'3'])->value('id')){
             return returnData(['msg'=>'交通方式(反程)名称不存在','code'=>'201']);
         }
-        if(!XproductClass::where(['name'=>$data['xl_name'],'status'=>'0','type'=>'1'])->value('id')){
-            return returnData(['msg'=>'线路产品分类名称不存在','code'=>'201']);
+        $time = time();
+
+        if($data['end_time'] < bcadd("$time",bcmul($data['end_day'],'86400'))){
+            return returnData(['msg'=>'有效时间不合法','code'=>'201']);
         }
+//        if(!XproductClass::where(['name'=>$data['xl_name'],'status'=>'0','type'=>'1'])->value('id')){
+//            return returnData(['msg'=>'线路产品分类名称不存在','code'=>'201']);
+//        }
         $data['create_time'] = time();
 
         Db::startTrans();
@@ -147,7 +164,7 @@ class Product
         if ($status == '0' || $status == '9'){
             $where['status'] = $status;
         }
-        $data = Jproduct::where($where)->field('id,type,name,yw_name,cx_name,jt_qname,jt_fname,xl_name,title,money,set_city,get_city,day,end_time,end_day,product_code,address,desc,status,img_id,video_id')->paginate($num);
+        $data = Jproduct::where($where)->field('id,type,name,yw_name,cx_name,jt_qname,jt_fname,title,money,set_city,set_province,get_city,get_province,day,end_time,end_day,product_code,address,desc,status,img_id,video_id,state')->paginate($num);
 //        p($data);
         return returnData(['data'=>$data,'code'=>'200']);
     }
@@ -173,12 +190,12 @@ class Product
         if (empty($data['day'])){
             return returnData(['msg'=>'行程天数不能为空','code'=>'201']);
         }
-//        $data['end_time'] = input('post.end_time/d','','strip_tags');
-        $data['end_day'] = input('post.end_day/s','0');
-//        $time = time();
-//        if($data['end_time'] < bcadd("$time",bcmul($data['end_day'],'86400'))){
-//            return returnData(['msg'=>'有效时间不合法','code'=>'201']);
-//        }
+        $data['end_time'] = strtotime(input('post.end_time/s','','strip_tags'));
+        $data['end_day'] = input('post.end_day/d','0');
+        $time = time();
+        if($data['end_time'] < bcadd("$time",bcmul($data['end_day'],'86400'))){
+            return returnData(['msg'=>'有效时间不合法','code'=>'201']);
+        }
         $data['update_time'] = time();
 
         Db::startTrans();

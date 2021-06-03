@@ -143,6 +143,13 @@ class Product
         if ($mp_name){
             $where['a.mp_name'] = $mp_name;
         }
+        $address = input('post.address');
+        if ($address){
+            $address = json_decode($address,true);
+            $where['a.get_province'] = $address['0'];
+            $where['a.get_city'] = $address['1'];
+        }
+
         $data = Jproduct::where($where)->alias('a')->join('file b','b.id = a.first_id','LEFT')->field('a.id,a.type,a.name,a.class_name,a.mp_name,a.cp_type_str cp_type,a.yp_type_str yp_type,a.title,a.money,a.number,a.end_time,a.desc,a.status,a.get_province,a.get_city,b.file_path first_id')->paginate($num);
 //        p($data);
         return returnData(['data'=>$data,'code'=>'200']);

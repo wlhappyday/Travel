@@ -4,6 +4,8 @@ use app\common\model\JuserLog;
 use app\common\model\PadminLog;
 use app\common\model\AdminLog;
 use app\common\model\XuserLog;
+use app\common\model\Jproduct;
+use app\common\model\JproductReview;
 use thans\jwt\facade\JWTAuth;
 
 function p($arr)
@@ -184,4 +186,22 @@ function httpGet($url) {
     $res = curl_exec($curl);
     curl_close($curl);
     return $res;
+}
+
+//创建产品审核
+function ProductReviewAdd($data,$product_id){
+    $product_result = new Jproduct();
+    $uid = $product_result->where(['id'=>$product_id,'type'=>'1','mp_id'=>'6','status'=>'0'])->value('uid');
+    if (!$uid){
+        return returnData(['msg'=>'该产品不符合规则','code'=>'201']);
+    }
+
+    $result = new JproductReview();
+    $result = $result->insert(['product_id'=>$product_id,'uid'=>$uid,'pid'=>$data['id'],'create_time'=>time()]);
+    if($result){
+        addPadminLog($data,'创建产品审核：'.$data['id']);
+        return returnData(['msg'=>'创建成功','code'=>'200']);
+    }else{
+        return returnData(['msg'=>'创建失败','code'=>'201']);
+    }
 }
