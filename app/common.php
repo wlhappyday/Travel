@@ -223,6 +223,7 @@ function ProductReviewAdd($data,$product_id){
             try {
                 $productReview = JproductReview::find($Review_id);
                 $productReview->state = 2;
+                $productReview->update_time = time();
                 $productReview->save();
                 $product_relation = new Product_relation();
                 if ($productReview['state']=='2'){
