@@ -200,14 +200,15 @@ function ProductReviewAdd($data,$product_id){
     }
 
     $result = new JproductReview();
-    $data = $result->where(['uid'=>$uid,'product_id'=>$product_id,'pid'=>$data['id']])->whereIn('type',[1,2])->value('id');
-    if($data){
+    $res = $result->where(['uid'=>$uid,'product_id'=>$product_id,'pid'=>$data['id']])->whereIn('state',[1,2])->value('id');
+    if($res){
         return ['msg'=>'已存在该产品','code'=>'201'];
     }
     Db::startTrans();
     try {
         $result->insert(['product_id'=>$product_id,'uid'=>$uid,'pid'=>$data['id'],'create_time'=>time()]);
         addPadminLog($data,'创建产品审核：'.$data['id']);
+        Db::commit();
         return ['msg'=>'创建成功','code'=>'200'];
     }catch (\Exception $e){
         Db::rollback();
@@ -216,7 +217,7 @@ function ProductReviewAdd($data,$product_id){
 }
 
     function product_relation($pid,$product_id){
-        $j_product = Jproduct::where(['status'=>'0','id'=>$product_id])->find();
+        $j_product = Jproduct::where(['status'=>'0','id'=>$product_id,'mp_id'=>'6'])->find();
         if ($j_product){
             Db::startTrans();
             try {

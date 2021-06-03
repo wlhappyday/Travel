@@ -126,7 +126,6 @@ class Product
         $product_id = $request->post('product_id');//产品id
         $j_product = J_product::where(['type'=>$type,'status'=>'0','id'=>$product_id])->find();
         if($j_product){
-
             Db::startTrans();
             try {
                 if (Product_relation::where(['product_id'=>$product_id,'uid'=>$uid])->find()){
@@ -139,6 +138,7 @@ class Product
                     }
                     $pro = ProductReviewAdd(getDecodeToken(),$product_id);
                     if ($pro['code']!='200'){
+
                         return json(['code'=>'201','msg'=>$pro['msg']]);
                     }
                 }else{
@@ -159,7 +159,6 @@ class Product
                 return json(['code'=>'200','msg'=>'操作成功']);
             }catch (\Exception $e){
                 Db::rollback();
-                dd($e->getMessage());
                 return json(['code'=>'201','msg'=>'网络异常']);
             }
         }else{
