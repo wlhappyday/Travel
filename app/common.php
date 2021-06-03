@@ -204,12 +204,14 @@ function ProductReviewAdd($data,$product_id){
     if($data){
         return ['msg'=>'已存在该产品','code'=>'201'];
     }
-    $result = $result->insert(['product_id'=>$product_id,'uid'=>$uid,'pid'=>$data['id'],'create_time'=>time()]);
-    if($result){
+    Db::startTrans();
+    try {
+        $result->insert(['product_id'=>$product_id,'uid'=>$uid,'pid'=>$data['id'],'create_time'=>time()]);
         addPadminLog($data,'创建产品审核：'.$data['id']);
         return ['msg'=>'创建成功','code'=>'200'];
-    }else{
-        return ['msg'=>'创建失败','code'=>'201'];
+    }catch (\Exception $e){
+        Db::rollback();
+        return ['code'=>'201','msg'=>'网络异常'];
     }
 }
 
