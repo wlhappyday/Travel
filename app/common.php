@@ -221,7 +221,7 @@ function ProductReviewAdd($data,$product_id){
             Db::startTrans();
             try {
                 $product_relation = new Product_relation();
-                $JproductReview = JproductReview::where(['pid'=>$pid,'product_id'=>$product_id])->value('state');
+                $JproductReview = JproductReview::where(['pid'=>$pid,'product_id'=>$product_id,'uid'=>$j_product['uid']])->value('state');
                 if ($JproductReview=='2'){
                     $product_relation->save([
                         'uid'  =>  $pid,

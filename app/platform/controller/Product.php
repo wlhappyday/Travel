@@ -133,7 +133,7 @@ class Product
                     return json(['code'=>'201','msg'=>'您已经绑定该产品']);
                 }
                 if($j_product['mp_id']=='6'){
-                    $JproductReview = JproductReview::where(['uid'=>$uid,'product_id'=>$product_id])->find();
+                    $JproductReview = JproductReview::where(['pid'=>$uid,'product_id'=>$product_id,'uid'=>$j_product['uid']])->whereIn('state',[1,2])->find();
                     if ($JproductReview){
                         return json(['code'=>'201','msg'=>'绑定该产品需要审核，请耐心等待']);
                     }
@@ -159,6 +159,7 @@ class Product
                 return json(['code'=>'200','msg'=>'操作成功']);
             }catch (\Exception $e){
                 Db::rollback();
+                dd($e->getMessage());
                 return json(['code'=>'201','msg'=>'网络异常']);
             }
         }else{
