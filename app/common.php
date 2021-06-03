@@ -226,7 +226,7 @@ function ProductReviewAdd($data,$product_id){
                 $productReview->save();
                 $product_relation = new Product_relation();
                 if ($productReview['state']=='2'){
-                    $relation = Product_relation::where(['uid'=>$pid,'product_id'])->find();
+                    $relation = Product_relation::where(['uid'=>$pid,'product_id'=>$product_id])->find();
                     if ($relation){
                         return ['code'=>'201','msg'=>'已绑定该产品'];
                     }
