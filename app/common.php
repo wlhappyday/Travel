@@ -222,8 +222,8 @@ function ProductReviewAdd($data,$product_id){
             Db::startTrans();
             try {
                 $product_relation = new Product_relation();
-                $JproductReview = JproductReview::where(['pid'=>$pid,'product_id'=>$product_id,'uid'=>$j_product['uid']])->value('state');
-                if ($JproductReview=='2'){
+                $JproductReview = JproductReview::where(['pid'=>$pid,'product_id'=>$product_id,'uid'=>$j_product['uid'],'state'=>2])->value('state');
+                if ($JproductReview){
                     $product_relation->save([
                         'uid'  =>  $pid,
                         'type' =>  $j_product['type'],
@@ -231,6 +231,7 @@ function ProductReviewAdd($data,$product_id){
                         'price'=>$j_product['money'],
                         'mp_id'=>$j_product['mp_id']
                     ]);
+                    Db::commit();
                     return ['code'=>'200','msg'=>'操作成功'];
                 }else{
                     return ['code'=>'201','msg'=>'该产品未审核'];

@@ -48,11 +48,18 @@ class ProductReview
         if($state == '2'){
             Db::startTrans();
             try {
-                JproductReview::where(['id'=>$id,'uid'=>$uid])->update(['state'=>$state,'update_time'=>time()]);
 
-                addJuserLog(getDecodeToken(),'产品审核：通过 审核id '.$id);
-                Db::commit();
-                return returnData(['msg'=>'操作成功','code'=>'200']);
+                $data = JproductReview::where(['id'=>$id])->find()->toArray();
+                $data = product_relation($data['pid'],$data['product_id'],$id);
+                if($data['code'] == '200'){
+                    addJuserLog(getDecodeToken(),'产品审核：通过 审核id '.$id);
+                    Db::commit();
+                    return returnData(['msg'=>$data['msg'],'code'=>'200']);
+                }else{
+                    Db::rollback();
+                    return returnData(['msg'=>$data['msg'],'code'=>'201']);
+                }
+
             }catch (\Exception $e){
                 Db::rollback();
                 return returnData(['msg'=>'数据操作错误，请检查','code'=>'201']);
