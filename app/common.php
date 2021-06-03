@@ -200,6 +200,10 @@ function ProductReviewAdd($data,$product_id){
     }
 
     $result = new JproductReview();
+    $data = $result->where(['uid'=>$uid,'product_id'=>$product_id,'pid'=>$data['id']])->whereIn('type',[1,2])->value('id');
+    if($data){
+        return ['msg'=>'已存在该产品','code'=>'201'];
+    }
     $result = $result->insert(['product_id'=>$product_id,'uid'=>$uid,'pid'=>$data['id'],'create_time'=>time()]);
     if($result){
         addPadminLog($data,'创建产品审核：'.$data['id']);
