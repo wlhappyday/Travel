@@ -6,7 +6,10 @@ use app\common\model\AdminLog;
 use app\common\model\XuserLog;
 use app\common\model\Jproduct;
 use app\common\model\JproductReview;
+use app\platform\model\J_product;
+use app\platform\model\Product_relation;
 use thans\jwt\facade\JWTAuth;
+use think\facade\Db;
 
 function p($arr)
 {
@@ -193,15 +196,39 @@ function ProductReviewAdd($data,$product_id){
     $product_result = new Jproduct();
     $uid = $product_result->where(['id'=>$product_id,'type'=>'1','mp_id'=>'6','status'=>'0'])->value('uid');
     if (!$uid){
-        return returnData(['msg'=>'该产品不符合规则','code'=>'201']);
+        return ['msg'=>'该产品不符合规则','code'=>'201'];
     }
 
     $result = new JproductReview();
     $result = $result->insert(['product_id'=>$product_id,'uid'=>$uid,'pid'=>$data['id'],'create_time'=>time()]);
     if($result){
         addPadminLog($data,'创建产品审核：'.$data['id']);
-        return returnData(['msg'=>'创建成功','code'=>'200']);
+        return ['msg'=>'创建成功','code'=>'200'];
     }else{
-        return returnData(['msg'=>'创建失败','code'=>'201']);
+        return ['msg'=>'创建失败','code'=>'201'];
     }
 }
+
+    function product_relation($data,$product_id){
+        $j_product = Jproduct::where(['status'=>'0','id'=>$product_id])->find();
+        Db::startTrans();
+        try {
+            $product_relation = new Product_relation();
+            $JproductReview = JproductReview::where(['uid'=>$data['id'],'product_id'=>$product_id])->value('state');
+            if ($JproductReview=='2'){
+                $product_relation->save([
+                    'uid'  =>  $data['id'],
+                    'type' =>  $j_product['type'],
+                    'product_id'=>$product_id,
+                    'price'=>$j_product['money'],
+                    'mp_id'=>$j_product['mp_id']
+                ]);
+                return ['code'=>'200','msg'=>'操作成功'];
+            }else{
+                return ['code'=>'201','msg'=>'该产品未审核'];
+            }
+        }catch (\Exception $e){
+            Db::rollback();
+            return ['code'=>'201','msg'=>'网络异常'];
+        }
+    }

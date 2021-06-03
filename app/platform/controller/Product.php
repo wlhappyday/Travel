@@ -8,6 +8,7 @@ use app\platform\model\Product_relation;
 use app\platform\model\Admin;
 use app\platform\model\Adminlogin;
 use app\platform\model\Productuser;
+use app\common\model\JproductReview;
 use app\api\model\Juser;
 use app\api\model\Xuser;
 use think\facade\Validate;
@@ -125,18 +126,32 @@ class Product
         $product_id = $request->post('product_id');//产品id
         $j_product = J_product::where(['type'=>$type,'status'=>'0','id'=>$product_id])->find();
         if($j_product){
+
             Db::startTrans();
             try {
                 if (Product_relation::where(['product_id'=>$product_id,'uid'=>$uid])->find()){
-                    return json(['code'=>'201','msg'=>'操作成功','sign'=>'您已经绑定该产品']);
+                    return json(['code'=>'201','msg'=>'您已经绑定该产品']);
                 }
-                $product_relation = new Product_relation();
-                $product_relation->save([
-                    'uid'  =>  $uid,
-                    'type' =>  $type,
-                    'product_id'=>$product_id,
-                    'price'=>$j_product['money'],
-                ]);
+                if($j_product['mp_id']=='6'){
+                    $JproductReview = JproductReview::where(['uid'=>$uid,'product_id'=>$product_id])->find();
+                    if ($JproductReview){
+                        return json(['code'=>'201','msg'=>'绑定该产品需要审核，请耐心等待']);
+                    }
+                    $pro = ProductReviewAdd(getDecodeToken(),$product_id);
+                    if ($pro['code']!='200'){
+                        return json(['code'=>'201','msg'=>$pro['msg']]);
+                    }
+                }else{
+                    $product_relation = new Product_relation();
+                    $product_relation->save([
+                        'uid'  =>  $uid,
+                        'type' =>  $type,
+                        'product_id'=>$product_id,
+                        'price'=>$j_product['money'],
+                        'mp_id'=>$j_product['mp_id']
+                    ]);
+                }
+
                 $data['info'] = '平台商绑定产品：'.$product_id;
                 $login = new Adminlogin();
                 $login->log($data);
@@ -144,7 +159,7 @@ class Product
                 return json(['code'=>'200','msg'=>'操作成功']);
             }catch (\Exception $e){
                 Db::rollback();
-                return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+                return json(['code'=>'201','msg'=>'网络异常']);
             }
         }else{
             return json(['code'=>'201','msg'=>'没有该产品']);
