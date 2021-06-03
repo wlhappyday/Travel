@@ -216,14 +216,16 @@ function ProductReviewAdd($data,$product_id){
     }
 }
 
-    function product_relation($pid,$product_id){
+    function product_relation($pid,$product_id,$Review_id){
         $j_product = Jproduct::where(['status'=>'0','id'=>$product_id,'mp_id'=>'6'])->find();
         if ($j_product){
             Db::startTrans();
             try {
+                $productReview = JproductReview::find($Review_id);
+                $productReview->state = 2;
+                $productReview->save();
                 $product_relation = new Product_relation();
-                $JproductReview = JproductReview::where(['pid'=>$pid,'product_id'=>$product_id,'uid'=>$j_product['uid'],'state'=>2])->value('state');
-                if ($JproductReview){
+                if ($productReview['state']=='2'){
                     $product_relation->save([
                         'uid'  =>  $pid,
                         'type' =>  $j_product['type'],
