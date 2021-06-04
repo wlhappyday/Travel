@@ -164,7 +164,7 @@ class Product
         if ($status == '0' || $status == '9'){
             $where['status'] = $status;
         }
-        $data = Jproduct::where($where)->field('id,type,name,yw_name,cx_name,jt_qname,jt_fname,title,money,set_city,set_province,get_city,get_province,day,end_time,end_day,product_code,address,desc,status,img_id,video_id,state')->paginate($num);
+        $data = Jproduct::where($where)->field('id,type,name,yw_name,cx_name,jt_qname,jt_fname,title,money,set_city,set_province,get_city,get_province,day,end_time,end_day,product_code,address,desc,status,img_id,video_id,state')->paginate($num)->toarray();
 //        p($data);
         return returnData(['data'=>$data,'code'=>'200']);
     }

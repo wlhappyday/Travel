@@ -150,7 +150,7 @@ class Product
             $where['a.get_city'] = $address['1'];
         }
 
-        $data = Jproduct::where($where)->alias('a')->join('file b','b.id = a.first_id','LEFT')->field('a.id,a.type,a.name,a.class_name,a.mp_name,a.cp_type_str cp_type,a.yp_type_str yp_type,a.title,a.money,a.number,a.end_time,a.desc,a.status,a.get_province,a.get_city,b.file_path first_id')->paginate($num);
+        $data = Jproduct::where($where)->alias('a')->join('file b','b.id = a.first_id','LEFT')->field('a.id,a.type,a.name,a.class_name,a.mp_name,a.cp_type_str cp_type,a.yp_type_str yp_type,a.title,a.money,a.number,a.end_time,a.desc,a.status,a.get_province,a.get_city,b.file_path first_id')->paginate($num)->toarray();
 //        p($data);
         return returnData(['data'=>$data,'code'=>'200']);
     }
@@ -346,7 +346,6 @@ class Product
     public function productRecord(){
         $uid = getDecodeToken()['id'];
         $num = input('post.num/d','10','strip_tags');
-
         $type = input('post.type/d','','strip_tags');
         $where = [];
         $where['b.uid'] = $uid;
