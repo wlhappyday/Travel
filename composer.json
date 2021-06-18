@@ -29,7 +29,8 @@
         "thans/tp-jwt-auth": "^1.1",
         "hg/apidoc": "^2.5",
         "phpoffice/phpexcel": "^1.8",
-        "firebase/php-jwt": "^5.2"
+        "firebase/php-jwt": "^5.2",
+      "ext-json": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",

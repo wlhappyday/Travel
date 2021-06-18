@@ -142,15 +142,6 @@ class Login
 
     }
 
-    public function ceshi()
-    {
-        $post_data = array(
-            "title" => "1290800466",
-            "content" => "3424243243"
-        );
-        $data = $this->sendRequest("http://127.0.0.1:9999/pay/notify", $post_data);
-        print_r($data);
-    }
 
     public function adminLogin($where)
     {
@@ -184,12 +175,14 @@ class Login
             $gender = $request->post('gender');
             $avatar = $request->post('avatar');
             $code = $request->post('code');
+            $type = $request->post('type');
             if ($appid && $nickName && $address && $gender && $avatar && $code) {
                 $user = Puser::where(['appid'=>$appid])->field('appkey,id')->find();
                 if ($user){
                     $secret =Puser::where(['appid'=>$appid])->value('appkey');
                     $session_key = json_decode(httpGet("https://api.weixin.qq.com/sns/jscode2session?appid=".$appid."&secret=".$secret."&js_code=".$code."&grant_type=authorization_code"),true);
                     Db::startTrans();
+                    $save['type'] = $type;
                     try{
                         $uid = Puseruser::where(['openid'=>$session_key['openid'],'appid'=>$appid])->find();
                         if ($uid){
@@ -229,6 +222,7 @@ class Login
                     $user = Puser::where(['appid'=>$appid])->find();
                     if ($user){
                         $save['appid']=$appid;
+                        $save['type']=$type;
                         header('Authorization:'."Bearer " . JWTAuth::builder($save));
                         return json(['code'=>'200','msg'=>'操作成功']);
                     }

@@ -32,6 +32,10 @@ class After
         if($request['s'] =="/api/login/SignLogin"){
             return $response;
         }
+
+        if ($request['s'] == '/applets/index/index'){
+            return $response;
+        }
         if($request->server()['REQUEST_URI']!="/api/login/login"){
             $response->header(["Authorization"=>"Bearer ".JWTAuth::refresh(),'Access-Control-Expose-Headers'=>"Authorization"]);
         }

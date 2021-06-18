@@ -9,7 +9,6 @@ class Index
 {
 
     public function index(){
-
         return View::fetch('index');
     }
 }
