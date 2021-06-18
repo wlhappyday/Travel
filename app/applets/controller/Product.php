@@ -16,39 +16,6 @@ use hg\apidoc\annotation as Apidoc;
 class Product
 {
     /**
-     * @Apidoc\Title("搜索列表及全部列表")
-     * @Apidoc\Desc("搜索列表及全部列表")
-     * @Apidoc\Url("applets/product/list")
-     * @Apidoc\Method("GET")
-     * @Apidoc\Tag("列表 基础")
-     * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("city", type="number",require=false, desc="搜索的城市名称")
-     * @Apidoc\Returned ("product",type="object",desc="产品",
-     *     @Apidoc\Returned ("file_path",type="int",desc="产品图片"),
-     *     @Apidoc\Returned ("class_name",type="varchar(11)",desc="产品名称"),
-     *     @Apidoc\Returned ("product_id",type="int",desc="产品id"),
-     *     @Apidoc\Returned ("price",type="int",desc="产品价格"),
-     *     @Apidoc\Returned ("number",type="int",desc="产品库存"),
-     *     @Apidoc\Returned ("get_city",type="datetime",desc="所在、目的地城市"),
-     *     @Apidoc\Returned ("jp_name",type="datetime",desc="景区产品分类"),
-     *     )
-     *  @Apidoc\Returned("http",type="string",desc="域名")
-     * @Apidoc\Returned("sign",type="string",desc="错误提示")
-     * @Apidoc\Returned("msg",type="string",desc="任务提示")
-     */
-    public function list(Request $request)
-    {
-        $city = $request->get('city');
-        $puser_id = $request->puser_id;
-        $appid = $request->appid;
-        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('user_id');
-        $data = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$id])->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.address,jp.jq_name')
-            ->join('j_product jp','jp.id=pu.product_id')->where([['get_city','like','%'.$city.'%']])->leftjoin('file file','pu.first_id=file.id')
-            ->select()->toarray();
-        return json(['code'=>'200','msg'=>'操作成功','product'=>$data,'http'=>http()]);
-    }
-
-    /**
      * @Apidoc\Title("产品详情")
      * @Apidoc\Desc("产品详情")
      * @Apidoc\Url("applets/product/detail")
@@ -92,23 +59,23 @@ class Product
     public function detail(Request $request){
         $product_id = $request->get('product_id');
         $puser_id = getDecodeToken()['puser_id'];
-        $appid = getDecodeToken()['appid'];    
-        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
+        $appid = getDecodeToken()['appid'];
         $type = $request->get('type');
+        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
         if($type=='1'){
             //景區
             $product = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.product_id'=>$product_id,'pu.status'=>'0','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$id])
                 ->join('j_product jp','jp.id=pu.product_id')
                 ->leftjoin('file file','pu.first_id=file.id')
                 ->field('file.file_path,pu.class_name,pu.price,pu.product_id,pu.img_id,jp.get_city,pu.name,pu.id,jp.end_time,pu.video_id')
-                ->find()->toarray();
+                ->find();
         }else if($type=='2'){
             //綫路
             $product = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$id])
                 ->join('j_product jp','jp.id=pu.product_id')
                 ->leftjoin('file file','pu.first_id=file.id')
                 ->field('file.file_path,pu.class_name,pu.price,pu.img_id,pu.product_id,jp.address,pu.name,pu.id,pu.video_id')
-                ->find()->toarray();
+                ->find();
         }else{
             return json(['code'=>'201','msg'=>'type不能为空']);
         }
@@ -120,46 +87,6 @@ class Product
         $product['end_time'] = date('Y-m-s h:i:s',$product['end_time']);
         return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
     }
-
-    /**
-     * @Apidoc\Title("产品详情")
-     * @Apidoc\Desc("产品详情")
-     * @Apidoc\Url("applets/product/detail")
-     * @Apidoc\Method("GET")
-     * @Apidoc\Tag("列表 基础")
-     * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("product_id", type="number",require=false, desc="产品id")
-     * @Apidoc\Returned ("product",type="object",desc="产品",
-     *     @Apidoc\Returned ("file_path",type="int",desc="产品图片"),
-     *     @Apidoc\Returned ("name",type="int",desc="产品名称 线路展示"),
-     *     @Apidoc\Returned ("class_name",type="int",desc="产品名称 景区展示"),
-     *     @Apidoc\Returned ("price",type="int",desc="产品价格"),
-     *     @Apidoc\Returned ("title",type="int",desc="产品标题"),
-     *     @Apidoc\Returned ("type",type="int",desc="产品状态 1景区 2线路"),
-     *     @Apidoc\Returned ("product_id",type="int",desc="产品id"),
-     *     )
-     * @Apidoc\Returned ("userinfo",type="object",desc="用户乘车人列表",
-     *     @Apidoc\Returned ("name",type="int",desc="用户姓名"),
-     *     @Apidoc\Returned ("id_card",type="int",desc="用户证件号"),
-     *     @Apidoc\Returned ("class_name",type="int",desc="手机号"),
-     *     @Apidoc\Returned ("id",type="int",desc="id"),
-     *     )
-     * @Apidoc\Returned("sign",type="string",desc="错误提示")
-     * @Apidoc\Returned("msg",type="string",desc="任务提示")
-     */
-    public function orderdetail(Request $request){
-        $product_id = $request->get('product_id');
-        $puser_id = $request->puser_id;
-        $appid = $request->appid;
-        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
-        $product = Productuser::where(['pu.product_id'=>$product_id,'pu.user_id'=>$id,'pu.status'=>'0','jp.status'=>'0','jp.delete_time'=>null])->alias('pu')
-            ->join('j_product jp','jp.id=pu.product_id')
-            ->field('pu.name,pu.title,pu.first_id,pu.prict,jp.end_time,pu.class_name,jp.type')
-            ->find()->toarray();
-        $userinfo = PuserInfo::where('uid',$id)->limit(2)->select();
-        return json(['code'=>'200','msg'=>'操作成功','product'=>$product,'userinfo'=>$userinfo]);
-    }
-
 
     /**
      * @Apidoc\Title("获取用户乘客")
@@ -177,16 +104,15 @@ class Product
      * @Apidoc\Returned("msg",type="string",desc="任务提示")
      */
     public function passenger(Request $request){
-        $puser_id = getDecodeToken()['puser_id'];
+        $id = getDecodeToken()['puser_id'];
         $appid = getDecodeToken()['appid'];
-        $passenger = Puserpassenger::where(['user_id'=>$puser_id])->select();
+        $passenger = Puserpassenger::where(['user_id'=>$id])->select();
         return json(['code'=>'200','msg'=>'操作成功','passenger'=>$passenger]);
     }
 
     public function userinfoadd(Request $request){
-        $puser_id = getDecodeToken()['puser_id'];
+        $id = getDecodeToken()['puser_id'];
         $appid = getDecodeToken()['appid'];
-        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
         $rule = [
             'name'=>'require|length:2,10',
             'card'=>'require|idCard',
@@ -207,10 +133,10 @@ class Product
         Db::startTrans();
         try {
             Puserpassenger::insert([
-                 'name'=>$request->post('name'),
+                'name'=>$request->post('name'),
                 'card'=>$request->post('card'),
                 'phone'=>$request->post('phone'),
-                 'user_id'=>$id,
+                'user_id'=>$id,
             ]);
             Db::commit();
             return json(['code'=>'200','msg'=>'操作成功']);
@@ -220,9 +146,8 @@ class Product
         }
     }
     public function userinfoedit(Request $request){
-        $puser_id = getDecodeToken()['puser_id'];
+        $id = getDecodeToken()['puser_id'];
         $appid = getDecodeToken()['appid'];
-        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
         $rule = [
             'userinfo_id'=>'require',
             'name'=>'require|length:2,10',
