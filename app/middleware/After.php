@@ -3,26 +3,27 @@ declare (strict_types = 1);
 
 namespace app\middleware;
 
-use thans\jwt\facade\JWTAuth;
+use Closure;
+use think\Request;
 
 class After
 {
     /**
      * 处理请求
      *
-     * @param \think\Request $request
-     * @param \Closure       $next
+     * @param Request $request
+     * @param Closure $next
      * @return Response
      */
-    public function handle($request, \Closure $next)
+    public function handle($request, Closure $next)
     {
-        if ($request['s'] == '/apidoc/config'){
+        if ($request['s'] == '/apidoc/config') {
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/data'){
+        if ($request['s'] == '/apidoc/data') {
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/verifyAuth'){
+        if ($request['s'] == '/apidoc/verifyAuth') {
             return $next($request);
         }
         if ($request['s'] == '/apidoc/apiData'){
@@ -37,7 +38,7 @@ class After
             return $response;
         }
         if($request->server()['REQUEST_URI']!="/api/login/login"){
-            $response->header(["Authorization"=>"Bearer ".JWTAuth::refresh(),'Access-Control-Expose-Headers'=>"Authorization"]);
+//            $response->header(["Authorization"=>"Bearer ".JWTAuth::refresh(),'Access-Control-Expose-Headers'=>"Authorization"]);
         }
         return $response;
     }

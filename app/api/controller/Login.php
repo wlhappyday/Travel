@@ -9,12 +9,11 @@ use app\api\model\Juser;
 use app\api\model\Padmin;
 use app\api\model\Puser;
 use app\api\model\Xuser;
-use app\common\model\Puseruser;
-use app\common\model\Log;
 use app\common\model\File;
-use app\user\model\Config;
+use app\common\model\Log;
+use app\common\model\Puseruser;
+use Exception;
 use thans\jwt\facade\JWTAuth;
-use \Firebase\JWT\JWT;
 use think\facade\Db;
 use think\Request;
 
@@ -24,14 +23,14 @@ class Login
     {
         $phone = input('post.phone', '123456', 'strip_tags');
         $username = input('post.username', '123456', 'strip_tags');
-        $passwd = input('post.passwd', '123456', 'strip_tags');
+        $passwd = input('post.password', '123456', 'strip_tags');
         $type = input('post.type/d', '5');
         if ($username != null) {
             $where['user_name'] = $username;
         } elseif ($phone != null) {
             $where['phone'] = $phone;
         } else {
-            return returnData(['msg' => '请输入完整账号密码'], 201);
+            return returnData(['msg' => '请输入完整账号密码', "code" => 201]);
         }
         if ($type != '1') {
             $where['status'] = '0';
@@ -43,8 +42,9 @@ class Login
                 break;
             case 2:
                 $userDate = $this->pAdmin($where);
-
-                $userDate['avatar'] = http().File::where('id',$userDate['avatar'])->value('file_path');
+                if (!empty($userDate)) {
+                    $userDate['avatar'] = http() . File::where('id', $userDate['avatar'])->value('file_path');
+                }
                 break;
             case 3:
                 $userDate = $this->jLogin($where);
@@ -55,15 +55,14 @@ class Login
             case 5:
                 $userDate = $this->pLogin($where);
                 break;
-
             default:
                 return returnData(["code" => 201, 'msg' => '非法参数']);
         }
         if (empty($userDate)) {
-            return returnData(['msg' => '用户不存在'], 201);
+            return returnData(['msg' => '用户不存在', "code" => 201]);
         }
         if (!checkPasswd($passwd, $userDate)) {
-            return returnData(['msg' => '账号密码错误'], 201);
+            return returnData(['msg' => '账号密码错误', "code" => 201]);
         }
         $userDate = $userDate->toArray();
         $userInfo = [
@@ -71,7 +70,8 @@ class Login
             'phone' => $userDate['phone'],
             'id' => $userDate['id'],
             'type' => $type,
-            'avatar' => $userDate['avatar'] ?? ''
+            'avatar' => $userDate['avatar'] ?? '',
+            'code' => 200,
         ];
         $logData = [
             'uid' => $userDate['id'],
@@ -203,16 +203,16 @@ class Login
                             $save['address'] = $address;
                             $save['avatar'] = $avatar;
                             $save['puser_id'] = $user['id'];
-                            $save['openid']=$session_key['openid'];
-                            $save['last_time']=time();
+                            $save['openid'] = $session_key['openid'];
+                            $save['last_time'] = time();
                             $Puseruser->save($save);
                             DB::commit();
                         }
-                        header('Authorization:'."Bearer " . JWTAuth::builder($save));
-                        return json(['code'=>'200','msg'=>'操作成功','session_key'=>$session_key]);
-                    }catch (\Exception $e){
+                        header('Authorization:' . "Bearer " . JWTAuth::builder($save));
+                        return json(['code' => '200', 'msg' => '操作成功', 'session_key' => $session_key]);
+                    } catch (Exception $e) {
                         Db::rollback();
-                        return json(['code'=>'-1','msg'=>$e->getMessage()]);
+                        return json(['code' => '-1', 'msg' => $e->getMessage()]);
                     }
                 }else{
                     return json(['code'=>'-1','msg'=>'门店不存在']);
