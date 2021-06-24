@@ -64,7 +64,8 @@ class JWT
         $this->getToken();
 
         if (! $this->token) {
-            throw new JWTException('Must have token');
+            return ["code1"=>1,"msg"=>'Must have token'];
+//            throw new JWTException('Must have token');
         }
     }
 
@@ -76,8 +77,12 @@ class JWT
      */
     public function getPayload()
     {
-        $this->requireToken();
-
+        $requireToken = $this->requireToken();
+        if (is_array($requireToken)){
+            if ($requireToken['code1']==1){
+                return $requireToken;
+            }
+        }
         return $this->manager->decode($this->token);
     }
 

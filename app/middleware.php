@@ -1,7 +1,9 @@
 <?php
 
+use app\middleware\Auth;
+
 return [
-//    Auth::class,
+    Auth::class,
 //    After::class,
 ]
 ?>

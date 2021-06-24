@@ -7,11 +7,21 @@ use app\common\model\Config;
 use app\common\model\Order;
 use app\common\model\Padmin;
 use app\common\model\Puser;
+use think\db\exception\DataNotFoundException;
+use think\db\exception\DbException;
+use think\db\exception\ModelNotFoundException;
+use think\facade\Db;
 use think\Request;
+use think\response\Json;
 
 class Pay
 {
-    public function index(Request $request)
+    /**
+     * @throws DataNotFoundException
+     * @throws ModelNotFoundException
+     * @throws DbException
+     */
+    public function index(Request $request): Json
     {
         if ($request->isPost()) {
             $orderId = $request->post('orderId');
@@ -31,8 +41,8 @@ class Pay
             if (empty($padmin)) {
                 return returnData(['code' => '-1', 'msg' => "非法请求"], 200);
             }
-            if (empty($padmin['mch_id']) || empty($padmin['mch_key'])) {
-                return returnData(['code' => '-1', 'msg' => "请平台商配置手续费账户"], 200);
+            if (empty($padmin['cl_id']) || empty($padmin['cl_key']) || empty($padmin['sub_mch_id']) || empty($padmin['mch_id'])) {
+                return returnData(['code' => '-1', 'msg' => "请平台商配置收款账户"], 200);
             }
             $pUser = Puser::where('id', $order['p_user_id'])->find();
             if (empty($pUser)) {
@@ -50,7 +60,7 @@ class Pay
         }
     }
 
-    function payTo($order, $padmin, $exent, $pUser)
+    public function payTo($order, $padmin, $exent, $pUser)
     {
         $url = 'https://xcxapi.payunke.com/index/unifiedorder111111?format=jsonIn';
         $paydata['appid'] = $padmin['mch_id'];
@@ -60,14 +70,14 @@ class Pay
         $paydata['callback_url'] = 'http://platformzcm.february202.cn/api/aliPay/callback';
         $paydata['success_url'] = 'http://www.baidu.com';
         $paydata['error_url'] = 'http://www.baidu.com';
-        //            {"appid":"wxaf1f2c344b7ffa78",
+//            {"appid":"wxaf1f2c344b7ffa78",
 //        "sub_appid":"wx6117e2540ee05b55",
 //        "secret":"8200d555ea52c45fb82d2b51de506514",
 //        "mch_id":"1285253401",
 //        "key":"c5258aaf86c5cc46df64cfe9af0b9791",
 //        "sub_mch_id":"1517514021"}
         $paydata['extend'] = json_encode([
-            'appid' => Config::where("title", "appid")->value("value"),
+            'appid' => Account::where("title", "appid")->value("value"),
             'sub_appid' => $pUser['appid'],
             'secret' => $pUser['appkey'],
             'js_code' => $exent['js_code'],
@@ -76,50 +86,22 @@ class Pay
             'key' => Config::where("title", "key")->value("value"),
             'sub_mch_id' => $pUser['sub_mch_id']
         ], JSON_UNESCAPED_UNICODE);
-        $paydata['sign'] = $this->getSign($padmin['mch_key'], $paydata);
-        $dateeeeeeee = $this->post($url, $paydata);
+        $paydata['sign'] = getSign($padmin['mch_key'], $paydata);
+        $dateeeeeeee = post($url, $paydata);
         return $dateeeeeeee;
     }
 
-    function getSign($secret, $data): string
+    /**
+     * @throws ModelNotFoundException
+     * @throws DbException
+     * @throws DataNotFoundException
+     */
+    public function dingDanWJ()
     {
-        // 去空
-        $data = array_filter($data);
-        //签名步骤一：按字典序排序参数
-        ksort($data);
-        if ($data['pay_type'] == 'AliRoyalty') {
-            foreach ($data['royalty_parameters'] as $k => $v) {
-                ksort($data['royalty_parameters'][$k]);
-            }
-        }
-        $string_a = http_build_query($data);
-        $string_a = urldecode($string_a);
-        //签名步骤二：在string后加入mch_key
-        $string_sign_temp = $string_a . "&key=" . $secret;
-        // var_dump($string_sign_temp);
-        //签名步骤三：MD5加密
-        $sign = md5($string_sign_temp);
-        // 签名步骤四：所有字符转为大写
-        $result = strtoupper($sign);
-        // var_dump($result);
-        return $result;
+        $dateStr = strtotime(date('Y-m-d', time()));
+        $timestamp = $dateStr - 7 * 24 * 60 * 60;
+        $timestamp1 = $dateStr - 6 * 24 * 60 * 60;
+        $Query = (new Db)->table('orders')->where(["pay_time" => ["between", [$timestamp, $timestamp1]], 'order_status' => ['<', 5], "is_checkout" => 0])->select();
     }
 
-    function post($url, $data)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        //   curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
-        $output = curl_exec($ch);
-        //   var_dump(curl_error($ch));die();
-        curl_close($ch);
-        return $output;
-    }
 }
