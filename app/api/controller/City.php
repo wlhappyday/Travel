@@ -4,7 +4,6 @@ namespace app\api\controller;
 
 use app\common\model\Area;
 use app\common\model\Jproduct;
-use think\exception\ValidateException;
 
 class City
 {

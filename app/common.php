@@ -1,14 +1,13 @@
 <?php
 // 这是系统自动生成的公共文件
+use app\common\model\AdminLog;
+use app\common\model\Config;
+use app\common\model\Jproduct;
+use app\common\model\JproductReview;
 use app\common\model\JuserLog;
 use app\common\model\PadminLog;
-use app\common\model\AdminLog;
-use app\common\model\XuserLog;
-use app\common\model\Jproduct;
 use app\common\model\Puserlog;
-use app\common\model\JproductReview;
-use app\common\model\Config;
-use app\platform\model\J_product;
+use app\common\model\XuserLog;
 use app\platform\model\Product_relation;
 use thans\jwt\facade\JWTAuth;
 use think\facade\Db;
@@ -37,11 +36,54 @@ function get_rand_char($length){
     }
     return $str;
 }
+
+function getSign($secret, $data): string
+{
+    // 去空
+    $data = array_filter($data);
+    //签名步骤一：按字典序排序参数
+    ksort($data);
+    if ($data['pay_type'] == 'AliRoyalty') {
+        foreach ($data['royalty_parameters'] as $k => $v) {
+            ksort($data['royalty_parameters'][$k]);
+        }
+    }
+    $string_a = http_build_query($data);
+    $string_a = urldecode($string_a);
+    //签名步骤二：在string后加入mch_key
+    $string_sign_temp = $string_a . "&key=" . $secret;
+    // var_dump($string_sign_temp);
+    //签名步骤三：MD5加密
+    $sign = md5($string_sign_temp);
+    // 签名步骤四：所有字符转为大写
+    $result = strtoupper($sign);
+    // var_dump($result);
+    return $result;
+}
+
+function post($url, $data)
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    //   curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+    $output = curl_exec($ch);
+    //   var_dump(curl_error($ch));die();
+    curl_close($ch);
+    return $output;
+}
+
 /**
- * @author WjngJiamao
- * @Note   密码加密
  * @param $passwd   明文密码
  * @return array
+ * @author WjngJiamao
+ * @Note   密码加密
  */
 function encryptionPasswd($passwd)
 {
@@ -212,13 +254,13 @@ function ProductReviewAdd($data,$product_id){
     }
     Db::startTrans();
     try {
-        $result->insert(['product_id'=>$product_id,'uid'=>$uid,'pid'=>$data['id'],'create_time'=>time()]);
-        addPadminLog($data,'创建产品审核：'.$data['id']);
+        $result->insert(['product_id' => $product_id, 'uid' => $uid, 'pid' => $data['id'], 'create_time' => time()]);
+        addPadminLog($data, '创建产品审核：' . $data['id']);
         Db::commit();
-        return ['msg'=>'创建成功','code'=>'200'];
-    }catch (\Exception $e){
+        return ['msg' => '创建成功', 'code' => '200'];
+    } catch (Exception $e) {
         Db::rollback();
-        return ['code'=>'201','msg'=>'网络异常'];
+        return ['code' => '201', 'msg' => '网络异常'];
     }
 }
 
@@ -239,19 +281,19 @@ function ProductReviewAdd($data,$product_id){
                     }
                     $product_relation->save([
                         'uid'  =>  $pid,
-                        'type' =>  $j_product['type'],
-                        'product_id'=>$product_id,
-                        'price'=>$j_product['money'],
-                        'mp_id'=>$j_product['mp_id']
+                        'type' => $j_product['type'],
+                        'product_id' => $product_id,
+                        'price' => $j_product['money'],
+                        'mp_id' => $j_product['mp_id']
                     ]);
                     Db::commit();
-                    return ['code'=>'200','msg'=>'操作成功'];
-                }else{
-                    return ['code'=>'201','msg'=>'该产品未审核'];
+                    return ['code' => '200', 'msg' => '操作成功'];
+                } else {
+                    return ['code' => '201', 'msg' => '该产品未审核'];
                 }
-            }catch (\Exception $e){
+            } catch (Exception $e) {
                 Db::rollback();
-                return ['code'=>'201','msg'=>'网络异常'];
+                return ['code' => '201', 'msg' => '网络异常'];
             }
         }else{
             return ['code'=>'201','msg'=>'该产品被禁用或删除'];
