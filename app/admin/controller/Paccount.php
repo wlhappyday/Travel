@@ -43,7 +43,7 @@ class Paccount
         $result = new p_account();
         $data = $result->alias('a')->where($where)
             ->join('P_admin b','b.id=a.pid')
-            ->field('a.id,a.name,a.mch_id,a.key,a.state,a.create_time,b.user_name,b.phone')
+            ->field('a.id,a.name,a.mch_id,a.sub_mch_id,a.state,a.create_time,b.user_name,b.phone')
             ->paginate($num);
 
         if($data){

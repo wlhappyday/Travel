@@ -3,6 +3,8 @@ declare (strict_types = 1);
 
 namespace app\scenic\controller;
 
+use app\common\model\Accounts;
+use app\common\model\Padmin;
 use app\common\model\PfzAccount;
 use app\common\model\Juser;
 use app\common\service\Sign;
@@ -67,15 +69,23 @@ class FzAccount
             return returnData(['msg'=>'参数错误','code'=>'201']);
         }
 
+        $pid = PfzAccount::where(['id'=>$id,'state'=>'1','uid'=>$uid])->value('pid');
+        if(Padmin::where(['id'=>$pid,'mch_id'=>$mch_id,'sub_mch_id'=>$sub_mch_id])->find()){
+            $accountData = Accounts::where(['mch_id'=>$mch_id,'state'=>'1'])->find();
+        }else{
+            return returnData(['msg'=>'平台商收款账号不存在','code'=>'201']);
+        }
+
+
         $data['appid'] = getVariable('pay_id');
         $pay_key = getVariable('pay_key');
 
-        $mch_id = empty(getVariable('mch_id'))?$mch_id:getVariable('mch_id');
-        $mch_key = getVariable('key');
-        $appid = getVariable('appid');
-        $sercet = getVariable('sercet');
-        $apiclient_cert = getVariable('apiclient_cert');
-        $apiclient_key = getVariable('apiclient_key');
+        $mch_id = empty($accountData['mch_id'])?$mch_id:$accountData['mch_id'];
+        $mch_key = $accountData['key'];
+        $appid = $accountData['appid'];
+        $sercet = $accountData['sercet'];
+        $apiclient_cert = $accountData['apiclient_cert'];
+        $apiclient_key = $accountData['apiclient_key'];
         $data['extend'] = json_encode([
             'mch_id'=>$mch_id,
             'sub_mch_id'=>$sub_mch_id,
