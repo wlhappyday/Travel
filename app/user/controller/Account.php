@@ -36,10 +36,10 @@ class Account
             if ($admin){
                 return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
             }else{
-                return json(['code'=>'201','msg'=>'操作成功','sign'=>'没有该用户信息']);
+                return json(['code'=>'201','msg'=>'没有该用户信息']);
             }
         }catch (\Exception $e){
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络异常']);
         }
 
     }
@@ -56,6 +56,7 @@ class Account
      * @Apidoc\Param("position", type="string",require=false, desc="职位" )
      * @Apidoc\Param("address", type="string",require=false, desc="所在地" )
      * @Apidoc\Param("phone", type="number",require=false, desc="手机号" )
+     * @Apidoc\Param("notice", type="number",require=false, desc="公告" )
      * @Apidoc\Header("Authorization", require=true, desc="Token")
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      */
@@ -76,16 +77,14 @@ class Account
             $admin->appid = $data['appid'];
             $admin->appkey = $data['appkey'];
             $admin->payment = $data['payment'];
+            $admin->notice = $data['notice'];
             $admin->save();
-
-            $res['info'] = '修改个人信息';
-            $login = new Puserlog();
-            $login->log($res);
+            addPuserLog(getDecodeToken(),'修改个人信息');
             Db::commit();
             return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'操作成功','网络异常']);
         }
     }
 
@@ -162,7 +161,7 @@ class Account
         ];
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($request->post())) {
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$validate->getError()]);
+            return json(['code'=>'201','msg'=>$validate->getError()]);
         }
         try {
             $admin = Puserenterprise::where('user_id',$id)->field('content,phone,title,code,representative,email,address,qualifications')->find();
@@ -181,9 +180,7 @@ class Account
             $admin->special_qualifications = $data['special_qualifications'];
             $admin->address = $data['address'];
             $admin->save();
-            $res['info'] = '修改企业信息';
-            $login = new Puserlog();
-            $login->log($res);
+            addPuserLog(getDecodeToken(),'修改企业信息');
             Db::commit();
             return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
         }catch (\Exception $e){

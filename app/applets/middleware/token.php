@@ -21,6 +21,12 @@ class token
         if ($request['s']=='/applets/index/index'){
             return $response;
         }
+        if ($request['s'] == '/applets/index/tabBar'){
+            return $response;
+        }
+        if ($request['s'] == '/applets/product/detail'){
+            return $response;
+        }
         $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'openid'=>getDecodeToken()['openid']])->find();
         if ($user){
             if ($user['type']!='1'){

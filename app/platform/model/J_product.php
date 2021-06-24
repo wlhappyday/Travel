@@ -22,7 +22,7 @@ class J_product extends Model
     protected $hidden=['pivot'];
     protected $json = ['img_id'];
     /**
-     * @field("name,jq_name,mp_name,product_code,title,money,number,img_url,video_url")
+     * @field("name,jq_name,mp_name,product_code,title,money,number,img_url,video_url,is_poster")
      */
     public function scenic_spot($id){
         $res = $this->get($id);

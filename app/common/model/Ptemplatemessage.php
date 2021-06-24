@@ -10,15 +10,15 @@ use think\Model;
 /**
  * @mixin \think\Model
  */
-class Pcarousel extends Model
+class Ptemplatemessage extends Model
 {
-    protected $name = 'p_user_carousel';
     //
+    protected $name = 'p_user_template_message';
 
     /**
-     * @field("carousel_id,type,img,page")
+     * @field("order_pay,order_cancel,order_delivery,order_refund,infosave,enroll_error,account_change,verify_result,withdrawal_success,withdrawal_error,distribution_examine")
      */
-    public function carousel($id){
+    public function templatemessage($id){
         $res = $this->get($id);
         return $res;
     }

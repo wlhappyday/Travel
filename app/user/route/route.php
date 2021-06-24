@@ -11,6 +11,10 @@ Route::group('product', function () {
     Route::get('listdetails', 'Product/list_details');
     Route::post('disassociate', 'Product/disassociate');
     Route::get('platformdetails', 'Product/platform_details');
+    Route::get('poster', 'Product/poster');
+    Route::get('posterimg', 'Product/posterimg');
+    Route::get('previewlist', 'Product/preview_list');
+
 });
 Route::group('systems', function () {
     Route::get('index', 'Systems/index');
@@ -37,6 +41,35 @@ Route::group('account', function () {
     Route::post('enterprise_save', 'Account/enterprisesave');/*企业信息保存*/
     Route::post('password', 'Account/password');/*企业信息保存*/
     Route::get('Balancerecords', 'Account/Balancerecords');/*个人信息*/
+
+});
+
+//小程序管理
+Route::group('applets', function () {
+    Route::get('templatemessagelist', 'Applets/templatemessage_list');/*模板消息列表*/
+    Route::post('templatemessage', 'Applets/templatemessage');/*模板消息添加修改*/
+
+
+    Route::get('carousellist', 'Applets/carousel_list');/*轮播图*/
+    Route::get('carouseldetail', 'Applets/carouseldetail');/*轮播图*/
+    Route::post('carousel', 'Applets/carousel');/*轮播图添加/修改*/
+    Route::post('carouseldel', 'Applets/carousel_del');/*轮播图删除*/
+
+    Route::get('homenavigationlist', 'Applets/homenavigation_list');/*导航图标列表*/
+    Route::post('homenavigationtype', 'Applets/homenavigation_type');/*导航图标列表*/
+    Route::get('homenavigationdetail', 'Applets/homenavigation_detail');/*导航图标详情*/
+    Route::post('homenavigation', 'Applets/homenavigation');/*导航图标添加/修改*/
+    Route::post('homenavigationdel', 'Applets/homenavigation_del');/*导航图标删除*/
+
+    Route::get('magic', 'Applets/magic');/*图片魔方*/
+    Route::post('magicdo', 'Applets/magic_do');/*图片魔方peizhi*/
+
+    Route::get('navigationlist', 'Applets/navigationlist');/*底部导航栏列表*/
+    Route::get('navigationdetail', 'Applets/navigation_detail');/*底部导航栏詳情*/
+    Route::post('navigation', 'Applets/navigation');/*底部导航修改*/
+    Route::post('navigations', 'Applets/navigations');/*导航栏修改*/
+
+
 
 });
 

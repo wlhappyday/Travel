@@ -16,7 +16,7 @@ class Systems
             $config = Config::where(['uid'=>$uid,'type'=>$type])->field('title,value,type')->select()->toArray();
             return json(['code'=>'200','msg'=>'操作成功','config'=>$config]);
         }catch (\Exception $e){
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$e->getMessage()]);
+            return json(['code'=>'201','msg'=>'网络异常']);
         }
     }
 

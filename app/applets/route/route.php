@@ -5,6 +5,7 @@ Route::group('index', function () {
     Route::get('index', 'Index/index');
     Route::get('search', 'Index/search');
     Route::get('userinfo', 'Index/userinfo');
+    Route::get('tabBar', 'Index/tabBar');
 
 });
 Route::group('product', function () {
@@ -20,5 +21,6 @@ Route::group('product', function () {
 Route::group('order', function () {
     Route::post('orderadd', 'Order/orderadd');
     Route::get('orderlist', 'Order/orderlist');
+     Route::get('orderdetail', 'Order/orderdetail');
 });
 ?>

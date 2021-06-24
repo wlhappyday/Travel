@@ -100,7 +100,7 @@ class Order
     public function Detail(Request $request){
         $order_id = $request->get('order_id');
         if (!$order_id){
-            return json(['code'=>'201','sign'=>'缺少参数order_id']);
+            return json(['code'=>'201','msg'=>'缺少参数order_id']);
         }
         if ($order_id){
             $where['order_id'] = $order_id;

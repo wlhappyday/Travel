@@ -3,7 +3,7 @@ declare (strict_types = 1);
 
 namespace app\middleware;
 use Closure;
-
+use thans\jwt\facade\JWTAuth;
 class Auth
 {
     private $array = [
@@ -13,6 +13,7 @@ class Auth
         '3' => 'scenic',
         '4' => 'line',
         '5' => 'user',
+        '6'=>'applets'
     ];
 
     /**
@@ -23,8 +24,6 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
-
-
         if ($request['s'] == '/apidoc/config'){
             return $next($request);
         }
@@ -43,6 +42,16 @@ class Auth
         if ($request['s'] == "/api/login/SignLogin") {
             return $next($request);
         }
+        if ($request['s'] == '/applets/index/index'){
+            return $next($request);
+        }
+        if ($request['s'] == '/applets/index/tabBar'){
+            return $next($request);
+        }
+        if ($request['s'] == '/applets/product/detail'){
+            return $response;
+        }
+
         if ($request->server()['REQUEST_URI'] != "/api/login/login") {
             $auth = JWTAuth::auth();
             $modular = explode("/", $request->server()['REQUEST_URI'])[1];

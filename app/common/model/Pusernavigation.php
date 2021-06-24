@@ -10,15 +10,16 @@ use think\Model;
 /**
  * @mixin \think\Model
  */
-class Pcarousel extends Model
+class Pusernavigation extends Model
 {
-    protected $name = 'p_user_carousel';
     //
+    protected $name = 'p_user_navigation';
+    protected $autoWriteTimestamp = true;
 
     /**
-     * @field("carousel_id,type,img,page")
+     * @field("navigation_id,img,imgs,page_id,title")
      */
-    public function carousel($id){
+    public function navigation($id){
         $res = $this->get($id);
         return $res;
     }

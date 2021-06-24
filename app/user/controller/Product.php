@@ -4,6 +4,9 @@ declare (strict_types = 1);
 namespace app\user\controller;
 use app\api\model\Juser;
 use app\api\model\Xuser;
+use app\common\model\Pproductreview;
+use app\common\model\Pcarousel;
+use app\common\model\Puser;
 use app\platform\model\Adminlogin;
 use app\platform\model\J_product;
 use app\common\model\File;
@@ -121,14 +124,27 @@ class Product
         try {
             $data = J_product::alias('JP')->where(['JP.status'=>'0','JP.id'=>$product_id])
                 ->join('p_product_relation pr','pr.product_id=JP.id')
-                ->field('JP.name,JP.desc,JP.title,JP.img_id,JP.type,pr.price,JP.class_name')
+                ->field('JP.name,JP.desc,JP.title,JP.img_id,JP.type,pr.price,JP.class_name,JP.mp_id,pr.uid')
                 ->find()->toarray();
             if($data){
-                $data['user_id'] = $id;
-                $data['product_id'] = $product_id;
-                $data['money'] = ceil($data['price'] * 0.03+$data['price']);
-                $data['price'] =  ceil($data['money']);
-                $Productuser = Productuser::create($data);
+                if($data['mp_id']=='6'&&$data['type']=='1'){
+                    $JproductReview = Pproductreview::where(['pid'=>$data['uid'],'product_id'=>$product_id,'uid'=>$id])->whereIn('state',[1,2])->find();
+                    if ($JproductReview){
+                        return json(['code'=>'201','msg'=>'绑定该产品需要审核，请耐心等待']);
+                    }
+                    $pro = PproductReviewAdd(getDecodeToken(),$product_id,$data['uid']);
+                    if ($pro['code']!='200'){
+                        return json(['code'=>'201','msg'=>$pro['msg']]);
+                    }
+                }else{
+                    $data['user_id'] = $id;
+                    $data['product_id'] = $product_id;
+                    $data['money'] = ceil($data['price'] * 0.03+$data['price']);
+                    $data['price'] =  ceil($data['money']);
+                    $data['pid'] =  $data['uid'];
+                    $Productuser = Productuser::create($data);
+                }
+                addPuserLog(getDecodeToken(),'添加产品');
                 Db::commit();
                 return json(['code'=>'200','msg'=>'操作成功']);
             }else{
@@ -140,6 +156,7 @@ class Product
         }
 
     }
+
 
     /**
      * @Apidoc\Title("用户产品表")
@@ -187,7 +204,7 @@ class Product
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
             ->join('file d','d.id=pp.first_id')
-            ->field('pp.id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,d.file_path');
+            ->field('pp.id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,d.file_path,pp.is_poster');
         if ($start_time){
             $data->whereTime('pp.create_time', '>=', strtotime($start_time));
         }
@@ -242,17 +259,25 @@ class Product
 
         ];
         if (!is_numeric($request->post('price'))) {
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>'价格格式错误必须为数字']);
+            return json(['code'=>'201','msg'=>'价格格式错误必须为数字']);
         }
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($request->post())) {
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$validate->getError()]);
+            return json(['code'=>'201','msg'=>$validate->getError()]);
         }
         Db::startTrans();
         try {
+
             $mp_name = J_product::where('id',$product_id)->value('mp_name');
             $productuser = Productuser::where(['user_id'=>$id,'product_id'=>$product_id])->find();
             $data = $request->post();
+            $relationc = Product_relation::where(['uid'=>$uid,'product_id',$product_id])->field('state,price')->find();
+            if($data['price']!=$relationc['peice']){
+                if($relationc['state']=='0'){
+                    return json(['code'=>'201','msg'=>'当前产品无法改价']);
+                }
+            }
+
             if($productuser){
                 $productuser->price = $data['price'];
                 $productuser->title = $data['title'];
@@ -266,6 +291,7 @@ class Product
                 $productuser->video_id = $data['video_id'];
 
                 $productuser->save();
+                addPuserLog(getDecodeToken(),'修改产品'.$product_id);
                 Db::commit();
                 return json(['code'=>'200','msg'=>'操作成功']);
             }else{
@@ -299,6 +325,11 @@ class Product
             try {
                 $productuser->status = $status;
                 $productuser->save();
+                if ($status=='9'){
+                    addPuserLog(getDecodeToken(),'产品下架'.$product_id);
+                }else{
+                    addPuserLog(getDecodeToken(),'产品上架'.$product_id);
+                }
                 Db::commit();
                 return json(['code'=>'200','msg'=>'操作成功']);
             }catch (\Exception $e){
@@ -356,9 +387,7 @@ class Product
         try {
             $j_product = Productuser::where(['product_id'=>$product_id,'user_id'=>$id])->delete();
             if ($j_product){
-                $data['info'] = '用户端解除绑定的产品：'.$product_id;
-                $login = new Adminlogin();
-                $login->log($data);
+                addPuserLog(getDecodeToken(),'用户端解除绑定的产品'.$product_id);
                 Db::commit();
                 return json(['code'=>'200','msg'=>'操作成功']);
             }
@@ -400,5 +429,155 @@ class Product
             return json(['code'=>'201','msg'=>'参数错误']);
         }
 
+    }
+
+
+    /**
+     * @Apidoc\Title("海报列表")
+     * @Apidoc\Desc("海报")
+     * @Apidoc\Url("user/product/poster")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("name", type="number",require=true, desc="产品名称")
+     * @Apidoc\Param("type", type="number",require=true, desc="产品类型1 或者 2")
+     * @Apidoc\Param("end_time", type="number",require=true, desc="结束时间")
+     * @Apidoc\Param("start_time", type="number",require=true, desc="开始时间")
+     * @Apidoc\Returned ("product",type="object",desc="平台商列表",
+     *     @Apidoc\Returned ("total",type="number",desc="分页总数"),
+     *     @Apidoc\Returned ("per_page",type="int",desc="首页"),
+     *     @Apidoc\Returned ("last_page",type="int",desc="最后一页"),
+     *     @Apidoc\Returned ("current_page",type="int",desc="当前页"),
+     *     @Apidoc\Returned ("data",type="object",desc="产品",ref="app\platform\model\J_product\scenic_spot"),
+     *     @Apidoc\Returned ("price",type="double(10,2)	",desc="价格"),
+     *  )
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     */
+    public function poster(Request $request){
+        $uid =$request->uid;
+        $id =$request->id;
+        $name = $request->get('name');
+        $start_time = $request->get('start_time');
+        $end_time = $request->get('end_time');
+        $type = $request->get('type');
+        $pagenum = $request->get('pagenum');
+        if($type == 1){
+            $id = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+        }else if($type == 2){
+            $id = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+        }else {
+            $jid = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+            $xid = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+            $id = array_merge($jid,$xid);
+        }
+        $data = J_product::where(['a.status'=>'0'])->alias('a')
+            ->whereIn('a.id',$id)
+            ->where([['a.name', 'like','%'.$name.'%']])
+            ->join('j_user b','b.id = a.uid and a.type = 1','left')
+            ->join('x_user c','c.id = a.uid and a.type = 2','left')
+            ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
+            ->join('file d','d.id=pp.first_id')
+            ->field('pp.id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,d.file_path,pp.is_poster,pp.img');
+        if ($start_time){
+            $data->whereTime('pp.create_time', '>=', strtotime($start_time));
+        }
+        if ($end_time){
+            $data->whereTime('pp.create_time', '<=', strtotime($end_time));
+        }
+        $product = $data->paginate($pagenum)->toArray();
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
+    }
+    /**
+     * @Apidoc\Title("海报开启关闭")
+     * @Apidoc\Desc("海报开启关闭")
+     * @Apidoc\Url("user/product/posterstatus")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("海报")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("product_id", type="number",require=true, desc="产品id" )
+     * @Apidoc\Param("is_poster", type="number",require=true, desc="状态值 1开启 0关闭" )
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     */
+    public function posterstatus(Request $request){
+        $product_id = $request->post('product_id');
+        $is_poster = $request->post('is_poster');
+        if ($product_id){
+            Db::startTrans();
+            try {
+                $j_product = Productuser::where(['product_id'=>$product_id])->find();
+                if ($is_poster=='1'){
+                    $j_product->is_poster = $is_poster;
+                    $j_product->img = $j_product['first_id'];
+                    $j_product->save();
+                    addPuserLog(getDecodeToken(),'用户端开启海报'.$product_id);
+                }else{
+                    addPuserLog(getDecodeToken(),'用户端关闭海报'.$product_id);
+                }
+                Db::commit();
+                return json(['code'=>'200','msg'=>'操作成功']);
+            }catch (\Exception $e){
+                Db::rollback();
+                return json(['code'=>'201','msg'=>'网络繁忙']);
+            }
+        }
+        return json(['code'=>'201','msg'=>'参数错误']);
+    }
+
+    /**
+     * @Apidoc\Title("海报修改图片")
+     * @Apidoc\Desc("海报修改图片")
+     * @Apidoc\Url("user/product/posterimg")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("海报")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("product_id", type="number",require=true, desc="产品id" )
+     * @Apidoc\Param("img_id", type="number",require=true, desc="图片的id" )
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     */
+    public function posterimg(Request $request){
+        $product_id = $request->post('product_id');
+        $img = $request->post('img_id');
+        if ($product_id){
+            Db::startTrans();
+            try {
+                $j_product = Productuser::where(['product_id'=>$product_id])->update([
+                    'img'=>$img
+                ]);
+                addPuserLog(getDecodeToken(),'海报图片上传/修改'.$product_id);
+                Db::commit();
+                return json(['code'=>'200','msg'=>'操作成功']);
+            }catch (\Exception $e){
+                Db::rollback();
+                return json(['code'=>'201','msg'=>'网络繁忙']);
+            }
+        }
+        return json(['code'=>'201','msg'=>'参数错误']);
+    }
+
+    /**
+     * @Apidoc\Title("门店绑定特惠票的审核列表")
+     * @Apidoc\Desc("门店绑定特惠票的审核列表")
+     * @Apidoc\Url("user/product/previewlist")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("state", type="number",require=true, desc="状态 1审核中 2审核成功 3审核拒绝" )
+     * @Apidoc\Param("pagenum", type="number",require=true, desc="分页" )
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     */
+    public function preview_list(Request $request){
+        $id = getDecodeToken()['id'];
+        $pagenum = $request->get('pagenum');
+        $state = $request->get('state');
+        $product_result = new PproductReview();
+        $data = $product_result->alias('a')->where(['a.uid'=>$id,'b.mp_id'=>'6','b.type'=>'1'])
+            ->join('j_product b','b.id=a.product_id','LEFT')
+            ->join('p_user c','c.id=a.uid','LEFT');
+        if($state){
+            $data->where('a.state',$state);
+        }
+        $review= $data->field('a.id,b.name,b.class_name,c.user_name,c.phone,a.state,a.create_time')->paginate($pagenum)->toArray();
+        return json(['code'=>'200','msg'=>'操作成功','review'=>$review]);
     }
 }

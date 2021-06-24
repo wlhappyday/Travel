@@ -156,7 +156,7 @@ class Account
         ];
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($request->post())) {
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$validate->getError()]);
+            return json(['code'=>'201','msg'=>$validate->getError()]);
         }
         try {
             $admin = P_enterprise::where('uid',$uid)->field('content,phone,title,code,representative,email,address,qualifications')->find();
@@ -212,14 +212,14 @@ class Account
         ];
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($request->post())) {
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$validate->getError()]);
+            return json(['code'=>'201','msg'=>$validate->getError()]);
         }
         Db::startTrans();
         try {
             $admin = Admin::field('passwd,passwd_salt')->find($uid);
             $pwd = checkPasswd($password,$admin);
             if(!$pwd){
-                return json(['code'=>'201','msg'=>'操作成功','sign'=>'旧密码不正确']);
+                return json(['code'=>'201','msg'=>'旧密码不正确']);
             }
             $admin->save();
             addPadminLog(getDecodeToken(),'修改密码：'.$uid);

@@ -253,7 +253,7 @@ class Order
                 $Orderdetails = Orderdetails::where(['order_id'=>$order_id])->field('name,id_card,order_id,delete_time,admission_ticket_type,phone,price')->select()->toArray();
                 return json(['code'=>'200','msg'=>'操作成功','Orderdetails'=>$Orderdetails]);
             }catch (\Exception $e){
-                return json(['code'=>'201','sign'=>$e->getMessage()]);
+                return json(['code'=>'201','sign'=>'网络错误']);
             }
         }
         return json(['code'=>'201','msg'=>'缺失参数order_id']);
@@ -297,7 +297,7 @@ class Order
                 return json(['code'=>'200','msg'=>'操作成功']);
             }catch (\Exception $e){
                 Db::rollback();
-                return json(['code'=>'201','sign'=>$e->getMessage()]);
+                return json(['code'=>'201','sign'=>'网络异常']);
             }
         }
         return json(['code'=>'201','msg'=>'参数错误']);
