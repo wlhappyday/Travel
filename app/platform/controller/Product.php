@@ -144,9 +144,9 @@ class Product
                         return json(['code'=>'201','msg'=>$pro['msg']]);
                     }
                 }else{
-                    $accoount = Paccount::where(['pid'=>$uid,'state'=>'1'])->find();
-                    if($accoount){
-                        $pfz = PfzAccount::where(['status'=>'2','pid'=>$uid,'state'=>$j_product['type'],'uid'=>$j_product['uid'],'sub_mch_id'=>$accoount['sub_mch_id']])->find();
+                    $accoount = Padmin::where(['id'=>$uid])->find();
+                    if($accoount['sub_mch_id']&&$accoount['mch_id']){
+                        $pfz = PfzAccount::where(['mch_id'=>$accoount['mch_id'],'status'=>'2','pid'=>$uid,'state'=>$j_product['type'],'uid'=>$j_product['uid'],'sub_mch_id'=>$accoount['sub_mch_id']])->find();
                        if ($pfz){
                            $product_relation = new Product_relation();
                            $product_relation->save([
@@ -158,7 +158,7 @@ class Product
                            ]);
                        }else{
                            PfzAccount::insert([
-                               'mch_id'=> getVariable('mch_id'),'status'=>'1','pid'=>$uid,'state'=>$j_product['type'],'uid'=>$j_product['uid'],'sub_mch_id'=>$accoount['sub_mch_id']
+                               'mch_id'=> $accoount['mch_id'],'status'=>'1','pid'=>$uid,'state'=>$j_product['type'],'uid'=>$j_product['uid'],'sub_mch_id'=>$accoount['sub_mch_id']
                            ]);
                            return json(['code'=>'201','msg'=>'正在审核中，请稍后']);
                        }

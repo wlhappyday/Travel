@@ -39,6 +39,7 @@ class Auth
         if ($request->server()['REQUEST_URI'] != "/api/login/ceshi") {
             return $next($request);
         }
+        dd($request->server()['REQUEST_URI']);
         if ($request['s'] == "/api/login/SignLogin") {
             return $next($request);
         }

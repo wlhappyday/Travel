@@ -105,10 +105,10 @@ class User
             $user->avatar=6;
             $user->rate=$request->post('rate');
             $user->save();
-            $accoount = Paccount::where(['pid'=>$uid,'state'=>'1'])->find();
-            if ($accoount){
+            $accoount = Padmin::where(['id'=>$uid])->find();
+            if($accoount['sub_mch_id']&&$accoount['mch_id']){
                 PfzAccount::insert([
-                    'mch_id'=> getVariable('mch_id'),'status'=>'1','pid'=>$uid,'state'=>$j_product['type'],'uid'=>$j_product['uid'],'sub_mch_id'=>$accoount['sub_mch_id']
+                    'mch_id'=> $accoount['mch_id'],'status'=>'1','pid'=>$uid,'state'=>'3','uid'=>$user['id'],'sub_mch_id'=>$accoount['sub_mch_id']
                 ]);
                 Pusernavigation::insertAll([
                     ['user_id'=>$user['id'], 'imgs'=>'/img/home2.png', 'title'=>'首页', 'page_id'=>'1'],
