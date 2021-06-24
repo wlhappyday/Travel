@@ -2,7 +2,6 @@
 declare (strict_types = 1);
 
 namespace app\middleware;
-use thans\JWt;
 use Closure;
 
 class Auth
@@ -35,13 +34,13 @@ class Auth
         if ($request['s'] == '/apidoc/verifyAuth'){
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/apiData'){
+        if ($request['s'] == '/apidoc/apiData') {
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] != "/api/login/ceshi") {
             return $next($request);
         }
-        if($request['s'] =="/api/login/SignLogin"){
+        if ($request['s'] == "/api/login/SignLogin") {
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] != "/api/login/login") {

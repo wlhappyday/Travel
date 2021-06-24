@@ -3,6 +3,9 @@ declare (strict_types = 1);
 
 namespace app\applets\middleware;
 
+use app\common\model\Puseruser;
+use thans\jwt\facade\JWTAuth;
+
 class token
 {
     /**
@@ -14,19 +17,18 @@ class token
      */
     public function handle($request, \Closure $next)
     {
-        $request->appid = getDecodeToken()['appid'];
-        if (array_key_exists('puser_id',getDecodeToken())){
-            $request->puser_id = getDecodeToken()['puser_id'];
-            return $next($request);
-        }else{
-            if ($request['s']=='/applets/index/index'){
-                return $next($request);
-            }
-            if ($request['s']=='/applets/index/search'){
-                return $next($request);
-            }
-            return json(['code'=>'201','msg'=>'请先登录']);
+        $response = $next($request);
+        if ($request['s']=='/applets/index/index'){
+            return $response;
         }
-
+        $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'openid'=>getDecodeToken()['openid']])->find();
+        if ($user){
+            if ($user['type']!='1'){
+                return json(['code'=>'-1','msg'=>'当前用户已被禁用']);
+            }
+        }else{
+            return json(['code'=>'-1','msg'=>'当前用户不存在']);
+        }
+        return $response;
     }
 }

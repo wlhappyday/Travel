@@ -121,7 +121,7 @@ class Product
         try {
             $data = J_product::alias('JP')->where(['JP.status'=>'0','JP.id'=>$product_id])
                 ->join('p_product_relation pr','pr.product_id=JP.id')
-                ->field('JP.name,JP.desc,JP.title,JP.img_id,JP.type,pr.price')
+                ->field('JP.name,JP.desc,JP.title,JP.img_id,JP.type,pr.price,JP.class_name')
                 ->find()->toarray();
             if($data){
                 $data['user_id'] = $id;

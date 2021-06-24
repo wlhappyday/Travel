@@ -4,10 +4,11 @@ namespace app\api\controller;
 
 use think\exception\ValidateException;
 use think\facade\Filesystem;
+use think\response\Json;
 
 class File
 {
-    public function updateImage()
+    public function updateImage(): Json
     {
         // 获取表单上传文件
         $files = request()->file('image');
@@ -50,7 +51,7 @@ class File
         return $saveName;
     }
 
-    public function updateVideo()
+    public function updateVideo(): Json
     {
         // 获取表单上传文件
         $files = request()->file('video');
@@ -65,7 +66,8 @@ class File
             return returnData(['code' => 404, 'msg' => $e->getMessage()]);
         }
     }
-    public function getFiles()
+
+    public function getFiles(): Json
     {
         $type = input('post.type', '', 'strip_tags');
         $fileId = input('post.fileId', '', 'strip_tags');

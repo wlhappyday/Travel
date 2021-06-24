@@ -9,7 +9,9 @@ use app\common\model\PuserInfo;
 use app\common\model\Puseruser;
 use app\platform\model\J_product;
 use app\platform\model\Product_relation;
+use app\common\model\Puserpassenger;
 use app\platform\model\Productuser;
+use app\common\model\Orderdetails;
 use think\facade\Db;
 use think\Request;
 use app\common\model\Order as orders;
@@ -31,19 +33,20 @@ class Order
      */
     public function orderadd(Request $request){
         $product_id = $request->post('product_id');
-        $userinfo_id = $request->post('userinfo_id');
-        $puser_id = $request->puser_id;
-        $appid = $request->appid;
+        $userinfo = json_decode($request->post('check'), true);
+        $puser_id = getDecodeToken()['puser_id'];
+        $appid = getDecodeToken()['appid'];
         $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
         $p_id = Puser::where('id',$id)->value('uid');
         $productuser =  Productuser::where(['user_id'=>$id,'product_id'=>$product_id,'status'=>'0'])->find();
-        $product = J_product::where('id',$product_id)->field('uid,type')->find();
+        $product = J_product::where('id',$product_id)->field('uid,type,money,mp_id')->find();
         $productrelationprice = Product_relation::where(['uid'=>$p_id,'product_id'=>$product_id])->value('price');
-        $price = bcmul(''.count($userinfo_id).'' ,$productuser['price'],2);
+        $price = bcmul(''.count($userinfo).'' ,$productuser['price'],2);
         Db::startTrans();
         try {
             $order = new orders;
             $order->order_amount=$price;
+            $order->order_status='2';
             $order->total_amount=$price;
             $order->add_time = time();
             $order->user_id = $puser_id;
@@ -56,9 +59,21 @@ class Order
             $order->p_user_id = $id;
             $order->goods_id = $productuser['id'];
             $order->goods_name = $productuser['name'];
-            $order->goods_num = count($userinfo_id);
+            $order->goods_num = count($userinfo);
             $order->goods_price = $productuser['price'];
             $order->save();
+            foreach ($userinfo as $val){
+                $puserpassenger = Puserpassenger::where('id',$val['id'])->find();
+                $orderdetail = new Orderdetails();
+                $orderdetail->name =$puserpassenger['name'];
+                $orderdetail->id_card =$puserpassenger['card'];
+                $orderdetail->order_id =$order['user_id'];
+                $orderdetail->admission_ticket_type =$product['mp_id'];
+                $orderdetail->inspect_ticket_status ='1';
+                $orderdetail->phone =$puserpassenger['phone'];
+                $orderdetail->price =$productuser['price'];
+                $orderdetail->save();
+            }
             Db::commit();
             return json(['code'=>'200','msg'=>'操作成功']);
         }catch (\Exception $e){
@@ -90,11 +105,11 @@ class Order
      * @Apidoc\Returned("msg",type="string",desc="任务提示")
      */
     public function orderlist(Request $request){
-        $puser_id = $request->puser_id;
-        $appid = $request->appid;
+        $puser_id = getDecodeToken()['puser_id'];
+        $appid = getDecodeToken()['appid'];
         $order_status = $request->get('order_status');
         $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
-        $order = orders::alias('order')->where(['order.user_id'=>$puser_id])->field('order.store_good_id,order.goods_name,order.goods_num,order.order_amount,order.add_time,order.order_status')
+        $order = orders::alias('order')->where(['order.user_id'=>$puser_id])->field('jp.type,order.order_id,order.store_good_id,order.goods_name,order.goods_num,order.order_amount,order.add_time,order.order_status')
             ->join('j_product jp','order.store_good_id=jp.id')->field('jp.end_time')
             ->join('p_productuser pu','order.store_good_id=pu.product_id and pu.user_id='.$id)->field('pu.first_id')
             ->join('file file','file.id=pu.first_id')->field('file.file_path');
