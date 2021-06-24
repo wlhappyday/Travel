@@ -5,7 +5,9 @@ use app\common\model\PadminLog;
 use app\common\model\AdminLog;
 use app\common\model\XuserLog;
 use app\common\model\Jproduct;
+use app\common\model\Puserlog;
 use app\common\model\JproductReview;
+use app\common\model\Config;
 use app\platform\model\J_product;
 use app\platform\model\Product_relation;
 use thans\jwt\facade\JWTAuth;
@@ -118,6 +120,10 @@ function addPadminLog($data,$info){
 }
 function addAdminLog($data,$info){
     $x_user_log = new AdminLog();
+    return $x_user_log->addData($data,$info);
+}
+function addPuserLog($data,$info){
+    $x_user_log = new Puserlog();
     return $x_user_log->addData($data,$info);
 }
 
@@ -252,3 +258,17 @@ function ProductReviewAdd($data,$product_id){
         }
 
     }
+
+/**
+ * @author LvGang
+ * @Note   获取系统变量
+ *
+ * @param string $name
+ *
+ * @return array
+ */
+function getVariable($name = '')
+{
+    $result = new Config();
+    return $result->where(['title'=>$name])->value('value');
+}

@@ -11,6 +11,16 @@ use think\Request;
 
 class Juser
 {
+    protected function checkUnique($value,$rule,$data=[],$field)
+    {
+        $where = [['delete_time','=',Null],[$field,'=',$value]];
+        array_key_exists('id',$data) ? $where[] = ['id','<>',$data['id']] : '';
+        $count = \app\admin\model\GoodsCate::where($where)->count();
+        if($count){
+            return false;
+        }
+        return true;
+    }
     /**
      * @author liujiong
      * @Note  添加用户
@@ -43,6 +53,12 @@ class Juser
             'phone.status' => '用户状态必须在 0,9 范围内',
         ];
 
+        if(J_user::where(['user_name'=>$data['user_name']])->find()){
+            unset($rule['user_name']);
+        }
+        if(J_user::where(['phone'=>$data['phone']])->find()){
+            unset($rule['phone']);
+        }
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($data)) {
             return json(['code'=>'201','msg'=>$validate->getError()]);

@@ -52,4 +52,36 @@ class Product
 
         return returnData(['data'=>$data,'code'=>'200']);
     }
+
+    public function productRecord(){
+
+        $num = input('post.num/d','10','strip_tags');
+        $type = input('post.type/d','','strip_tags');
+        $uname = input('post.uname/s','','strip_tags');
+        $phone = input('post.phone/s','','strip_tags');
+        $where = [];
+        $where['b.type'] = '1';
+        if($type){
+            $where['a.type'] = $type;
+        }
+        $name = input('post.name/s','','strip_tags');
+        if ($name){
+            $where['b.name'] = $name;
+        }
+
+        if ($uname){
+            $where['c.user_name'] = $uname;
+        }
+        if ($phone){
+            $where['c.phone'] = $phone;
+        }
+
+        $balance_result = new JproductRecords();
+        $data = $balance_result->alias('a')->where($where)
+            ->join('j_product b','b.id=a.product_id','LEFT')
+            ->join('J_user c','c.id=b.uid','LEFT')
+            ->field('a.id,a.type,a.before_number,a.number,a.after_number,a.descript,a.create_time,b.name,b.class_name,c.user_name,c.phone')
+            ->paginate($num)->toArray();
+        return returnData(['data'=>$data,'code'=>'200']);
+    }
 }

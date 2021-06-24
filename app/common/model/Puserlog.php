@@ -20,4 +20,15 @@ class Puserlog extends Model
         $data['username'] = getDecodeToken()['userName'];
         return $this->create($data);
     }
+    public function addData($data,$info){
+        $arr = getIp();
+        return $this->insert([
+            'uid'       => $data['id'],
+            'uname'  => $data['userName'],
+            'info'      => $info,
+            'ip'        => $arr['ip'],
+            'address'   => $arr['address'],
+            'create_time'=> time(),
+        ]);
+    }
 }

@@ -18,7 +18,6 @@ class Xenterprise
      * @Note  获取用户企业信息
      */
     public function list(){
-        $num = input('post.num/d','10','strip_tags');
         $uname = input('post.uname/s','','strip_tags');
         $phone = input('post.phone/s','','strip_tags');
         $where = [];
@@ -36,7 +35,7 @@ class Xenterprise
             ->join('X_user d','d.id=a.uid','LEFT')
             ->where($where)
             ->field('a.title,a.content,a.code,a.representative,a.phone as representative_phone,a.email,b.file_path qualifications,c.file_path special_qualifications,a.address,d.user_name uname,d.phone')
-            ->paginate($num);
+            ->find();
 
         return returnData(['data'=>$data,'code'=>'200']);
 

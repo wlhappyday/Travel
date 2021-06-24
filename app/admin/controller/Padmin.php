@@ -46,7 +46,12 @@ class Padmin
             'phone.mobile' => '不是可用手机号',
             'phone.status' => '用户状态必须在 0,9 范围内',
         ];
-
+        if(P_admin::where(['user_name'=>$data['user_name']])->find()){
+            unset($rule['user_name']);
+        }
+        if(P_admin::where(['phone'=>$data['phone']])->find()){
+            unset($rule['phone']);
+        }
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($data)) {
             return json(['code'=>'201','msg'=>$validate->getError()]);
@@ -56,12 +61,47 @@ class Padmin
         $data['passwd'] = $passwd['passwd'];
         $data['passwd_salt'] = $passwd['passwd_salt'];
 
+
         Db::startTrans();
         try {
-            P_admin::insert($data);
+            $id = P_admin::insertGetId($data);
+
             addAdminLog(getDecodeToken(),'添加平台商：'.$data['user_name'].' 手机号: '.$data['phone']);
-            Db::commit();
-            return returnData(['msg'=>'操作成功','code'=>'200']);
+
+            $apiUrl = empty(getVariable('api_url'))?'https://apibei.payunke.com':getVariable('api_url');
+            $user_data['name'] = $data['user_name'].'-'.$data['phone'];
+            $user_data['passwd'] = $data['passwd'];
+            $user_data['phone'] = $id;
+            $url = $apiUrl.'/index/userAdd';
+            $post_data = json_encode($user_data);
+            $ch = curl_init ();
+            $header = [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen ( $post_data )
+            ];
+
+            curl_setopt ( $ch, CURLOPT_HTTPHEADER, $header );
+            curl_setopt ( $ch, CURLOPT_URL, $url );
+            curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
+            curl_setopt ( $ch, CURLOPT_POST, 1 );
+            curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, false );
+            curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, false );
+            curl_setopt ( $ch, CURLOPT_POSTFIELDS, $post_data );
+            $output = curl_exec ( $ch );
+            curl_close ( $ch );
+
+            $result = json_decode($output,true);
+
+            if($result['code'] != '200'){
+                Db::rollback();
+                return returnData(['msg'=>$result['msg'],'code'=>'201']);
+            }else{
+                Db::commit();
+                $result['data']['money'] = '10';
+                P_admin::where(['id'=>$id])->update($result['data']);
+                return returnData(['msg'=>'操作成功','code'=>'200']);
+            }
+
         }catch (\Exception $e){
             Db::rollback();
 //            p($e->getMessage());
@@ -160,7 +200,7 @@ class Padmin
 
         $user_result = new P_admin();
         $data = $user_result->where($where)
-            ->field('id,user_name,phone,weach,QQ,position,address,weach,login_ip,login_time,login_address,Round(rate*100,2) rate,status')
+            ->field('id,user_name,phone,weach,QQ,position,address,weach,login_ip,login_time,login_address,Round(rate*100,2) rate,status,mch_id')
             ->paginate($num);
 
         if($data){
