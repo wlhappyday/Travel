@@ -95,7 +95,7 @@ class Config
         $apiUrl = empty(getVariable('api_url'))?'https://apibei.payunke.com':getVariable('api_url');
 
         if(empty($mch_id) || empty($mch_key)){
-            return ['code' => 1, 'msg' =>'通讯设置参数错误！'];
+            return ['code' => -1, 'msg' =>'通讯设置参数错误！'];
         }
 
         $data['appid'] = $mch_id;
