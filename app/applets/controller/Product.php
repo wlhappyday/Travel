@@ -58,23 +58,22 @@ class Product
 
     public function detail(Request $request){
         $product_id = $request->get('product_id');
-        $puser_id = getDecodeToken()['puser_id'];
-        $appid = getDecodeToken()['appid'];
+        $appid = $request->get('appid');
         $type = $request->get('type');
-        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
+        $id = Puser::where('appid',$appid)->value('id');
         if($type=='1'){
             //景區
             $product = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.product_id'=>$product_id,'pu.status'=>'0','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$id])
                 ->join('j_product jp','jp.id=pu.product_id')
                 ->leftjoin('file file','pu.first_id=file.id')
-                ->field('file.file_path,pu.class_name,pu.price,pu.product_id,pu.img_id,jp.get_city,pu.name,pu.id,jp.end_time,pu.video_id')
+                ->field('pu.desc,file.file_path,pu.class_name,pu.price,pu.product_id,pu.img_id,jp.get_city,pu.name,pu.id,jp.end_time,pu.video_id,jp.type')
                 ->find();
         }else if($type=='2'){
             //綫路
             $product = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$id])
                 ->join('j_product jp','jp.id=pu.product_id')
                 ->leftjoin('file file','pu.first_id=file.id')
-                ->field('file.file_path,pu.class_name,pu.price,pu.img_id,pu.product_id,jp.address,pu.name,pu.id,pu.video_id')
+                ->field('file.file_path,pu.class_name,pu.price,pu.img_id,pu.product_id,jp.address,pu.name,pu.id,jp.end_time,jp.type,pu.video_id,jp.day')
                 ->find();
         }else{
             return json(['code'=>'201','msg'=>'type不能为空']);

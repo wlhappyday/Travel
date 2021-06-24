@@ -2,10 +2,13 @@
 declare (strict_types = 1);
 
 namespace app\platform\controller;
+use app\common\model\Paccount;
+use app\common\model\PfzAccount;
 use app\platform\model\Adminlogin;
 use hg\apidoc\annotation as Apidoc;
 use think\Request;
 use app\platform\model\Config;
+use app\common\model\Pusernavigation;
 use \think\facade\Validate;
 use think\facade\Db;
 use app\platform\model\P_user;
@@ -88,7 +91,7 @@ class User
         ];
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($request->post())) {
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$validate->getError()]);
+            return json(['code'=>'201','msg'=>$validate->getError()]);
         }
         Db::startTrans();
         try {
@@ -102,9 +105,24 @@ class User
             $user->avatar=6;
             $user->rate=$request->post('rate');
             $user->save();
-            addPadminLog(getDecodeToken(),'创建用户端用户：'.$user['id']);
-            Db::commit();
-            return json(['code'=>'200','msg'=>'操作成功','user'=>$user]);
+            $accoount = Paccount::where(['pid'=>$uid,'state'=>'1'])->find();
+            if ($accoount){
+                PfzAccount::insert([
+                    'mch_id'=> getVariable('mch_id'),'status'=>'1','pid'=>$uid,'state'=>$j_product['type'],'uid'=>$j_product['uid'],'sub_mch_id'=>$accoount['sub_mch_id']
+                ]);
+                Pusernavigation::insertAll([
+                    ['user_id'=>$user['id'], 'imgs'=>'/img/home2.png', 'title'=>'首页', 'page_id'=>'1'],
+                    ['user_id'=>$user['id'], 'imgs'=>'/img/dingdan1.png', 'title'=>'订单列表','page_id'=>'5'],
+                    ['user_id'=>$user['id'], 'imgs'=>'/img/dingdan1.png', 'title'=>'专辑', 'page_id'=>'7'],
+                    ['user_id'=>$user['id'], 'imgs'=>'/img/me.png', 'title'=>'个人中心', 'page_id'=>'4']
+                ]);
+                addPadminLog(getDecodeToken(),'创建用户端用户：'.$user['id']);
+                Db::commit();
+                return json(['code'=>'200','msg'=>'操作成功','user'=>$user]);
+            }else{
+                return json(['code'=>'201','msg'=>'请添加收款账号']);
+            }
+
         }catch (\Exception $e){
             Db::rollback();
             return json(['code'=>'201','msg'=>'网络繁忙']);
@@ -129,7 +147,7 @@ class User
         try {
             $user = P_user::where(['id'=>$id,'uid'=>$uid])->find();
             if (!$user){
-                return json(['code'=>'200','msg'=>'操作成功','sign'=>'抱歉，没有这条数据']);
+                return json(['code'=>'200','msg'=>'抱歉，没有这条数据']);
             }
             $user->delete();
             addPadminLog(getDecodeToken(),'删除用户端用户：'.$id);
@@ -162,7 +180,7 @@ class User
         try {
             $user = P_user::where(['id'=>$id,'uid'=>$uid])->find();
             if (!$user){
-                return json(['code'=>'200','msg'=>'操作成功','sign'=>'抱歉，没有这条数据']);
+                return json(['code'=>'200','msg'=>'抱歉，没有这条数据']);
             }
             $user->status = $status;
             $user->save();

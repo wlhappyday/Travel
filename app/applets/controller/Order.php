@@ -67,7 +67,7 @@ class Order
                 $orderdetail = new Orderdetails();
                 $orderdetail->name =$puserpassenger['name'];
                 $orderdetail->id_card =$puserpassenger['card'];
-                $orderdetail->order_id =$order['user_id'];
+                $orderdetail->order_id =$order['id'];
                 $orderdetail->admission_ticket_type =$product['mp_id'];
                 $orderdetail->inspect_ticket_status ='1';
                 $orderdetail->phone =$puserpassenger['phone'];
@@ -75,7 +75,7 @@ class Order
                 $orderdetail->save();
             }
             Db::commit();
-            return json(['code'=>'200','msg'=>'操作成功']);
+            return json(['code'=>'200','msg'=>'操作成功','order_id'=>$order['id']]);
         }catch (\Exception $e){
             Db::rollback();
             return json(['code'=>'201','sign'=>$e->getMessage()]);
@@ -109,12 +109,19 @@ class Order
         $appid = getDecodeToken()['appid'];
         $order_status = $request->get('order_status');
         $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
-        $order = orders::alias('order')->where(['order.user_id'=>$puser_id])->field('jp.type,order.order_id,order.store_good_id,order.goods_name,order.goods_num,order.order_amount,order.add_time,order.order_status')
+
+        $order = orders::alias('order')->where(['order.user_id'=>$puser_id])
+            ->field('pu.class_name,jp.type,order.order_id,order.store_good_id,order.goods_name,order.goods_num,order.order_amount,order.add_time,order.order_status')
             ->join('j_product jp','order.store_good_id=jp.id')->field('jp.end_time')
             ->join('p_productuser pu','order.store_good_id=pu.product_id and pu.user_id='.$id)->field('pu.first_id')
-            ->join('file file','file.id=pu.first_id')->field('file.file_path');
+            ->join('file file','file.id=pu.first_id')->field('file.file_path')->order('order.add_time','Desc');
         if($order_status){
-            $order->where('order.order_status',$order_status);
+            if($order_status =='5'){
+                $order->whereIn('order.order_status',[5,6]);
+            }else{
+                $order->where('order.order_status',$order_status);
+            }
+
         }
          $orders = $order->select();
         return json(['code'=>'200','msg'=>'操作成功','order'=>$orders,'http'=>http()]);
@@ -122,10 +129,10 @@ class Order
 
     public function orderdetail(Request $request){
         $order_id = $request->get('order_id');
-        $puser_id = $request->puser_id;
-        $appid = $request->appid;
-        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
-        $order = orders::where(['order_id'=>$order_id])->field('order_id,order_status,order_amount,add_time,goods_num')->find();
+        $order = orders::where(['order_id'=>$order_id])->with(['orderdetail','product'])->field('goods_id,goods_price,order_id,order_status,order_amount,add_time,goods_num,add_time')->find();
+        $order['file_path'] = File::where('id',$order['product']['first_id'])->value('file_path');
+        return json(['code'=>'200','msg'=>'操作成功','order'=>$order,'http'=>http()]);
+
     }
 
 }

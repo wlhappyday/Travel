@@ -3,9 +3,12 @@ declare (strict_types = 1);
 
 namespace app\platform\controller;
 use app\common\model\File;
+use app\common\model\Pproductreview;
 use app\platform\model\J_product;
 use app\platform\model\Product_relation;
 use app\platform\model\Admin;
+use app\common\model\PfzAccount;
+use app\common\model\Paccount;
 use app\platform\model\Adminlogin;
 use app\platform\model\Productuser;
 use app\common\model\JproductReview;
@@ -110,15 +113,14 @@ class Product
         return json(['code'=>'200','msg'=>'操作成功','scenic_spot'=>$J_product]);
     }
     /**
-     * @Apidoc\Title("产品应用平台商绑定接口")
-     * @Apidoc\Desc("平台商关联产品，推送给用户")
-     * @Apidoc\Url("platform/product/relation")
+     * @Apidoc\Title("平台商产品应用详情")
+     * @Apidoc\Desc("平台商产品应用详情")
+     * @Apidoc\Url("platform/product/platformdetails")
      * @Apidoc\Method("POST")
-     * @Apidoc\Tag("关联产品")
-     * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("type", type="number",require=true, desc="产品类型" )
+     * @Apidoc\Tag("列表 基础")
      * @Apidoc\Param("product_id", type="number",require=true, desc="产品id" )
-     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Returned("scenic_spot",type="object",desc="景区",ref="app\platform\model\j_product\scenic_spot")
      */
     public function relation(Request $request){
         $uid =$request->uid;//平台商用户id
@@ -142,14 +144,29 @@ class Product
                         return json(['code'=>'201','msg'=>$pro['msg']]);
                     }
                 }else{
-                    $product_relation = new Product_relation();
-                    $product_relation->save([
-                        'uid'  =>  $uid,
-                        'type' =>  $type,
-                        'product_id'=>$product_id,
-                        'price'=>$j_product['money'],
-                        'mp_id'=>$j_product['mp_id']
-                    ]);
+                    $accoount = Paccount::where(['pid'=>$uid,'state'=>'1'])->find();
+                    if($accoount){
+                        $pfz = PfzAccount::where(['status'=>'2','pid'=>$uid,'state'=>$j_product['type'],'uid'=>$j_product['uid'],'sub_mch_id'=>$accoount['sub_mch_id']])->find();
+                       if ($pfz){
+                           $product_relation = new Product_relation();
+                           $product_relation->save([
+                               'uid'  =>  $uid,
+                               'type' =>  $type,
+                               'product_id'=>$product_id,
+                               'price'=>$j_product['money'],
+                               'mp_id'=>$j_product['mp_id']
+                           ]);
+                       }else{
+                           PfzAccount::insert([
+                               'mch_id'=> getVariable('mch_id'),'status'=>'1','pid'=>$uid,'state'=>$j_product['type'],'uid'=>$j_product['uid'],'sub_mch_id'=>$accoount['sub_mch_id']
+                           ]);
+                           return json(['code'=>'201','msg'=>'正在审核中，请稍后']);
+                       }
+
+                    }else{
+                        return json(['code'=>'201','msg'=>'没有开启的收款账号']);
+                    }
+
                 }
 
                 $data['info'] = '平台商绑定产品：'.$product_id;
@@ -263,19 +280,174 @@ class Product
         ];
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($request->post())) {
-            return json(['code'=>'201','msg'=>'操作成功','sign'=>$validate->getError()]);
+            return json(['code'=>'201','msg'=>$validate->getError()]);
         }
         Db::startTrans();
         try {
             $price = $request->post('price');
             $Product_relation = Product_relation::where(['id'=>$id])->find();
-            $product = J_product::where(['id'=>$Product_relation['product_id']])->value('money');
-            if ($price < $product){
+            $product = J_product::where(['id'=>$Product_relation['product_id']])->field('money,state')->find();
+            if ($product['state']=='1'){
+                return json(['code'=>'201','msg'=>'当前产品无法改价']);
+            }
+            if ($price < $product['money']){
                 return json(['code'=>'201','msg'=>'不能低于成本价']);
             }
+            if ($product['money']){
+                $Productuser = Productuser::where(['pid',getDecodeToken()['id'],'product_id'=>$Product_relation['product_id']])->find();
+                if ($Productuser){
+                    return json(['code'=>'201','msg'=>'已有门店绑定该产品所有无法更改价格']);
+                }
+            }
+
             $Product_relation->price = $price;
             $Product_relation->save();
             addPadminLog(getDecodeToken(),'修改绑定产品'.$id.'价格为'.$request->post('price'));
+            Db::commit();
+            return json(['code'=>'200','msg'=>'操作成功']);
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'201','msg'=>'网络繁忙']);
+        }
+    }
+
+    /**
+     * @Apidoc\Title("平台商特惠票审核列表")
+     * @Apidoc\Desc("平台商特惠票审核列表")
+     * @Apidoc\Url("platform/product/reviewlist")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("state", type="number",require=true, desc="状态 1审核中 2审核成功 3审核拒绝" )
+     * @Apidoc\Param("pagenum", type="number",require=true, desc="分页" )
+     * @Apidoc\Returned("id",type="string",desc="审核列表的id")
+     * @Apidoc\Returned("name",type="string",desc="产品的名称")
+     * @Apidoc\Returned("class_name",type="string",desc="产品的简介")
+     * @Apidoc\Returned("user_name",type="string",desc="申请特惠票的用户账号")
+     * @Apidoc\Returned("phone",type="string",desc="申请特惠票的手机号")
+     * @Apidoc\Returned("phone",type="string",desc="申请特惠票的状态 1审核中 2审核成功 3审核拒绝")
+     * @Apidoc\Returned("create_time",type="string",desc="申请特惠票的时间")
+     */
+    public function review_list(Request $request){
+        $id = getDecodeToken()['id'];
+        $pagenum = $request->get('pagenum');
+        $state = $request->get('state');
+        $product_result = new Pproductreview();
+        $data = $product_result->alias('a')->where(['a.pid'=>$id,'b.mp_id'=>'6','b.type'=>'1'])
+            ->join('j_product b','b.id=a.product_id','LEFT')
+            ->join('p_user c','c.id=a.uid','LEFT');
+        if($state){
+            $data->where('a.state',$state);
+        }
+        $review= $data->field('a.id,b.name,b.class_name,c.user_name,c.phone,a.state,a.create_time')->paginate($pagenum)->toArray();
+        return json(['code'=>'200','msg'=>'操作成功','review'=>$review]);
+    }
+
+    /**
+     * @Apidoc\Title("平台商绑定特惠票的审核列表")
+     * @Apidoc\Desc("平台商绑定特惠票的审核列表")
+     * @Apidoc\Url("platform/product/previewlist")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("state", type="number",require=true, desc="状态 1审核中 2审核成功 3审核拒绝" )
+     * @Apidoc\Param("pagenum", type="number",require=true, desc="分页" )
+     * @Apidoc\Returned("id",type="string",desc="审核列表的id")
+     * @Apidoc\Returned("name",type="string",desc="产品的名称")
+     * @Apidoc\Returned("class_name",type="string",desc="产品的简介")
+     * @Apidoc\Returned("user_name",type="string",desc="申请特惠票的用户账号")
+     * @Apidoc\Returned("phone",type="string",desc="申请特惠票的手机号")
+     * @Apidoc\Returned("phone",type="string",desc="申请特惠票的状态 1审核中 2审核成功 3审核拒绝")
+     * @Apidoc\Returned("create_time",type="string",desc="申请特惠票的时间")
+     */
+    public function preview_list(Request $request){
+        $id = getDecodeToken()['id'];
+        $pagenum = $request->get('pagenum');
+        $state = $request->get('state');
+        $product_result = new JproductReview();
+        $data = $product_result->alias('a')->where(['a.pid'=>$id,'b.mp_id'=>'6','b.type'=>'1'])
+            ->join('j_product b','b.id=a.product_id','LEFT')
+            ->join('p_user c','c.id=a.uid','LEFT');
+        if($state){
+            $data->where('a.state',$state);
+        }
+        $review= $data->field('a.id,b.name,b.class_name,c.user_name,c.phone,a.state,a.create_time')->paginate($pagenum)->toArray();
+        return json(['code'=>'200','msg'=>'操作成功','review'=>$review]);
+    }
+
+    /**
+     * @Apidoc\Title("平台商特惠票更改审核状态")
+     * @Apidoc\Desc("平台商特惠票更改审核状态")
+     * @Apidoc\Url("platform/product/reviewstate")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("id", type="number",require=true, desc="平台商特惠票审核id" )
+     * @Apidoc\Param("state", type="number",require=true, desc="状态 1审核中 2审核成功 3审核拒绝" )
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     */
+    public function review_state(Request $request){
+        $id = $request->post('id');
+        $state = $request->post('state');
+        Db::startTrans();
+        try {
+            $review = Pproductreview::where('id',$id)->find();
+            $review->state = $state;
+            $review->save();
+            if ($state=='2'){
+                $data = J_product::alias('JP')->where(['JP.status'=>'0','JP.id'=>$review['product_id']])
+                    ->join('p_product_relation pr','pr.product_id=JP.id')
+                    ->field('JP.name,JP.desc,JP.title,JP.img_id,JP.type,pr.price,JP.class_name,JP.mp_id,pr.uid')
+                    ->find()->toarray();
+                $text = '通过';
+                $data['user_id'] = $review['uid'];
+                $data['product_id'] = $review['product_id'];
+                $data['money'] = ceil($data['price'] * 0.03+$data['price']);
+                $data['price'] =  ceil($data['money']);
+                $data['pid'] =  $data['uid'];
+                $Productuser = Productuser::create($data);
+            }else{
+                $text='拒绝';
+            }
+            addPadminLog(getDecodeToken(),'特惠票审核'.$text.$id);
+            Db::commit();
+            return json(['code'=>'200','msg'=>'操作成功']);
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'201','msg'=>'网络繁忙']);
+        }
+    }
+
+    /**
+     * @Apidoc\Title("平台商特惠票更改审核状态")
+     * @Apidoc\Desc("平台商特惠票更改审核状态")
+     * @Apidoc\Url("platform/product/productstate")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("id", type="number",require=true, desc="平台商绑定产品接口id" )
+     * @Apidoc\Param("state", type="number",require=true, desc="状态 1可以 0不可以" )
+     */
+    public function product_state(Request $request){
+        $id = $request->post('id');
+        $state = $request->post('state');
+        Db::startTrans();
+        try {
+
+            $relationc = Product_relation::where(['id',$id])->find();
+            $Productuser = Productuser::where(['pid',getDecodeToken()['id'],'product_id'=>$relationc['product_id']])->find();
+            if ($Productuser){
+                return json(['code'=>'201','msg'=>'已有门店绑定该产品,所以无法开启']);
+            }
+            $relationc->state = $state;
+            $relationc->save();
+            if ($state=='1'){
+                $text = '可以';
+            }else{
+                $text = '不可以';
+            }
+            addPadminLog(getDecodeToken(),'开启产品'.$text.'改价:'.$id);
             Db::commit();
             return json(['code'=>'200','msg'=>'操作成功']);
         }catch (\Exception $e){

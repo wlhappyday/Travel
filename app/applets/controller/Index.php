@@ -6,6 +6,10 @@ namespace app\applets\controller;
 use app\common\model\File;
 use app\platform\model\Productuser;
 use app\user\model\Config;
+use app\common\model\Puserpage;
+use app\common\model\Pusermagic;
+use app\common\model\Puserhomenavigation;
+use app\common\model\Pusernavigation;
 use think\Request;
 use app\common\model\Puseruser;
 use app\api\model\Puser;
@@ -18,6 +22,19 @@ use hg\apidoc\annotation as Apidoc;
  */
 class Index
 {
+
+    public function tabBar(Request $request){
+        $appid = $request->get('appid');
+        if (empty($appid)){
+            return json(['code'=>'201','msg'=>'appid不能为空']);
+        }
+        $puser = Puser::where('appid',$appid)->field('id,dinavigationtcolor,dinavigationtcolors')->find();
+        $navigation = Pusernavigation::where('user_id',$puser['id'])->order('navigation_id','Desc')->field('img,imgs,page_id,title')->select();
+        foreach($navigation as $key=>$value){
+            $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
+        }
+        return json(['code'=>'200','msg'=>'操作成功','navigation'=>$navigation,'puser'=>$puser]);
+    }
 
     /**
      * @Apidoc\Title("获取热门路线和热门景区")
@@ -54,40 +71,65 @@ class Index
         if (empty($appid)){
             return json(['code'=>'201','msg'=>'appid不能为空']);
         }
-        $id = Puser::where('appid',$appid)->value('id');
-        if(empty($id)){
+        $puser = Puser::where('appid',$appid)->find();
+        if(empty($puser)){
             return json(['code'=>'201','msg'=>'小程序暂时无法使用']);
         }
         //获取轮播图
-        $carousel_img = Pcarousel::where(['type'=>'1','appid'=>$appid])->field('img,product_id')->select();
+        $carousel_img = Pcarousel::where(['type'=>'1','appid'=>$appid])->field('img,page')->select();
         foreach ($carousel_img as $key => $value){
             $carousel_img[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
         }
+
+        $navigation = Puserhomenavigation::where(['user_id'=>$puser['id'],'type'=>'1'])->field('title,img,page_id')->select();
+        foreach ($navigation as $key => $value){
+            $navigation[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
+            $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
+        }
         //热门景区
-        $rjproduct = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$id])->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.address,pu.name,pu.id')
+        $rjproduct = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$puser['id']])->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.address,pu.name,pu.id,jp.type')
             ->join('j_product jp','jp.id=pu.product_id')->where([['address','like','%'.$city.'%']])->leftjoin('file file','pu.first_id=file.id')
             ->limit(5)->select()->toarray();
         //热门路线
-        $rlproduct = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$id])->field('file.file_path,pu.price,pu.product_id,jp.get_city,pu.name,pu.id,pu.class_name')
+        $rlproduct = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$puser['id']])->field('file.file_path,pu.price,pu.product_id,jp.get_city,pu.name,pu.id,pu.class_name,jp.type')
             ->join('j_product jp','jp.id=pu.product_id')->where([['get_city','like','%'.$city.'%']])->leftjoin('file file','pu.first_id=file.id')
             ->limit(5)->select()->toarray();
-        return json(['code'=>'200','msg'=>'操作成功','img'=>$carousel_img,'rjproduct'=>$rjproduct,'rlproduct'=>$rlproduct,'http'=>http()]);
+        $magic = Pusermagic::where('user_id',$puser['id'])->field('style,img')->find();
+        foreach ($magic['img'] as $key=>$value) {
+            $magic['img']->$key['img'] = http().File::where('id',$value['img'])->value('file_path');
+            $magic['img']->$key['page'] = Puserpage::where('id',$value['page'])->value('page');
+        }
+        return json(['code'=>'200','msg'=>'操作成功','magic'=>$magic,'navigation'=>$navigation,'img'=>$carousel_img,'rjproduct'=>$rjproduct,'rlproduct'=>$rlproduct,'http'=>http(),'notice'=>$puser['notice']]);
     }
 
     /**
-     * @Apidoc\Title("获取的热门产品")
-     * @Apidoc\Desc("热门产品")
+     * @Apidoc\Title("搜索")
+     * @Apidoc\Desc("搜索")
      * @Apidoc\Url("user/index/search")
      * @Apidoc\Method("GET")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Returned ("product",type="object",desc="搜索列表",
-     *     @Apidoc\Returned ("get_city",type="int",desc="产品城市"),
-     *     @Apidoc\Returned ("product_name",type="int",desc="产品名称"),
-     *     @Apidoc\Returned ("type",type="int",desc="产品类型 1为景区 2线路"),
+     * @Apidoc\Param("city", type="number",require=false, desc="城市名称")
+     * @Apidoc\Param("product_name", type="number",require=false, desc="产品名称")
+     * @Apidoc\Param("type", type="number",require=false, desc="线路还是景区")
+     *
+     * @Apidoc\Returned ("rjproduct",type="object",desc="产品",
+     *     @Apidoc\Returned ("file_path",type="int",desc="产品图片"),
+     *     @Apidoc\Returned ("class_name",type="varchar(11)",desc="产品名称"),
+     *     @Apidoc\Returned ("product_id",type="int",desc="产品id"),
+     *     @Apidoc\Returned ("price",type="int",desc="产品价格"),
+     *     @Apidoc\Returned ("number",type="int",desc="产品库存"),
+     *     @Apidoc\Returned ("address",type="datetime",desc="添加时间"),
      *     )
+     * @Apidoc\Returned ("rjproduct",type="object",desc="产品",
+     *      @Apidoc\Returned ("file_path",type="int",desc="产品图片"),
+     *     @Apidoc\Returned ("get_city",type="varchar(11)",desc="产品目的地"),
+     *     @Apidoc\Returned ("product_id",type="int",desc="产品id"),
+     *     @Apidoc\Returned ("price",type="int",desc="产品价格"),
+     *     )
+     *  @Apidoc\Returned("http",type="string",desc="域名")
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
-     * @Apidoc\Returned("msg",type="string"data,desc="任务提示")
+     * @Apidoc\Returned("msg",type="string",desc="任务提示")
      */
     public function search(Request $request){
         $get_city = $request->get('get_city');

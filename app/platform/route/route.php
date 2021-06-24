@@ -9,6 +9,10 @@ Route::group('product', function () {
     Route::post('disassociate', 'Product/disassociate');
     Route::post('platformdetails', 'Product/platform_details');
     Route::post('edit', 'Product/edit');
+    Route::get('reviewlist', 'Product/review_list');
+    Route::post('reviewstate', 'Product/review_state');
+    Route::get('previewlist', 'Product/preview_list');
+    Route::post('productstate', 'Product/product_state');
 
 });
 //用户模块

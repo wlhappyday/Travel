@@ -3,6 +3,7 @@ declare (strict_types = 1);
 
 namespace app\common\model;
 
+use app\platform\model\Productuser;
 use think\Model;
 use hg\apidoc\annotation\Field;
 use hg\apidoc\annotation\WithoutField;
@@ -23,4 +24,12 @@ class Order extends Model
         return $res;
     }
 
+    public function orderdetail()
+    {
+        return $this->hasMany(Orderdetails::class,'order_id','order_id');
+    }
+    public function product()
+    {
+        return $this->hasOne(Productuser::Class,'id','goods_id');
+    }
 }

@@ -18,6 +18,7 @@ class swagger
         //如果登录账户为用户端进入判断主要是区分平台商id和用户端id
         //uid为平台商
         //id为用户端
+
         if(getDecodeToken()['type'] == '5'){
             $admin = P_user::where('id',getDecodeToken()['id'])->value('uid');
             $request->uid = $admin;
