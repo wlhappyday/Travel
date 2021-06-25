@@ -34,6 +34,7 @@ class Config
      * @Note  畅联支付参数绑定
      */
     public function changLian(){
+        $data['api_url'] = getVariable('api_url');
         $data['pay_id'] = getVariable('pay_id');
         $data['pay_key'] = getVariable('pay_key');
 
@@ -68,9 +69,13 @@ class Config
 
         $mch_id = getVariable('pay_id');
         if(empty($mch_id)){
-            return ['code' => 1, 'msg' =>'通讯设置参数错误！'];
+            return returnData(['msg'=>'通讯设置参数错误','code'=>'201']);
         }
         $temp1=end($temp);
+
+        if($temp1 != 'pem'){
+            return returnData(['msg'=>'文件格式不符','code'=>'201']);
+        }
         $time= $mch_id.'_'.time().rand(10000000, 99999999).'.'. $temp1;
         $name = "ACPtest2/".$time;
         move_uploaded_file($_FILES["file"]["tmp_name"], $name);

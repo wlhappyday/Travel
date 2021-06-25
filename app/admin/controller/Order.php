@@ -71,7 +71,7 @@ class Order
     }
     public function listDetail(){
         $where = [];
-        $where['store_id'] = getDecodeToken()['id'];
+//        $where['store_id'] = getDecodeToken()['id'];
         $order_id = input('post.order_id/s','','strip_tags');
         if ($order_id){
             $where['order_id'] = $order_id;
