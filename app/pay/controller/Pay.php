@@ -167,8 +167,6 @@ class Pay
             p(genggaijiage($order->where(["order_id" => $orderDate['order_id']])->find()->toArray()));
             foreach ($orderDetails as $orderDetail) {
                 Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"], "order_id" => $orderDate['order_id']]);
-
-
             }
 
         }
