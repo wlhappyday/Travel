@@ -29,24 +29,16 @@ class FzAccount
         if(!PfzAccount::where(['id'=>$id,'status'=>'1'])->find()){
             return returnData(['msg'=>'没有需要审核的分账接收方','code'=>'201']);
         }
-        $status = input('post.status/d','','strip_tags');
-        $desc = input('post.desc/s','','strip_tags');
-        if ($status == 3){
-            Db::startTrans();
-            try {
-                PfzAccount::where(['id'=>$id,'uid'=>$uid,'state'=>'3'])->update(['status'=>$status,'update_time'=>time(),'desc'=>$desc]);
-                addPuserLog(getDecodeToken(),'分账接收方审核不通过：'.$id);
-                Db::commit();
-                return returnData(['msg'=>'操作成功','code'=>'200']);
-            }catch (\Exception $e){
-                Db::rollback();
-                return returnData(['msg'=>'数据操作错误，请检查','code'=>'201']);
-            }
-        }else{
+        Db::startTrans();
+        try {
+            PfzAccount::where(['id'=>$id,'uid'=>$uid,'state'=>'3'])->update(['status'=>'3','update_time'=>time()]);
+            addPuserLog(getDecodeToken(),'分账接收方审核不通过：'.$id);
+            Db::commit();
+            return returnData(['msg'=>'操作成功','code'=>'200']);
+        }catch (\Exception $e){
+            Db::rollback();
             return returnData(['msg'=>'数据操作错误，请检查','code'=>'201']);
         }
-
-
 
     }
     public function statusYes(){
@@ -58,7 +50,7 @@ class FzAccount
         if(!PfzAccount::where(['id'=>$id,'status'=>'1'])->find()){
             return returnData(['msg'=>'没有需要审核的分账接收方','code'=>'201']);
         }
-        $status = input('post.status/d','','strip_tags');
+
         $data['name'] = input('post.name/s','','strip_tags');
         $data['account'] = input('post.account/s','','strip_tags');
         $data['type'] = input('post.type/s','','strip_tags');
@@ -67,7 +59,7 @@ class FzAccount
         $mch_id = input('post.mch_id/s','','strip_tags');
         $sub_mch_id = input('post.sub_mch_id/s','','strip_tags');
 
-        if (empty($id) || empty($mch_id) || empty($sub_mch_id) || empty($status) || empty($data['name']) || empty($data['account']) || empty($data['type']) || empty($data['relation_type'])){
+        if (empty($id) || empty($mch_id) || empty($sub_mch_id) || empty($data['name']) || empty($data['account']) || empty($data['type']) || empty($data['relation_type'])){
             return returnData(['msg'=>'参数错误','code'=>'201']);
         }
 
@@ -98,61 +90,58 @@ class FzAccount
             'apiclient_key'=>$apiclient_key,
         ]);
 
-        if ($status == 2){
-            Db::startTrans();
-            try {
-                $apiUrl = empty(getVariable('api_url'))?'https://apibei.payunke.com':getVariable('api_url');
-                $url = $apiUrl.'/index/travelFzAccountAdd';
+        Db::startTrans();
+        try {
+            $apiUrl = empty(getVariable('api_url'))?'https://apibei.payunke.com':getVariable('api_url');
+            $url = $apiUrl.'/index/travelFzAccountAdd';
 
-                $sign = (new Sign())->getSign($pay_key,$data);
-                $data['sign'] = $sign;
-                $post_data = json_encode($data);
-                $ch = curl_init ();
-                $header = [
-                    'Content-Type: application/json',
-                    'Content-Length: ' . strlen ( $post_data )
-                ];
+            $sign = (new Sign())->getSign($pay_key,$data);
+            $data['sign'] = $sign;
+            $post_data = json_encode($data);
+            $ch = curl_init ();
+            $header = [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen ( $post_data )
+            ];
 
-                curl_setopt ( $ch, CURLOPT_HTTPHEADER, $header );
-                curl_setopt ( $ch, CURLOPT_URL, $url );
-                curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
-                curl_setopt ( $ch, CURLOPT_POST, 1 );
-                curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, false );
-                curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, false );
-                curl_setopt ( $ch, CURLOPT_POSTFIELDS, $post_data );
-                $output = curl_exec ( $ch );
-                curl_close ( $ch );
+            curl_setopt ( $ch, CURLOPT_HTTPHEADER, $header );
+            curl_setopt ( $ch, CURLOPT_URL, $url );
+            curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
+            curl_setopt ( $ch, CURLOPT_POST, 1 );
+            curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, false );
+            curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, false );
+            curl_setopt ( $ch, CURLOPT_POSTFIELDS, $post_data );
+            $output = curl_exec ( $ch );
+            curl_close ( $ch );
 
-                $result = json_decode($output,true);
+            $result = json_decode($output,true);
 
-                unset($data['appid']);
-                unset($data['sign']);
-                unset($data['extend']);
-                $data['status'] = $status;
-                $data['update_time'] = time();
+            unset($data['appid']);
+            unset($data['sign']);
+            unset($data['extend']);
 
-                if($result['code'] != '200'){
-                    $data['desc'] = $result['msg'];
-                    PfzAccount::where(['id'=>$id,'state'=>'3','uid'=>$uid])->update($data);
-                    Db::commit();
-                    addPuserLog(getDecodeToken(),'分账接收方审核不通过：失败原因：'.$result['msg']);
-                    return returnData(['msg'=>$result['msg'],'code'=>'201']);
-                }else{
-                    PfzAccount::where(['id'=>$id,'state'=>'3','uid'=>$uid])->update($data);
-                    Db::commit();
-                    addPuserLog(getDecodeToken(),'分账接收方审核通过：'.$id);
-                    return returnData(['msg'=>'操作成功','code'=>'200']);
-                }
+            $data['update_time'] = time();
 
-            }catch (\Exception $e){
-                Db::rollback();
-                return returnData(['msg'=>'数据操作错误，请检查','code'=>'201']);
+            if($result['code'] != '200'){
+//                $data['status'] = '3';
+                $data['desc'] = $result['msg'];
+                PfzAccount::where(['id'=>$id,'state'=>'3','uid'=>$uid])->update($data);
+                Db::commit();
+                addPuserLog(getDecodeToken(),'分账接收方审核不通过：失败原因：'.$result['msg']);
+                return returnData(['msg'=>$result['msg'],'code'=>'201']);
+            }else{
+                $data['status'] = '2';
+                $data['desc'] = $result['msg'];
+                PfzAccount::where(['id'=>$id,'state'=>'3','uid'=>$uid])->update($data);
+                Db::commit();
+                addPuserLog(getDecodeToken(),'分账接收方审核通过：'.$id);
+                return returnData(['msg'=>'操作成功','code'=>'200']);
             }
-        }else{
+
+        }catch (\Exception $e){
+            Db::rollback();
             return returnData(['msg'=>'数据操作错误，请检查','code'=>'201']);
         }
-
-
 
     }
 
