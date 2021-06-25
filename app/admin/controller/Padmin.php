@@ -97,8 +97,10 @@ class Padmin
                 return returnData(['msg'=>$result['msg'],'code'=>'201']);
             }else{
                 Db::commit();
-                $result['data']['money'] = '10';
-                P_admin::where(['id'=>$id])->update($result['data']);
+                $add['money'] = '10';
+                $add['cl_id'] = $result['data']['mch_id'];
+                $add['cl_key'] = $result['data']['mch_key'];
+                P_admin::where(['id'=>$id])->update($add);
                 return returnData(['msg'=>'操作成功','code'=>'200']);
             }
 
@@ -273,9 +275,7 @@ class Padmin
      * @Note  查看门店
      */
     public function getUser(){
-
         $num = input('post.num/d','10','strip_tags');
-        $uid = input('post.id/d','','strip_tags');
         $user_name = input('post.user_name/s','','strip_tags');
         $where = [];
         if ($user_name){
@@ -289,9 +289,6 @@ class Padmin
 
         if (isset($status)){
             $where['status'] = $status;
-        }
-        if (empty($uid)){
-            return returnData(['msg'=>'参数错误','code'=>'201']);
         }
 
         $user_result = new Puser();

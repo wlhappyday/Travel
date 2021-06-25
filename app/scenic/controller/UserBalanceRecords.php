@@ -20,9 +20,13 @@ class UserBalanceRecords
         if($type){
             $where['type'] = $type;
         }
+        $data_id = input('post.data_id/s','','strip_tags');
+        if ($data_id){
+            $where['data_id'] = $data_id;
+        }
 
         $balance_result = new JuserBalanceRecords();
-        $data = $balance_result->where($where)->field('id,type,scene,before_money,money,after_money,descript,create_time')->paginate($num)->toArray();
+        $data = $balance_result->where($where)->paginate($num)->toArray();
 
         return returnData(['data'=>$data,'code'=>'200']);
     }
