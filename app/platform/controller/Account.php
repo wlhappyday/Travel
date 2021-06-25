@@ -5,11 +5,14 @@ namespace app\platform\controller;
 
 use app\api\model\Padmin;
 use app\platform\model\Adminlogin;
+use app\common\model\JfeeChange;
 use think\facade\Db;
 use think\Request;
 use think\facade\validate;
 use app\platform\model\Admin;
 use app\common\model\File;
+use app\common\model\PadminLog;
+use app\common\model\Log;
 use app\platform\model\P_enterprise;
 use app\platform\model\Balancerecords;
 use hg\apidoc\annotation as Apidoc;
@@ -243,5 +246,66 @@ class Account
         $uid = $request->uid;
         $Balancerecords = Balancerecords::paginate(20);
         return json(['code'=>'200','msg'=>'操作成功',['Balancerecords'=>$Balancerecords]]);
+    }
+
+    /**
+     * @Apidoc\Title("登录日志")
+     * @Apidoc\Desc("登录日志")
+     * @Apidoc\Url("platform/account/signinLog")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Returned("log",type="object",desc="登录日志",ref="app\common\model\PadminLog\log")
+     */
+    public function signinLog(Request $request){
+        $uid = $request->uid;
+        $pagenum = $request->get('pagenum');
+        $log = Log::where('uid',$uid)->where('type','2')->field('user_name,info,ip,address,create_time')->order('create_time','desc')->paginate($pagenum)->toArray();
+       return json(['code'=>'200','msg'=>'操作成功','log'=>$log]);
+
+    }
+
+    /**
+     * @Apidoc\Title("操作日志")
+     * @Apidoc\Desc("操作日志")
+     * @Apidoc\Url("platform/account/operationLog")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Returned("log",type="object",desc="操作日志",ref="app\common\model\PadminLog\log")
+     */
+    public function operationLog(Request $request){
+        $uid = $request->uid;
+        $pagenum = $request->get('pagenum');
+        $log = PuserLog::where('uid',$uid)->order('create_time','desc')->field('uname,info,ip,address,create_time')->paginate($pagenum)->toArray();
+        return json(['code'=>'200','msg'=>'操作成功','log'=>$log]);
+
+    }
+
+    /**
+     * @Apidoc\Title("操作日志")
+     * @Apidoc\Desc("操作日志")
+     * @Apidoc\Url("platform/account/operationLog")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Returned("log",type="object",desc="操作日志",ref="app\common\model\JfeeChange\fee")
+     */
+
+    public function feeChange(Request $request){
+        $num = input('post.pagenum/d','10','strip_tags');
+        $type = input('post.type/d','','strip_tags');
+        $id = getDecodeToken()['id'];
+        $where = [];
+        $where['type'] = '2';
+        $where['uid'] = $id;
+        $state = input('post.state/d','','strip_tags');
+        if($state){
+            $where['state'] = $state;
+        }
+
+        $Jenterprise = new JfeeChange();
+        $data = $Jenterprise
+            ->where($where)
+            ->field('id,before_money,money,after_money,state,data_id,create_time')
+            ->paginate($num)->toArray();
+        return json(['data'=>$data,'code'=>'200','msg'=>'操作成功']);
     }
 }

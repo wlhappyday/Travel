@@ -14,10 +14,7 @@ use think\Request;
 class FzAccount
 {
 
-    /**
-     * @author liujiong
-     * @Note  分账接收方列表
-     */
+
     public function list(){
         $uid = getDecodeToken()['id'];
         $num = input('post.num/d','10','strip_tags');

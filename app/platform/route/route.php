@@ -31,7 +31,8 @@ Route::group('account', function () {
     Route::post('enterprise_save', 'Account/enterprisesave');/*企业信息保存*/
     Route::post('password', 'Account/password');/*企业信息保存*/
     Route::get('Balancerecords', 'Account/Balancerecords');/*个人信息*/
-
+    Route::get('signinLog', 'Account/signinLog');/*登录日志*/
+    Route::get('operationLog', 'Account/operationLog');/*操作日志*/
 });
 
 //用户模块

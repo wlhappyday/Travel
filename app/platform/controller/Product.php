@@ -54,7 +54,7 @@ class Product
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('file d','d.id=a.first_id')
-            ->field('a.id,a.type,a.name,a.class_name,a.title,a.money,a.number,a.end_time,a.desc,d.file_path');
+            ->field('a.mp_name,a.set_city,a.get_city,a.id,a.type,a.name,a.class_name,a.title,a.money,a.number,a.end_time,a.desc,d.file_path');
         if ($end_time){
             $data->whereTime('a.create_time', '<=', strtotime($end_time));
         }
@@ -248,7 +248,7 @@ class Product
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('file d','d.id=a.first_id')
             ->join('p_product_relation pr','pr.product_id=a.id')
-            ->field('pr.id,pr.product_id,a.type,a.name,a.class_name,a.title,pr.price,a.number,a.end_time,a.desc,d.file_path');
+            ->field('pr.id,pr.product_id,a.type,a.name,a.class_name,a.title,pr.price,a.number,a.end_time,a.desc,d.file_path,a.get_city,a.set_city,a.mp_name,pr.state');
         if ($start_time){
             $data->whereTime('a.create_time', '>=', strtotime($start_time));
         }
@@ -312,7 +312,7 @@ class Product
     }
 
     /**
-     * @Apidoc\Title("平台商特惠票审核列表")
+     * @Apidoc\Title("平台商特惠票审核列表 仅查看")
      * @Apidoc\Desc("平台商特惠票审核列表")
      * @Apidoc\Url("platform/product/reviewlist")
      * @Apidoc\Method("GET")
@@ -332,7 +332,7 @@ class Product
         $id = getDecodeToken()['id'];
         $pagenum = $request->get('pagenum');
         $state = $request->get('state');
-        $product_result = new Pproductreview();
+        $product_result = new JproductReview();
         $data = $product_result->alias('a')->where(['a.pid'=>$id,'b.mp_id'=>'6','b.type'=>'1'])
             ->join('j_product b','b.id=a.product_id','LEFT')
             ->join('p_user c','c.id=a.uid','LEFT');
@@ -344,7 +344,7 @@ class Product
     }
 
     /**
-     * @Apidoc\Title("平台商绑定特惠票的审核列表")
+     * @Apidoc\Title("平台商绑定特惠票的审核列表   有操作")
      * @Apidoc\Desc("平台商绑定特惠票的审核列表")
      * @Apidoc\Url("platform/product/previewlist")
      * @Apidoc\Method("GET")
@@ -364,7 +364,7 @@ class Product
         $id = getDecodeToken()['id'];
         $pagenum = $request->get('pagenum');
         $state = $request->get('state');
-        $product_result = new JproductReview();
+        $product_result = new Pproductreview();
         $data = $product_result->alias('a')->where(['a.pid'=>$id,'b.mp_id'=>'6','b.type'=>'1'])
             ->join('j_product b','b.id=a.product_id','LEFT')
             ->join('p_user c','c.id=a.uid','LEFT');
@@ -420,8 +420,8 @@ class Product
     }
 
     /**
-     * @Apidoc\Title("平台商特惠票更改审核状态")
-     * @Apidoc\Desc("平台商特惠票更改审核状态")
+     * @Apidoc\Title("平台商品是否可以改价")
+     * @Apidoc\Desc("平台商品是否可以改价")
      * @Apidoc\Url("platform/product/productstate")
      * @Apidoc\Method("POST")
      * @Apidoc\Tag("列表 基础")
@@ -435,8 +435,8 @@ class Product
         Db::startTrans();
         try {
 
-            $relationc = Product_relation::where(['id',$id])->find();
-            $Productuser = Productuser::where(['pid',getDecodeToken()['id'],'product_id'=>$relationc['product_id']])->find();
+            $relationc = Product_relation::where(['id'=>$id])->find();
+            $Productuser = Productuser::where(['pid'=>getDecodeToken()['id'],'product_id'=>$relationc['product_id']])->find();
             if ($Productuser){
                 return json(['code'=>'201','msg'=>'已有门店绑定该产品,所以无法开启']);
             }
