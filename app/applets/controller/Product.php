@@ -8,6 +8,7 @@ use app\common\model\File;
 use app\common\model\Puseruser;
 use app\platform\model\Productuser;
 use app\common\model\PuserInfo;
+use app\common\model\Pusercollection;
 use app\common\model\Puserpassenger;
 use think\facade\Db;
 use think\facade\Validate;
@@ -60,6 +61,7 @@ class Product
         $product_id = $request->get('product_id');
         $appid = $request->get('appid');
         $type = $request->get('type');
+        $uid = $request->get('uid');
         $id = Puser::where('appid',$appid)->value('id');
         if($type=='1'){
             //景區
@@ -83,7 +85,14 @@ class Product
         foreach($product['img_id'] as $key => $val){
             $product['img_id']->$key = http().File::where('id',$val)->value('file_path');
         }
+        $product['img_id'] = json_decode(json_encode($product['img_id']),TRUE);
         $product['end_time'] = date('Y-m-s h:i:s',$product['end_time']);
+        $product['collection'] = false;
+        if ($uid){
+            if (Pusercollection::where(['user_id'=>getDecodeToken()['puser_id'],'product_id'=>$product['product_id']])->find()){
+                $product['collection'] = true;
+            }
+        }
         return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
     }
 
@@ -189,7 +198,7 @@ class Product
             return json(['code'=>'200','msg'=>'操作成功']);
         }catch (\Exception $e){
             Db::rollback();
-            return json(['code'=>'201','sign'=>$e->getMessage(),'msg'=>'操作失败']);
+            return json(['code'=>'201','msg'=>'网络异常']);
         }
     }
 
@@ -197,5 +206,130 @@ class Product
         $userinfo_id = $request->post('userinfo_id');
         $passenger = Puserpassenger::where('id',$userinfo_id)->find();
         return json(['code'=>'200','msg'=>'操作成功','passenger'=>$passenger]);
+    }
+
+    public function collection(Request $request){
+        $id = getDecodeToken()['puser_id'];
+        $product_id = $request->post('product_id');
+        Db::startTrans();
+        try {
+            $collection = Pusercollection::where(['user_id'=>$id,'product_id'=>$product_id])->find();
+            if (empty($collection)){
+                $collection = new Pusercollection();
+                $collection->user_id = $id;
+                $collection->product_id = $product_id;
+                $collection->save();
+                $data = true;
+            }else{
+                $collection->delete();
+                $data = false;
+            }
+            Db::commit();
+            return json(['code'=>'200','msg'=>'操作成功','collection'=>$data]);
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'201','msg'=>'操作失败']);
+        }
+    }
+
+    public function poster_list(Request $request){
+        $id = getDecodeToken()['puser_id'];
+        $puser = Puseruser::where('id',$id)->value('puser_id');
+        $product = Productuser::where('user_id',$puser)->field('img,first_id,id,product_id,type')->where('is_poster','1')->select();
+        foreach ($product as $key=>$value) {
+            if (!empty($value['img'])){
+                $product[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
+            }else{
+                $product[$key]['img'] = http().File::where('id',$value['first_id'])->value('file_path');
+            }
+        }
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
+    }
+
+    public function poster_detail(Request $request){
+        $id = getDecodeToken()['puser_id'];
+        $prid = $request->get('id');
+        $pr = Productuser::where('id',$id)->field('img,first_id,product_id,type,name')->find();
+        $puser_id = Puseruser::where('id',$id)->value('puser_id');
+        $data = Puser::where('id',$puser_id)->field('appid,appkey')->find();
+        $tokenUrl = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.$data['appid'].'&secret='.$data['appkey'];
+        $token = json_decode(httpGet($tokenUrl));
+        $data = [
+            'path' => 'pages/productdetail/productdetail?product_id='.$pr['product_id'].'&type='.$pr['type'], //扫码后进入页面
+        ];
+        $URL = 'https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token='.$token->access_token;
+        $json = json_encode($data); //数组加密
+        $result = httpPost($URL,$json);
+        if(json_decode($result)['errcode']){
+            return json(['code'=>'201','msg'=>'生成失败']);
+        }
+//以下是将二进制流转成file并写入本地
+
+        $data = date('Ymd');
+        $path =  $_SERVER['DOCUMENT_ROOT'].'/storage/topic/'.$data;
+        if(!file_exists($path)){ //判断目录是否存在
+            mkdir($path,0777,true);
+        }
+        $filename = md5('Y-m-d H:i:s');
+        $path = $path.'/'.$filename.'.png'; //最后要写入的目录及文件名
+        //  创建将数据流文件写入我们创建的文件内容中
+        file_put_contents($path,$result);
+        return json(['code'=>'200','msg'=>'操作成功','name'=>$pr['name'],'product'=>http().'/storage/topic/'.$data.'/'.$filename.'.png']);
+    }
+
+    public function details(Request $request){
+        $product_id = $request->get('product_id');
+        $appid = getDecodeToken()['appid'];
+        $type = $request->get('type');
+        $uid = $request->get('uid');
+        $id = Puser::where('appid',$appid)->value('id');
+        if($type=='1'){
+            //景區
+            $product = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.product_id'=>$product_id,'pu.status'=>'0','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$id])
+                ->join('j_product jp','jp.id=pu.product_id')
+                ->leftjoin('file file','pu.first_id=file.id')
+                ->field('pu.id,pu.img,pu.desc,file.file_path,pu.class_name,pu.price,pu.product_id,pu.img_id,jp.get_city,pu.name,pu.id,jp.end_time,pu.video_id,jp.type')
+                ->find();
+        }else if($type=='2'){
+            //綫路
+            $product = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$id])
+                ->join('j_product jp','jp.id=pu.product_id')
+                ->leftjoin('file file','pu.img=file.id')
+                ->field('pu.id,file.file_path,pu.class_name,pu.price,pu.img_id,pu.product_id,jp.address,pu.name,pu.id,jp.end_time,jp.type,pu.video_id,jp.day')
+                ->find();
+        }else{
+            return json(['code'=>'201','msg'=>'type不能为空']);
+        }
+        $product['file_path'] = http().$product['file_path'];
+        $product['end_time'] = date('Y-m-s h:i:s',$product['end_time']);
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
+    }
+
+    public function collectionlist(Request $request){
+        $id = getDecodeToken()['puser_id'];
+        $collection = Pusercollection::where('user_id',$id)->select();
+        $pid = Puseruser::where('id',$id)->value('puser_id');
+        $product = [];
+        foreach ($collection as $key=>$val){
+            $product[] = Productuser::where('user_id',$pid)->where('product_id',$val['product_id'])->find();
+        }
+        foreach ($product as $key=>$val){
+            $product[$key]['first_id'] = http().File::where('id',$val['first_id'])->value('file_path');
+        }
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
+    }
+
+    public function collectiondelete(Request $request){
+        $id = getDecodeToken()['puser_id'];
+        $product_id = $request->post('product_id');
+        Db::startTrans();
+        try {
+            $collection = Pusercollection::where(['product_id'=>$product_id,'user_id'=>$id])->delete();
+            Db::commit();
+            return json(['code'=>'200','msg'=>'操作成功']);
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'201','msg'=>'操作失败']);
+        }
     }
 }

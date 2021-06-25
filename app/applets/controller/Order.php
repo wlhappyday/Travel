@@ -39,7 +39,7 @@ class Order
         $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
         $p_id = Puser::where('id',$id)->value('uid');
         $productuser =  Productuser::where(['user_id'=>$id,'product_id'=>$product_id,'status'=>'0'])->find();
-        $product = J_product::where('id',$product_id)->field('uid,type,money,mp_id')->find();
+        $product = J_product::where('id',$product_id)->field('uid,type,money,mp_id,end_time')->find();
         $productrelationprice = Product_relation::where(['uid'=>$p_id,'product_id'=>$product_id])->value('price');
         $price = bcmul(''.count($userinfo).'' ,$productuser['price'],2);
         Db::startTrans();
@@ -72,6 +72,7 @@ class Order
                 $orderdetail->inspect_ticket_status ='1';
                 $orderdetail->phone =$puserpassenger['phone'];
                 $orderdetail->price =$productuser['price'];
+                $orderdetail->end_time =$product['end_time'];
                 $orderdetail->save();
             }
             Db::commit();
@@ -117,7 +118,7 @@ class Order
             ->join('file file','file.id=pu.first_id')->field('file.file_path')->order('order.add_time','Desc');
         if($order_status){
             if($order_status =='5'){
-                $order->whereIn('order.order_status',[5,6]);
+                $order->whereIn('order.order_status',[4,5]);
             }else{
                 $order->where('order.order_status',$order_status);
             }

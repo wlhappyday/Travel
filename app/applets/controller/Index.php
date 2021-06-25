@@ -14,6 +14,7 @@ use think\Request;
 use app\common\model\Puseruser;
 use app\api\model\Puser;
 use app\common\model\Pcarousel;
+use app\common\model\Pusercollection;
 use hg\apidoc\annotation as Apidoc;
 /**
  *
@@ -161,7 +162,9 @@ class Index
     }
 
     public function userinfo(Request $request){
+        $id = getDecodeToken()['puser_id'];
         $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'openid'=>getDecodeToken()['openid']])->find();
-        return json(['code'=>'200','msg'=>'操作成功','user'=>$user,]);
+        $collection = Pusercollection::where('user_id',$id)->count();
+        return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection]);
     }
 }

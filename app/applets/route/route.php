@@ -17,6 +17,14 @@ Route::group('product', function () {
     Route::post('userinfodel', 'Product/userinfodel');
     Route::get('userinfodetail', 'Product/userinfodetail');
     Route::post('userinfoedit', 'Product/userinfoedit');
+    Route::post('collection', 'Product/collection');
+    Route::get('posterlist', 'Product/poster_list');
+    Route::get('posterdetail', 'Product/poster_detail');
+    Route::get('details', 'Product/details');
+    Route::get('collection', 'Product/collectionlist');
+    Route::post('collectiondelete', 'Product/collectiondelete');
+
+
 });
 Route::group('order', function () {
     Route::post('orderadd', 'Order/orderadd');
