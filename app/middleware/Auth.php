@@ -5,10 +5,7 @@ namespace app\middleware;
 use app\common\model\ErrorLog;
 use Closure;
 use thans\jwt\facade\JWTAuth;
-<<<<<<< HEAD
-=======
 
->>>>>>> 58431788394ba85ba1bb173852eb8dbecb449178
 class Auth
 {
     private $array = [
@@ -18,9 +15,7 @@ class Auth
         '3' => 'scenic',
         '4' => 'line',
         '5' => 'user',
-        '6'=>'applets'
     ];
-
     /**
      * 处理请求
      * @param  $request
@@ -29,11 +24,7 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
-<<<<<<< HEAD
-        if ($request['s'] == '/apidoc/config'){
-=======
         if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
->>>>>>> 58431788394ba85ba1bb173852eb8dbecb449178
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] == '/apidoc/data') {
@@ -48,19 +39,15 @@ class Auth
         if ($request->server()['REQUEST_URI'] == "/api/login/SignLogin") {
             return $next($request);
         }
+        if ($request->server()['REQUEST_URI'] == "/pay/pay/index") {
+            return $next($request);
+        }
         if ($request->server()['REQUEST_URI'] == "/pay/service/service") {
             return $next($request);
         }
-        if ($request['s'] == '/applets/index/index'){
+        if ($request->server()['REQUEST_URI'] == "/api/AlibabaSMS/sendSMS") {
             return $next($request);
         }
-        if ($request['s'] == '/applets/index/tabBar'){
-            return $next($request);
-        }
-        if ($request['s'] == '/applets/product/detail'){
-            return $response;
-        }
-
         if ($request->server()['REQUEST_URI'] != "/api/login/login") {
             $auth = JWTAuth::auth();
             if (isset($auth['code1'])) {
