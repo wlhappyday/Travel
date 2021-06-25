@@ -70,7 +70,7 @@ class Product
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('file d','d.id=a.first_id')
-            ->field('a.id,a.type,a.name,a.class_name,a.title,pr.price,a.number,a.end_time,a.desc,d.file_path,a.get_city,a.set_city,a.mp_name')
+            ->field('a.id,a.type,a.name,a.class_name,a.title,pr.price,a.number,a.end_time,a.desc,d.file_path,a.get_city,a.set_city,a.mp_name,pr.price,a.get_city')
             ->join('p_product_relation pr','pr.product_id=a.id')->where('pr.uid',$uid)->order('pr.id','desc');
         if ($start_time){
             $data->whereTime('pr.create_time', '>=', strtotime($start_time));
@@ -204,7 +204,7 @@ class Product
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
             ->join('file d','d.id=pp.first_id')
-            ->field('pp.id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,d.file_path,pp.is_poster');
+            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,d.file_path,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
         if ($start_time){
             $data->whereTime('pp.create_time', '>=', strtotime($start_time));
         }
@@ -237,24 +237,21 @@ class Product
         $id =$request->id;
         $product_id = $request->post('product_id');
         $rule = [
-            'title'=>'require|length:5,50',
             'name'=>'require|length:5,50',
             'desc'=>'require|min:50',
             'price'=>'require',
             'img_id'=>'require',
-            'first_id'=>'require',
+            // 'first_id'=>'require',
             'video_id'=>'require',
         ];
         $msg = [
-            'title.require'=>'产品标题不能为空',
-            'title.length'=>'产品标题必须5-50个字符',
             'name.require'=>'产品名称不能为空',
             'name.length'=>'产品名称必须5-50个字符',
             'desc.require'=>'产品简介不能为空',
             'desc.min'=>'产品简介最小字符为50',
             'price.require'=>'价格必填',
             'img_id.require'=>'图片不能为空',
-            'first_id.require'=>'首图不能为空',
+            // 'first_id.require'=>'首图不能为空',
             'video_id.require'=>'视频不能为空'
 
         ];
@@ -271,7 +268,7 @@ class Product
             $mp_name = J_product::where('id',$product_id)->value('mp_name');
             $productuser = Productuser::where(['user_id'=>$id,'product_id'=>$product_id])->find();
             $data = $request->post();
-            $relationc = Product_relation::where(['uid'=>$uid,'product_id',$product_id])->field('state,price')->find();
+            $relationc = Product_relation::where(['uid'=>$uid,'product_id'=>$product_id])->field('state,price')->find();
             if($data['price']!=$relationc['peice']){
                 if($relationc['state']=='0'){
                     return json(['code'=>'201','msg'=>'当前产品无法改价']);
@@ -289,7 +286,7 @@ class Product
                 $productuser->desc = $data['desc'];
                 $productuser->img_id = $data['img_id'];
                 $productuser->video_id = $data['video_id'];
-
+                $productuser->img = $data['img'];
                 $productuser->save();
                 addPuserLog(getDecodeToken(),'修改产品'.$product_id);
                 Db::commit();
@@ -417,12 +414,15 @@ class Product
         if ($product_id){
             $J_product = Productuser::where(['user_id'=>$id,'product_id'=>$product_id])->with(['Product'=>function($query){
                 $query->where('status','0');
-            }])->find()->toarray();
+            }])->find()->toArray();
+            $J_product['posterimg'] = $J_product['img'];
+            $J_product['posterimgs'] = $J_product['img'];
             if (!empty($J_product)){
                 foreach ($J_product['img_id'] as $key=>$val){
-                    $J_product['avatar'][$key] =http(). File::where('id',$val)->value('file_path');
+                    $J_product['avatar'][$key]= http().File::where('id',$val)->value('file_path');
                     $J_product['img'][$key] = $val;
                 }
+                $J_product['posterimgs'][$key]= http().File::where('id',$J_product['posterimg'])->value('file_path');
             }
             return json(['code'=>'200','msg'=>'操作成功','scenic_spot'=>$J_product]);
         }else{
@@ -521,6 +521,23 @@ class Product
             }
         }
         return json(['code'=>'201','msg'=>'参数错误']);
+    }
+    /**
+     * @Apidoc\Title("海报详情")
+     * @Apidoc\Desc("海报详情")
+     * @Apidoc\Url("user/product/posterdetail")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("海报")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("id", type="number",require=true, desc="产品id" )
+     * @Apidoc\Param("img_id", type="number",require=true, desc="图片的id" )
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     */
+    public function poster_detail(Request $request){
+        $id = $request->post('id');
+        $product = Prpductuser::where('id',$id)->field('img')->find();
+        $product['img'] = http().File::where('id',$product)->value('file_path');
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
     }
 
     /**

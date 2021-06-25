@@ -14,7 +14,7 @@ Route::group('product', function () {
     Route::get('poster', 'Product/poster');
     Route::get('posterimg', 'Product/posterimg');
     Route::get('previewlist', 'Product/preview_list');
-
+    Route::get('posterdetail', 'Product/poster_detail');
 });
 Route::group('systems', function () {
     Route::get('index', 'Systems/index');

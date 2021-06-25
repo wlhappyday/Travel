@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace app\user\controller;
 
 use app\api\model\Puser;
+use app\common\model\Log;
 use app\common\model\Puserlog;
 use app\common\model\Puserenterprise;
 use app\common\model\Puserbalancerecords;
@@ -31,7 +32,8 @@ class Account
     {
         $id = $request->id;
         try{
-            $admin = P_user::field('phone,nickname,avatar,position,weach,QQ,address,user_name,appid,appkey,payment')->find($id);
+            $admin = P_user::field('phone,nickname,avatar,notice,position,weach,QQ,address,user_name,appid,appkey,payment')->find($id);
+            $admin['avatar_id'] = $admin['avatar'];
             $admin['avatar'] = http().File::where('id',$admin['avatar'])->value('file_path');
             if ($admin){
                 return json(['code'=>'200','msg'=>'操作成功','admin'=>$admin]);
@@ -66,10 +68,10 @@ class Account
         $data = $request->post();
         Db::startTrans();
         try {
-            $admin = P_user::where('id',$uid)->field('weach,QQ,avatar,nickname,phone,position,address')->find();
+            $admin = P_user::where('id',$uid)->field('notice,weach,QQ,avatar,nickname,phone,position,address')->find();
             $admin->weach = $data['weach'];
             $admin->QQ = $data['QQ'];
-            $admin->avatar = $data['avatar'];
+            $admin->avatar = $data['avatar_id'];
             $admin->nickname = $data['nickname'];
             $admin->phone = $data['phone'];
             $admin->position = $data['position'];
@@ -201,5 +203,37 @@ class Account
         $uid = $request->uid;
         $Balancerecords = Puserbalancerecords::paginate(20);
         return json(['code'=>'200','msg'=>'操作成功',['Balancerecords'=>$Balancerecords]]);
+    }
+
+    /**
+     * @Apidoc\Title("登录日志")
+     * @Apidoc\Desc("登录日志")
+     * @Apidoc\Url("user/account/signinLog")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Returned("log",type="object",desc="登录日志",ref="app\common\model\PadminLog\log")
+     */
+    public function signinLog(Request $request){
+        $id = $request->id;
+        $pagenum = $request->get('pagenum');
+        $log = Log::where('uid',$id)->where('type','5')->field('user_name,info,ip,address,create_time')->order('create_time','desc')->paginate($pagenum)->toArray();
+       return json(['code'=>'200','msg'=>'操作成功','log'=>$log]);
+
+    }
+
+    /**
+     * @Apidoc\Title("操作日志")
+     * @Apidoc\Desc("操作日志")
+     * @Apidoc\Url("user/account/operationLog")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Returned("log",type="object",desc="操作日志",ref="app\common\model\PadminLog\log")
+     */
+    public function operationLog(Request $request){
+        $id = $request->id;
+         $pagenum = $request->get('pagenum');
+        $log = PuserLog::where('uid',$id)->order('create_time','desc')->field('uname,info,ip,address,create_time')->paginate($pagenum)->toArray();
+        return json(['code'=>'200','msg'=>'操作成功','log'=>$log]);
+
     }
 }
