@@ -17,29 +17,26 @@ class After
      */
     public function handle($request, Closure $next)
     {
-        if ($request['s'] == '/apidoc/config') {
+        if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/data') {
+        if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/verifyAuth') {
-            return $next($request);
-        }
-        if ($request['s'] == '/apidoc/apiData'){
+        if ($request->server()['REQUEST_URI'] == '/apidoc/apiData'){
             return $next($request);
         }
         $response = $next($request);
-        if($request['s'] =="/api/login/SignLogin"){
+        if($request->server()['REQUEST_URI']=="/api/login/SignLogin"){
             return $response;
         }
-        if ($request['s'] == '/applets/index/index'){
+        if ($request->server()['REQUEST_URI'] == '/applets/index/index'){
             return $response;
         }
-        if ($request['s'] == '/applets/index/tabBar'){
+        if ($request->server()['REQUEST_URI'] == '/applets/index/tabBar'){
             return $response;
         }
-        if ($request['s'] == '/applets/product/detail'){
+        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
             return $response;
         }
         if($request->server()['REQUEST_URI']!="/api/login/login"){

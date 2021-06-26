@@ -15,6 +15,7 @@ class Auth
         '3' => 'scenic',
         '4' => 'line',
         '5' => 'user',
+        '6'=>'applets'
     ];
     /**
      * 处理请求
@@ -25,9 +26,6 @@ class Auth
     public function handle($request, Closure $next)
     {
         if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
-            return $next($request);
-        }
-        if ($request->server()['REQUEST_URI'] == '/apidoc/data') {
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
@@ -46,6 +44,15 @@ class Auth
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] == "/api/AlibabaSMS/sendSMS") {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == "/applets/index/tabBar") {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == "/applets/index/index") {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] != "/api/login/login") {
