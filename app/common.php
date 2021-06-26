@@ -1,12 +1,20 @@
 <?php
 // 这是系统自动生成的公共文件
+use AlibabaCloud\Client\AlibabaCloud;
+use AlibabaCloud\Client\Exception\ClientException;
+use AlibabaCloud\Client\Exception\ServerException;
 use app\common\model\AdminLog;
 use app\common\model\Config;
 use app\common\model\Jproduct;
 use app\common\model\JproductReview;
+use app\common\model\JuserBalanceRecords;
 use app\common\model\JuserLog;
+use app\common\model\Order;
+use app\common\model\PadminBalanceRecords;
 use app\common\model\PadminLog;
+use app\common\model\Puserbalancerecords;
 use app\common\model\Puserlog;
+use app\common\model\XuserBalanceRecords;
 use app\common\model\XuserLog;
 use app\platform\model\Product_relation;
 use thans\jwt\facade\JWTAuth;
@@ -37,6 +45,50 @@ function get_rand_char($length){
     return $str;
 }
 
+function genggaijiage($order): bool
+{
+    if ($order['order_status'] == 2) {
+        Order::update(["order_status" => 3, "transaction_id" => $order['order_id'], "pay_time" => time()], ["order_id" => $order['order_id']]);
+        $pAdminBalanceRecordsMoney = bcmul(bcsub($order['p_price'], $order["store_price"]), $order["goods_num"]);
+        PadminBalanceRecords::create(["data_id" => $order['order_id'], "uid" => $order['p_id'], "p_price" => bcmul($order['p_price'], $order["goods_num"]), "money" => $pAdminBalanceRecordsMoney]);
+        $dateEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => bcmul($order['store_price'], $order["goods_num"]), "money" => bcmul($order['store_price'], $order["goods_num"])];
+        $pUserBalancerMoney = bcmul(bcsub($order['goods_price'], $order["p_price"]), $order["goods_num"]);
+        Puserbalancerecords::create(["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => bcmul($order['goods_price'], $order["goods_num"]), "money" => $pUserBalancerMoney]);
+        if ($order['store_type'] == 1) {
+            JuserBalanceRecords::create($dateEEEEEEE);
+        } elseif ($order['store_type'] == 2) {
+            XuserBalanceRecords::create($dateEEEEEEE);
+        }
+        return true;
+    } elseif ($order['order_status'] == 4) {
+        $pAdminBalanceRecordsMoney = bcmul(bcsub($order['p_price'], $order["store_price"]), $order["surplus_num"]);
+        PadminBalanceRecords::update(["p_price" => bcmul($order['p_price'], $order["surplus_num"]), "money" => $pAdminBalanceRecordsMoney], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
+        $dateEEEEEEE = ["p_price" => bcmul($order['store_price'], $order["surplus_num"]), "money" => bcmul($order['store_price'], $order["surplus_num"])];
+        $dateEEEEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id']];
+        $pUserBalancerMoney = bcmul(bcsub($order['goods_price'], $order["p_price"]), $order["surplus_num"]);
+        Puserbalancerecords::update(["p_price" => bcmul($order['goods_price'], $order["surplus_num"]), "money" => $pUserBalancerMoney], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
+        if ($order['store_type'] == 1) {
+            JuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        } elseif ($order['store_type'] == 2) {
+            XuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        }
+        return true;
+    } elseif ($order['order_status'] == 5) {
+        PadminBalanceRecords::update(["type" => 2], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
+        $dateEEEEEEE = ["type" => 2];
+        $dateEEEEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id']];
+        Puserbalancerecords::update(["type" => 2], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
+        if ($order['store_type'] == 1) {
+            JuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        } elseif ($order['store_type'] == 2) {
+            XuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
 function getSign($secret, $data): string
 {
     // 去空
@@ -56,9 +108,7 @@ function getSign($secret, $data): string
     //签名步骤三：MD5加密
     $sign = md5($string_sign_temp);
     // 签名步骤四：所有字符转为大写
-    $result = strtoupper($sign);
-    // var_dump($result);
-    return $result;
+    return strtoupper($sign);
 }
 
 function post($url, $data)
@@ -110,25 +160,61 @@ function returnData(array $data,int $code = 200,array $header=[]){
  * @author WjngJiamao
  * @Note  获取请求头中的Token并解析
  */
-function getDecodeToken(){
+function getDecodeToken()
+{
     $payload = JWTAuth::auth();
-    $date=[];
-    foreach ($payload as $key => $value){
-        $date[$key]=$value->getValue();
+    $date = [];
+    foreach ($payload as $key => $value) {
+        $date[$key] = $value->getValue();
     }
     return $date;
 }
 
 /**
+ * @throws ClientException
+ * @throws ServerException
+ */
+function aliSms($date, $phone, $TemplateCode = "SMS_202815323")
+{
+    AlibabaCloud::accessKeyClient("LTAI4G4m3pm6GzdcdWQSfs9m", "rFWJ721dapSvuUxqQR7oyN0aesiOHh")
+        ->regionId('cn-hangzhou')
+        ->asDefaultClient();
+//    p( [
+//        'RegionId' => "cn-hangzhou",
+//        'PhoneNumbers' => $phone,
+//        'SignName' => "荣朴科技",
+//        'TemplateCode' => $TemplateCode,
+//        'TemplateParam' => $date,
+//    ]);
+    $result = AlibabaCloud::rpc()
+        ->product('Dysmsapi')
+        ->version('2017-05-25')
+        ->action('SendSms')
+        ->method('POST')
+        ->host('dysmsapi.aliyuncs.com')
+        ->options([
+            'query' => [
+                'PhoneNumbers' => $phone,
+                'SignName' => "荣朴科技",
+                'TemplateCode' => $TemplateCode,
+                'TemplateParam' => $date,
+            ],
+        ])
+        ->request();
+    return $result->toArray();
+}
+
+/**
  * @Note  验证Token
  */
-function isUserToken($data,$type){
-    if($type != $data['type']){
+function isUserToken($data, $type)
+{
+    if ($type != $data['type']) {
         return false;
     }
-    if($type == '1'){
-        $data = app\api\model\Admin::where(['id'=>$data['id'],'phone'=>$data['phone']])->value('id');
-    }elseif ($type == '2'){
+    if ($type == '1') {
+        $data = app\api\model\Admin::where(['id' => $data['id'], 'phone' => $data['phone']])->value('id');
+    } elseif ($type == '2') {
         $data = app\api\model\Padmin::where(['id'=>$data['id'],'phone'=>$data['phone'],'status'=>'0'])->value('id');
     }elseif ($type == '3'){
         $data = app\api\model\Juser::where(['id'=>$data['id'],'phone'=>$data['phone'],'status'=>'0'])->value('id');

@@ -4,17 +4,28 @@ declare (strict_types=1);
 namespace app\pay\controller;
 
 
-use app\common\model\JuserBalanceRecords;
+use AlibabaCloud\Client\Exception\ClientException;
+use AlibabaCloud\Client\Exception\ServerException;
+use app\api\controller\AlibabaSMS;
 use app\common\model\Order;
+use app\common\model\Orderdetails;
 use app\common\model\Padmin;
-use app\common\model\PadminBalanceRecords;
 use app\common\model\Puser;
-use app\common\model\Puserbalancerecords;
-use app\common\model\XuserBalanceRecords;
+use think\db\exception\DataNotFoundException;
+use think\db\exception\DbException;
+use think\db\exception\ModelNotFoundException;
+use think\response\Json;
 
 class Service
 {
-    function service()
+    /**
+     * @throws ClientException
+     * @throws ServerException
+     * @throws DbException
+     * @throws DataNotFoundException
+     * @throws ModelNotFoundException
+     */
+    function service(): ?Json
     {
         file_put_contents("./callback_log.txt", json_encode($_POST));
         $appid = $_POST['appid'];
@@ -35,44 +46,48 @@ class Service
             'out_trade_no' => $out_trade_no,
             'sign' => $sign,
         ];
-
-        $order1 = Order::where(["order_id" => $out_trade_no, 'order_status' => 2])->find();
+//        $order1 = Order::where(["order_id" => explode("_",$out_trade_no)[1], 'order_status' => 2])->find();
+        $order1 = (new Order)->where(["order_id" => "564553", 'order_status' => 2])->find();
         if (empty($order1)) {
-            return returnData(['code' => '-1', 'msg' => "非法请求36"], 200);
+            return returnData(['code' => '-1', 'msg' => "非法请求36"]);
         }
         $order = $order1->toArray();
-        $pAdmin = Padmin::where('id', $order['p_id'])->find();
+        $pAdmin = (new Padmin)->where('id', $order['p_id'])->find();
         if (empty($pAdmin)) {
-            return returnData(['code' => '-1', 'msg' => "非法请求41"], 200);
+            return returnData(['code' => '-1', 'msg' => "非法请求41"]);
         }
-        if (empty($pAdmin['mch_id']) || empty($pAdmin['mch_key'])) {
-            return returnData(['code' => '-1', 'msg' => "非法请求44"], 200);
+        if (empty($pAdmin['cl_id']) || empty($pAdmin['cl_key']) || empty($pAdmin['sub_mch_id']) || empty($pAdmin['mch_id'])) {
+            return returnData(['code' => '-1', 'msg' => "非法请求44"]);
         }
-        $pUser = Puser::where('id', $order['p_user_id'])->find();
+        $pUser = (new Puser)->where('id', $order['p_user_id'])->find();
         if (empty($pUser)) {
-            return returnData(['code' => '-1', 'msg' => "非法请求48"], 200);
+            return returnData(['code' => '-1', 'msg' => "非法请求48"]);
         }
         if (empty($pUser['sub_mch_id']) || empty($pUser['appid']) || empty($pUser['appkey'])) {
-            return returnData(['code' => '-1', 'msg' => "非法请求51"], 200);
+            return returnData(['code' => '-1', 'msg' => "非法请求51"]);
         }
-        $pUser = $pUser->toArray();
         $pAdmin = $pAdmin->toArray();
-        if ($appid != $pAdmin['mch_id']) exit('error:appid');
-        if ($this->verifySign($data, $pAdmin['mch_key']) == $sign) {
-            $this->genggaijiage($order, $pAdmin, $pUser);
-            exit('success');
-        } else {
-            exit('error:sign');
+        if ($appid != $pAdmin['cl_id']) return returnData(['code' => '-1', 'msg' => "非法请求75"]);
+        if ($this->verifySign($data, $pAdmin['cl_key']) == $sign) {
+            if (genggaijiage($order)) {
+                $orderDetails = (new Orderdetails)->where(["order_id" => $order['order_id']])->select()->toArray();
+                $AlibabaSMS = new AlibabaSMS();
+                foreach ($orderDetails as $detail) {
+                    $AlibabaSMS->sendSMS($detail['phone'], json_encode(['balance' => $detail['admission_ticket_type']]));
+                }
+                exit('success');
+            }
         }
+        return returnData(['code' => '-1', 'msg' => "非法请求86"]);
     }
 
     /**
      * @Note   验证签名
      * @param $data
-     * @param $orderStatus
+     * @param $secret
      * @return bool
      */
-    public function verifySign($data, $secret)
+    public function verifySign($data, $secret): bool
     {
         // 验证参数中是否有签名
         if (!isset($data['sign']) || !$data['sign']) {
@@ -82,51 +97,12 @@ class Service
         $sign = $data['sign'];
         unset($data['sign']);
         // 生成新的签名、验证传过来的签名
-
-        return getSign($secret, $data);
-    }
-
-    public function genggaijiage($order, $pAdmin, $pUser)
-    {
-        if ($order['order_status'] == 2) {
-            Order::update(["order_id" => $order['order_id'], "order_status" => 3, "transaction_id" => $order['order_id'], "pay_time" => time()]);
-            $pAdminBalanceRecordsMoney = bcsub($order['p_price'], $order["store_price"]);
-            PadminBalanceRecords::create(["data_id" => $order['order_id'], "uid" => $order['p_id'], "p_price" => $order['p_price'], "money" => $pAdminBalanceRecordsMoney]);
-            $dateEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => $order['store_price'], "money" => $order['store_price']];
-            $pUserBalancerMoney = bcsub($order['goods_price'], $order["p_price"]);
-            Puserbalancerecords::create(["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => $order['goods_price'], "money" => $pUserBalancerMoney]);
-            if ($order['store_type'] == 1) {
-                JuserBalanceRecords::create($dateEEEEEEE);
-            } elseif ($order['store_type'] == 2) {
-                XuserBalanceRecords::create($dateEEEEEEE);
-            }
+        if ($sign == getSign($secret, $data)) {
             return true;
         }
-//        $dateFenZhang = [
-//
-//        ];
-//        $url = 'https://xcxapi.payunke.com/index/unifiedorder111111?format=jsonIn';
-//        $paydata['appid'] = $pAdmin['mch_id'];
-//        $paydata['out_trade_no'] = $order['order_id'];
-//        $paydata['pay_type'] = 'weChatJsFzLy';
-//        $paydata['amount'] = sprintf("%.2f",$order['order_amount']);
-//        $paydata['callback_url'] = 'http://platformzcm.february202.cn/api/aliPay/callback';
-//        $paydata['success_url'] = 'http://www.baidu.com';
-//        $paydata['error_url'] = 'http://www.baidu.com';
-//        $paydata['extend'] =  json_encode([
-//            'appid'=>Config::where("title","appid")->value("value"),
-//            'sub_appid'=>$pUser['appid'],
-//            'secret'=>$pUser['appkey'],
-//            'mch_id'=>Config::where("title","mch_id")->value("value"),
-//            'key'=>Config::where("title","key")->value("value"),
-//            'sub_mch_id'=>$pUser['sub_mch_id']
-//        ],JSON_UNESCAPED_UNICODE);
-//        $paydata['sign'] = getSign($pAdmin['mch_key'],$paydata);
-//        $dateeeeeeee=post($url,$paydata);
-//        return $dateeeeeeee;
-//        p($dateFenZhang);
-//        $this->fenZhang($order,$pAdmin,$pUser,$pAdminBalanceRecordsMoney,$pUserBalancerMoney);
+        return false;
     }
+
 
     public function fenZhang($order, $pAdmin, $pUser, $pAdminBalanceRecordsMoney, $pUserBalancerMoney)
     {

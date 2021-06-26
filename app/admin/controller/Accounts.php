@@ -149,7 +149,7 @@ class Accounts
 
         $result = new admin_account();
         $data = $result->where($where)
-            ->field('id,name,mch_id,appid,create_time')
+            ->field('id,name,mch_id,appid,state,create_time')
             ->paginate($num);
 
         if($data){
@@ -228,9 +228,13 @@ class Accounts
 
         $mch_id = getVariable('pay_id');
         if(empty($mch_id)){
-            return ['code' => 1, 'msg' =>'通讯设置参数错误！'];
+            return returnData(['msg'=>'通讯设置参数错误','code'=>'201']);
         }
         $temp1=end($temp);
+
+        if($temp1 != 'pem'){
+            return returnData(['msg'=>'文件格式不符','code'=>'201']);
+        }
         $time= $mch_id.'_'.time().rand(10000000, 99999999).'.'. $temp1;
         $name = "ACPtest2/".$time;
         move_uploaded_file($_FILES["file"]["tmp_name"], $name);
@@ -287,6 +291,18 @@ class Accounts
         $result=json_decode($result,true);
 
         return $result;
+    }
+
+    public function getAccount(){
+        $uid = input('post.id/d','','strip_tags');
+
+        if (empty($uid)){
+            return returnData(['msg'=>'参数错误','code'=>'201']);
+        }
+
+        $data = admin_account::where(['id'=>$uid])->field('id,name,appid,sercet,mch_id,key,apiclient_cert,apiclient_key')->find();
+
+        return returnData(['msg'=>'操作成功', 'data' =>$data]);
     }
 
 
