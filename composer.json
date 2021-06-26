@@ -32,7 +32,8 @@
       "firebase/php-jwt": "^5.2",
       "ext-json": "*",
       "alibabacloud/client": "^1.5",
-      "ext-bcmath": "*"
+      "ext-bcmath": "*",
+      "ext-curl": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",
