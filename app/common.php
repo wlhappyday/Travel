@@ -303,7 +303,7 @@ function encryptionPasswd(string $passwd): array
  * @author WjngJiamao
  * @Note  验证密码
  */
-function checkPasswd(string $passwd, array $data): bool
+function checkPasswd(string $passwd, $data): bool
 {
     return $data['passwd'] == md5($data['passwd_salt'] . $passwd);
 }
