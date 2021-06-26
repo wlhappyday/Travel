@@ -136,7 +136,10 @@ class Pay
                 return returnData(['code' => '-1', 'msg' => "订单无法退款"]);
             }
             if (empty($orderDetailsIds)) {
-                return returnData(null);
+                Order::update(["order_status" => 5, "refund_time" => time()], ["order_id" => $orderDate['order_id']]);
+                if (genggaijiage((new Order())->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                    return returnData(['code' => '200', 'msg' => "退款成功"]);
+                }
             } else {
                 $timeInt = (string)time();
                 $orderDetails = (new Orderdetails)->where(["order_id" => $orderId, "inspect_ticket_status" => 1])->whereIn("id", $orderDetailsIds)->where('end_time', '>', $timeInt)->whereNull("delete_time")->select();
@@ -164,11 +167,11 @@ class Pay
         $orderDate = $order->where(["order_id" => $orderDetails[0]["order_id"]])->find()->toArray();
         if (bccomp($orderDate['order_amount'], $price, 2) > 0) {
             Order::update(["refund_price" => $price, "refund_num" => $refund_num, "order_status" => 4, "refund_time" => time(), "surplus_price" => bcsub((string)$orderDate['order_amount'], $price), "surplus_num" => bcsub((string)$orderDate['goods_num'], $refund_num)], ["order_id" => $orderDate['order_id']]);
-            p(genggaijiage($order->where(["order_id" => $orderDate['order_id']])->find()->toArray()));
-            foreach ($orderDetails as $orderDetail) {
-                Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"], "order_id" => $orderDate['order_id']]);
+            if (genggaijiage($order->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                foreach ($orderDetails as $orderDetail) {
+                    Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"], "order_id" => $orderDate['order_id']]);
+                }
             }
-
         }
     }
 

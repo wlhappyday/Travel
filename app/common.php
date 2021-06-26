@@ -73,6 +73,17 @@ function genggaijiage($order): bool
             XuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
         }
         return true;
+    } elseif ($order['order_status'] == 5) {
+        PadminBalanceRecords::update(["type" => 2], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
+        $dateEEEEEEE = ["type" => 2];
+        $dateEEEEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id']];
+        Puserbalancerecords::update(["type" => 2], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
+        if ($order['store_type'] == 1) {
+            JuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        } elseif ($order['store_type'] == 2) {
+            XuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        }
+        return true;
     } else {
         return false;
     }
