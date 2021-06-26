@@ -98,14 +98,12 @@ class Pay
             if (empty($pUser['sub_mch_id']) || empty($pUser['appid']) || empty($pUser['appkey'])) {
                 return returnData(['code' => '-1', 'msg' => "请门店配置收款账户"]);
             }
-            $pUser = $pUser->toArray();
             $padmin = $padmin->toArray();
             $date = json_decode($this->payToNative($order, $padmin, $exent), true);
-            p($date);
-            if (isset($date['return_msg']) || isset($date['return_code'])) {
-                return returnData(['code' => '-1', 'msg' => $date['return_msg']]);
+            if (isset($date['code']) && $date['code'] == 200) {
+                return returnData(['code' => '200', 'url' => $date['url']]);
             } else {
-                return returnData(['code' => '200', 'date' => $date]);
+                return returnData(['code' => '-1', 'msg' => "请联系管理员", "date" => $date]);
             }
         } else {
             return returnData(['code' => '-1', 'msg' => "非法请求"]);
@@ -125,7 +123,7 @@ class Pay
         $payData['out_trade_no'] = $this->randStr(10) . "_" . $order['order_id'];
         $payData['pay_type'] = 'weChatNativeLy';
         $payData['amount'] = sprintf("%.2f", $order['order_amount']);
-        $payData['callback_url'] = url('pay/service/service');
+        $payData['callback_url'] = url('pay/service/service')->domain(true)->build();
         $payData['success_url'] = 'http://www.baidu.com';
         $payData['error_url'] = 'http://www.baidu.com';
         $payData['extend'] = json_encode([
@@ -164,7 +162,7 @@ class Pay
         $payData['out_trade_no'] = $this->randStr(10) . "_" . $order['order_id'];
         $payData['pay_type'] = 'weChatJsFzLy';
         $payData['amount'] = sprintf("%.2f", $order['order_amount']);
-        $payData['callback_url'] = url('pay/service/service');
+        $payData['callback_url'] = url('pay/service/service')->domain(true)->build();
         $payData['success_url'] = 'http://www.baidu.com';
         $payData['error_url'] = 'http://www.baidu.com';
         $payData['extend'] = json_encode([
