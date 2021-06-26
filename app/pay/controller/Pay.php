@@ -202,7 +202,7 @@ class Pay
                     foreach ($orderDetailDate as $orderDetail) {
                         Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"]]);
                     }
-                    return returnData(['code' => '-1', 'msg' => "152退款成功"]);
+                    return returnData(['code' => '200', 'msg' => "152退款成功"]);
                 } else {
                     return returnData(['code' => '-1', 'msg' => "154退款失败"]);
                 }
@@ -212,7 +212,7 @@ class Pay
                     return returnData(['code' => '-1', 'msg' => "159无此订单"]);
                 }
                 if ($this->reFundorder($orderDetailDate, $orderDate)) {
-                    return returnData(['code' => '-1', 'msg' => "162退款成功"]);
+                    return returnData(['code' => '200', 'msg' => "162退款成功"]);
                 } else {
                     return returnData(['code' => '-1', 'msg' => "164退款失败"]);
                 }
