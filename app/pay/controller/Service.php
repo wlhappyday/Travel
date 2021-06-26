@@ -177,6 +177,8 @@ class Service
             } else {
                 return returnData(["code" => 200, "msg" => "支付成功"]);
             }
+        } else {
+            return returnData(['code' => '-1', 'msg' => "非法请求86"]);
         }
     }
 
