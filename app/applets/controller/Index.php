@@ -25,7 +25,7 @@ class Index
 {
 
     public function tabBar(Request $request){
-        $appid = $request->get('appid');
+        $appid = $request->POST('appid');
         if (empty($appid)){
             return json(['code'=>'201','msg'=>'appid不能为空']);
         }
@@ -67,8 +67,8 @@ class Index
      */
     public function index(Request $request)
     {
-        $city = $request->get('city');
-        $appid = $request->get('appid');
+        $city = $request->POST('city');
+        $appid = $request->POST('appid');
         if (empty($appid)){
             return json(['code'=>'201','msg'=>'appid不能为空']);
         }
