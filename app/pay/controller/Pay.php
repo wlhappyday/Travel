@@ -30,10 +30,12 @@ class Pay
                 'js_code' => $request->post('js_code', ""),
                 'gname' => $request->post('gname', "")
             ];
+//            p(empty($exent['js_code']));
             if (empty($exent['js_code'])) {
                 return returnData(['code' => '-1', 'msg' => "非法请求"]);
             }
             $order = (new Order)->where('order_id', $orderId)->find();
+            p($order);
             if (empty($order)) {
                 return returnData(['code' => '-1', 'msg' => "非法请求"]);
             }
@@ -61,8 +63,78 @@ class Pay
                 return returnData(['code' => '200', 'date' => $date]);
             }
         } else {
+            return returnData(['code' => '-1', 'msg' => "1111111111非法请求"]);
+        }
+    }
+
+    /**
+     * @throws DataNotFoundException
+     * @throws ModelNotFoundException
+     * @throws DbException
+     */
+    public function weChat(Request $request): Json
+    {
+        if ($request->isPost()) {
+            $orderId = $request->post('orderId');
+            $exent = [
+                'gname' => $request->post('gname', "旅游")
+            ];
+            $order = (new Order)->where('order_id', $orderId)->find();
+            if (empty($order)) {
+                return returnData(['code' => '-1', 'msg' => "非法请求"]);
+            }
+            $order = $order->toArray();
+            $padmin = (new Padmin)->where('id', $order['p_id'])->find();
+            if (empty($padmin)) {
+                return returnData(['code' => '-1', 'msg' => "非法请求"]);
+            }
+            if (empty($padmin['cl_id']) || empty($padmin['cl_key']) || empty($padmin['sub_mch_id']) || empty($padmin['mch_id'])) {
+                return returnData(['code' => '-1', 'msg' => "请平台商配置收款账户"]);
+            }
+            $pUser = (new Puser)->where('id', $order['p_user_id'])->find();
+            if (empty($pUser)) {
+                return returnData(['code' => '-1', 'msg' => "非法请求"]);
+            }
+            if (empty($pUser['sub_mch_id']) || empty($pUser['appid']) || empty($pUser['appkey'])) {
+                return returnData(['code' => '-1', 'msg' => "请门店配置收款账户"]);
+            }
+            $padmin = $padmin->toArray();
+            $date = json_decode($this->payToNative($order, $padmin, $exent), true);
+            if (isset($date['code']) && $date['code'] == 200) {
+                return returnData(['code' => '200', 'url' => $date['url']]);
+            } else {
+                return returnData(['code' => '-1', 'msg' => "请联系管理员", "date" => $date]);
+            }
+        } else {
             return returnData(['code' => '-1', 'msg' => "非法请求"]);
         }
+    }
+
+    /**
+     * @throws ModelNotFoundException
+     * @throws DbException
+     * @throws DataNotFoundException
+     */
+    public function payToNative($order, $padmin, $exent)
+    {
+        $accounts = (new Accounts)->where("mch_id", $padmin['mch_id'])->find();
+        $url = 'https://xcxapi.payunke.com/index/unifiedorder111111?format=jsonIn';
+        $payData['appid'] = $padmin['cl_id'];
+        $payData['out_trade_no'] = $this->randStr(10) . "_" . $order['order_id'];
+        $payData['pay_type'] = 'weChatNativeLy';
+        $payData['amount'] = sprintf("%.2f", $order['order_amount']);
+        $payData['callback_url'] = url('pay/service/service')->domain(true)->build();
+        $payData['success_url'] = 'http://www.baidu.com';
+        $payData['error_url'] = 'http://www.baidu.com';
+        $payData['extend'] = json_encode([
+            'sp_appid' => $accounts['appid'],
+            'gname' => $exent['gname'],
+            'sp_mchid' => $accounts['mch_id'],
+            'key' => $accounts['key'],
+            'sub_mchid' => $padmin['sub_mch_id']
+        ], JSON_UNESCAPED_UNICODE);
+        $payData['sign'] = getSign($padmin['cl_key'], $payData);
+        return post($url, $payData);
     }
 
     function randStr($len): string
@@ -85,24 +157,14 @@ class Pay
     public function payTo($order, $padmin, $exent, $pUser)
     {
         $accounts = (new Accounts)->where("mch_id", $padmin['mch_id'])->find();
-//        if ($accounts==null){
-//
-//        }
-
         $url = 'https://xcxapi.payunke.com/index/unifiedorder111111?format=jsonIn';
         $payData['appid'] = $padmin['cl_id'];
         $payData['out_trade_no'] = $this->randStr(10) . "_" . $order['order_id'];
         $payData['pay_type'] = 'weChatJsFzLy';
         $payData['amount'] = sprintf("%.2f", $order['order_amount']);
-        $payData['callback_url'] = 'http://platformzcm.february202.cn/api/aliPay/callback';
+        $payData['callback_url'] = url('pay/service/service')->domain(true)->build();
         $payData['success_url'] = 'http://www.baidu.com';
         $payData['error_url'] = 'http://www.baidu.com';
-//            {"appid":"wxaf1f2c344b7ffa78",
-//        "sub_appid":"wx6117e2540ee05b55",
-//        "secret":"8200d555ea52c45fb82d2b51de506514",
-//        "mch_id":"1285253401",
-//        "key":"c5258aaf86c5cc46df64cfe9af0b9791",
-//        "sub_mch_id":"1517514021"}
         $payData['extend'] = json_encode([
             'appid' => $accounts['appid'],
             'sub_appid' => $pUser['appid'],
@@ -114,7 +176,6 @@ class Pay
             'sub_mch_id' => $padmin['sub_mch_id']
         ], JSON_UNESCAPED_UNICODE);
         $payData['sign'] = getSign($padmin['cl_key'], $payData);
-//        $dateE = post($url, $payData);
         return post($url, $payData);
     }
 
