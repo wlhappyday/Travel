@@ -58,10 +58,10 @@ class Product
 
 
     public function detail(Request $request){
-        $product_id = $request->get('product_id');
-        $appid = $request->get('appid');
-        $type = $request->get('type');
-        $uid = $request->get('uid');
+        $product_id = $request->post('product_id');
+        $appid = $request->post('appid');
+        $type = $request->post('type');
+        $uid = $request->post('uid');
         $id = Puser::where('appid',$appid)->value('id');
         if($type=='1'){
             //景區
@@ -259,7 +259,7 @@ class Product
         ];
         $URL = 'https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token='.$token->access_token;
         $json = json_encode($data); //数组加密
-        $result = httpPost($URL,$json);
+        $result = post($URL,$json);
         if(json_decode($result)['errcode']){
             return json(['code'=>'201','msg'=>'生成失败']);
         }

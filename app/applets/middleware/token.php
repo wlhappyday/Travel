@@ -18,13 +18,13 @@ class token
     public function handle($request, \Closure $next)
     {
         $response = $next($request);
-        if ($request['s']=='/applets/index/index'){
+        if ($request->server()['REQUEST_URI'] == '/applets/index/index'){
             return $response;
         }
-        if ($request['s'] == '/applets/index/tabBar'){
+        if ($request->server()['REQUEST_URI'] == '/applets/index/tabBar'){
             return $response;
         }
-        if ($request['s'] == '/applets/product/detail'){
+        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
             return $response;
         }
         $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'openid'=>getDecodeToken()['openid']])->find();

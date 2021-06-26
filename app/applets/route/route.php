@@ -2,15 +2,15 @@
 use think\facade\Route;
 //产品模块
 Route::group('index', function () {
-    Route::get('index', 'Index/index');
+    Route::POST('index', 'Index/index');
     Route::get('search', 'Index/search');
     Route::get('userinfo', 'Index/userinfo');
-    Route::get('tabBar', 'Index/tabBar');
+    Route::POST('tabBar', 'Index/tabBar');
 
 });
 Route::group('product', function () {
     Route::get('list', 'Product/list');
-    Route::get('detail', 'Product/detail');
+    Route::post('detail', 'Product/detail');
     Route::get('orderdetail', 'Product/orderdetail');
     Route::get('passenger', 'Product/passenger');
     Route::post('userinfoadd', 'Product/userinfoadd');
