@@ -726,6 +726,7 @@ class Applets
         $id = $request->id;
         $my_id = $request->get('my_id');
         $product = Pusermy::where('user_id',$id)->where('id',$my_id)->find();
+        $product['page_id'] = $product['page'];
         $product['page'] =Puserpage::where('id',$product['page'])->value('page');
         $product['img_id'] =  $product['img'];
         $product['img'] = http(). File::where('id',$product['img'])->value('file_path');
@@ -749,12 +750,14 @@ class Applets
         $id = $request->id;
         $my_id = $request->post('my_id');
         $name = $request->post('name');
-        $page = $request->post('page');
+        $page = $request->post('page_id');
+        $type = $request->post('type');
         $img_id = $request->post('img_id');
         Db::startTrans();
         try {
             $product = Pusermy::where('user_id',$id)->where('id',$my_id)->find();
             $product->name=$name;
+            $product->type=$type;
             $product->img_id=$img_id;
             $product->save();
             addPuserLog(getDecodeToken(),'修改个人中心：'.$my_id);
@@ -765,6 +768,37 @@ class Applets
             return json(['code'=>'201','msg'=>'网络繁忙']);
         }
         return json(['code'=>'200','msg'=>'操作成功','my'=>$product]);
+    }
+
+    /**
+     * @Apidoc\Title("个人中心修改状态")
+     * @Apidoc\Desc("个人中心修改状态")
+     * @Apidoc\Url("user/applets/mytype")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     *  @Apidoc\Param("my_id", type="number",require=true, desc="唯一id" )
+     *  @Apidoc\Param("type", type="number",require=true, desc="状态值" )
+     */
+    public function my_type(Request $request){
+        $my_id = $request->post('my_id');
+        $type = $request->post('type');
+        Db::startTrans();
+        try {
+            $navigation = Pusermy::where('id',$my_id)->find();
+            $navigation->type = $type;
+            $navigation->save();
+            if ($type=='1'){
+                addPuserLog(getDecodeToken(),'个人中心单功能开启:：',$my_id);
+            }else{
+                addPuserLog(getDecodeToken(),'个人中心单功能关闭：',$my_id);
+            }
+            Db::commit();
+            return json(['code'=>'200','msg'=>'操作成功']);
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'201','msg'=>'网络繁忙']);
+        }
     }
 
 

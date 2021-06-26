@@ -69,14 +69,16 @@ Route::group('applets', function () {
     Route::get('page', 'Applets/page');/*图片魔方*/
     Route::get('product', 'Applets/product');/*图片魔方*/
     Route::get('my', 'Applets/my');/*图片魔方*/
-
+    Route::post('mydo', 'Applets/my_do');/*图片魔方*/
 
     Route::get('navigationlist', 'Applets/navigationlist');/*底部导航栏列表*/
     Route::get('navigationdetail', 'Applets/navigation_detail');/*底部导航栏詳情*/
     Route::post('navigation', 'Applets/navigation');/*底部导航修改*/
     Route::post('navigations', 'Applets/navigations');/*导航栏修改*/
 
+    Route::post('mytype', 'Applets/my_type');/*导航栏修改*/
 
+    Route::get('mydetail', 'Applets/my_detail');/*底部导航栏列表*/
 
 });
 

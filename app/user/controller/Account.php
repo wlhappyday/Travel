@@ -244,7 +244,7 @@ class Account
         $nickname = $request->get('nickname');
         $pagenum = $request->get('pagenum');
         $phone = $request->get('phone');
-        $Puseruser = Puseruser::where('puser_id',$id)->where([['nickname', 'like','%'.$nickname.'%'],['phone','like','%'.$phone.'%']])->page($pagenum);
+        $Puseruser = Puseruser::where('puser_id',$id)->where([['nickname', 'like','%'.$nickname.'%'],['phone','like','%'.$phone.'%']])->paginate($pagenum);
         return json(['code'=>'200','msg'=>'操作成功','Puseruser'=>$Puseruser]);
     }
 }
