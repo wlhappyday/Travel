@@ -61,6 +61,7 @@ class Login
         if (empty($userDate)) {
             return returnData(['msg' => '用户不存在', "code" => 201]);
         }
+//        p($userDate);
         if (!checkPasswd($passwd, $userDate)) {
             return returnData(['msg' => '账号密码错误', "code" => 201]);
         }

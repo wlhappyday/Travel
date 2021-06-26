@@ -37,6 +37,7 @@ class Order
         $puser_id = getDecodeToken()['puser_id'];
         $appid = getDecodeToken()['appid'];
         $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
+
         $p_id = Puser::where('id',$id)->value('uid');
         $productuser =  Productuser::where(['user_id'=>$id,'product_id'=>$product_id,'status'=>'0'])->find();
         $product = J_product::where('id',$product_id)->field('uid,type,money,mp_id,end_time')->find();

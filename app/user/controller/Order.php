@@ -253,7 +253,7 @@ class Order
         $order_id = $request->get('order_id');
         if ($order_id){
             try{
-                $Orderdetails = Orderdetails::where(['order_id'=>$order_id])->field('name,id_card,order_id,delete_time,admission_ticket_type,phone,price')->select()->toArray();
+                $Orderdetails = Orderdetails::where(['order_id'=>$order_id])->field('id,name,id_card,order_id,delete_time,admission_ticket_type,phone,price')->select()->toArray();
                 return json(['code'=>'200','msg'=>'操作成功','Orderdetails'=>$Orderdetails]);
             }catch (\Exception $e){
                 return json(['code'=>'201','sign'=>'网络错误']);

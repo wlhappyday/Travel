@@ -91,11 +91,12 @@ class Index
             $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
         }
         //热门景区
-        $rjproduct = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$puser['id']])->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.address,pu.name,pu.id,jp.type')
+        $time = strtotime(date('Y-m-d H:i:s', strtotime('+30minute')));
+        $rjproduct = Productuser::alias('pu')->where('jp.end_time','>',$time)->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$puser['id']])->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.address,pu.name,pu.id,jp.type')
             ->join('j_product jp','jp.id=pu.product_id')->where([['address','like','%'.$city.'%']])->leftjoin('file file','pu.first_id=file.id')
             ->limit(5)->select()->toarray();
         //热门路线
-        $rlproduct = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$puser['id']])->field('file.file_path,pu.price,pu.product_id,jp.get_city,pu.name,pu.id,pu.class_name,jp.type')
+        $rlproduct = Productuser::alias('pu')->where('jp.end_time','>',$time)->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$puser['id']])->field('file.file_path,pu.price,pu.product_id,jp.get_city,pu.name,pu.id,pu.class_name,jp.type')
             ->join('j_product jp','jp.id=pu.product_id')->where([['get_city','like','%'.$city.'%']])->leftjoin('file file','pu.first_id=file.id')
             ->limit(5)->select()->toarray();
         $magic = Pusermagic::where('user_id',$puser['id'])->field('page,img,can')->select();

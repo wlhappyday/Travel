@@ -2,6 +2,7 @@
 declare (strict_types = 1);
 
 namespace app\platform\controller;
+use app\api\model\Puser;
 use app\common\model\File;
 use app\common\model\Pproductreview;
 use app\platform\model\J_product;
@@ -200,9 +201,10 @@ class Product
         try {
             $j_product = Product_relation::where(['product_id'=>$product_id,'uid'=>$uid])->delete();
             if ($j_product){
-                $data['info'] = '平台商解除绑定的产品：'.$product_id;
-                $login = new Adminlogin();
-                $login->log($data);
+                $puser = Puser::where('uid',$uid)->field('id')->select();
+                foreach ($puser as $value){
+                    Productuser::where(['product_id'=>$product_id,'user_id'=>$value['id']])->delete();
+                }
                 addPadminLog(getDecodeToken(),'解除绑定产品:'.$product_id);
                 Db::commit();
                 return json(['code'=>'200','msg'=>'操作成功']);
