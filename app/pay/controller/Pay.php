@@ -190,6 +190,9 @@ class Pay
                 return returnData(['code' => '-1', 'msg' => "非法请求"]);
             }
             $orderDate = $this->queryOrder($orderId);
+            if (empty($orderDate)){
+                return returnData(['code' => '-1', 'msg' => "此订单状态不匹配"]);
+            }
             $timeInt = (string)time();
             if (empty($orderDetailsIds)) {
                 $orderDetailDate = (new Orderdetails)->where(["order_id" => $orderId, "inspect_ticket_status" => 1])->where('end_time', '>', $timeInt)->whereNull("delete_time")->select()->toArray();
@@ -412,17 +415,17 @@ class Pay
      * @throws ModelNotFoundException
      * @throws DbException
      */
-    public function reFundFeeTo($orderDate, $price)
+    public function reFundFeeTo($orderDate, $price): array
     {
         if (empty($orderDate)) {
-            return returnData(['code' => '-1', 'msg' => "137订单无法退款"]);
+            return ['code' => '-1', 'msg' => "137订单无法退款"];
         }
         $padmin = (new Padmin)->where('id', $orderDate['p_id'])->find();
         if (empty($padmin)) {
-            return returnData(['code' => '-1', 'msg' => "非法请求"]);
+            return ['code' => '-1', 'msg' => "非法请求"];
         }
         if (empty($padmin['sub_mch_id']) || empty($padmin['mch_id'])) {
-            return returnData(['code' => '-1', 'msg' => "请平台商配置收款账户"]);
+            return ['code' => '-1', 'msg' => "请平台商配置收款账户"];
         }
         $padmin = $padmin->toArray();
         $accounts = (new Accounts)->where("mch_id", $padmin['mch_id'])->find();
