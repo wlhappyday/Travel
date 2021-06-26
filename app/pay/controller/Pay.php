@@ -11,7 +11,6 @@ use app\common\model\Puser;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\DbException;
 use think\db\exception\ModelNotFoundException;
-use think\facade\Db;
 use think\Request;
 use think\response\Json;
 
@@ -230,6 +229,57 @@ class Pay
 
     /**
      * @throws ModelNotFoundException
+     * @throws DbException
+     * @throws DataNotFoundException
+     */
+    public function reFundMen(Request $request): Json
+    {
+        if ($request->isPost()) {
+            $orderId = $request->post('orderId/s');
+            $orderDetailsIds = $request->post('orderDetailsIds/a');
+            if (empty($orderId)) {
+                return returnData(['code' => '-1', 'msg' => "242非法请求"]);
+            }
+            $orderDate = $this->queryOrder($orderId);
+            $timeInt = (string)time();
+            if (empty($orderDetailsIds)) {
+                $orderDetailDate = (new Orderdetails)->where(["order_id" => $orderId, "inspect_ticket_status" => 1])->where('end_time', '>', $timeInt)->whereNull("delete_time")->select()->toArray();
+                if (empty($orderDetailDate)) {
+                    return returnData(['code' => '-1', 'msg' => "249无此订单"]);
+                }
+                $count = count($orderDetailDate);
+                $surplus_num = $orderDate["goods_num"] - $count;
+                $reFundFeeTo = $this->reFundFeeTo($orderDate, $orderDate["order_amount"]);
+                if ($reFundFeeTo["code"] != 200) {
+                    return returnData($reFundFeeTo);
+                }
+                Order::update(["order_status" => 5, "refund_num" => $count, "surplus_num" => $surplus_num, "refund_time" => time()], ["order_id" => $orderDate['order_id']]);
+                if (genggaijiage((new Order())->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                    foreach ($orderDetailDate as $orderDetail) {
+                        Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"]]);
+                    }
+                    return returnData(['code' => '200', 'msg' => "262退款成功"]);
+                } else {
+                    return returnData(['code' => '-1', 'msg' => "264退款失败"]);
+                }
+            } else {
+                $orderDetailDate = (new Orderdetails)->where(["order_id" => $orderId, "inspect_ticket_status" => 1])->whereIn("id", $orderDetailsIds)->where('end_time', '>', $timeInt)->whereNull("delete_time")->select()->toArray();
+                if (empty($orderDetailDate)) {
+                    return returnData(['code' => '-1', 'msg' => "269无此订单"]);
+                }
+                if ($this->reFundorder($orderDetailDate, $orderDate)) {
+                    return returnData(['code' => '200', 'msg' => "272退款成功"]);
+                } else {
+                    return returnData(['code' => '-1', 'msg' => "274退款失败"]);
+                }
+            }
+        } else {
+            return returnData(['code' => '-1', 'msg' => "278非法请求"]);
+        }
+    }
+
+    /**
+     * @throws ModelNotFoundException
      * @throws DataNotFoundException
      * @throws DbException
      */
@@ -294,6 +344,70 @@ class Pay
     }
 
     /**
+     * @throws ModelNotFoundException
+     * @throws DataNotFoundException
+     * @throws DbException
+     */
+    public function reFundOrderMen($orderDetails, $orderDate): bool
+    {
+        $count = count($orderDetails);
+        $order = new Order();
+        $price = "0";
+        foreach ($orderDetails as $orderDetail) {
+            $price = bcadd($orderDetail['price'], $price, 3);
+        }
+
+        $reFundFeeDate = $this->reFundFeeTo($orderDate, $price);
+        if ($reFundFeeDate["code"] != 200) {
+            return false;
+        }
+        if (empty($orderDate["surplus_price"])) {
+            $surplus_num = $orderDate["goods_num"] - $count;
+            if (bccomp($orderDate['order_amount'], $price, 2) > 0) {
+                Order::update(["refund_price" => $price, "refund_num" => $count, "order_status" => 4, "refund_time" => time(), "surplus_price" => bcsub((string)$orderDate['order_amount'], $price), "surplus_num" => $surplus_num], ["order_id" => $orderDate['order_id']]);
+                if (genggaijiageMen($order->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                    foreach ($orderDetails as $orderDetail) {
+                        Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"], "order_id" => $orderDate['order_id']]);
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            $refund_price = bcadd($price, $orderDate['refund_price'], 2);
+            $refund_num = bcadd((string)$count, (string)$orderDate['refund_num']);
+            $surplus_price = bcmul((string)$orderDate['goods_price'], bcsub((string)$orderDate['goods_num'], $refund_num), 2);
+            if (bccomp($orderDate['surplus_price'], $price, 2) > -1) {
+                if (bccomp($orderDate['surplus_price'], $price, 2) == 0) {
+                    Order::update(["order_status" => 5, "refund_num" => $orderDate["goods_num"], "surplus_num" => 0, "surplus_price" => 0, "refund_price" => $orderDate['order_amount'], "refund_time" => time()], ["order_id" => $orderDate['order_id']]);
+                    if (genggaijiageMen((new Order())->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                        foreach ($orderDetails as $orderDetail) {
+                            Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"]]);
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                Order::update(["refund_price" => $refund_price, "refund_num" => $refund_num, "order_status" => 4, "refund_time" => time(), "surplus_price" => $surplus_price, "surplus_num" => bcsub((string)$orderDate['goods_num'], $refund_num)], ["order_id" => $orderDate['order_id']]);
+                if (genggaijiageMen($order->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                    foreach ($orderDetails as $orderDetail) {
+                        Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"]]);
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+    }
+    /**
      * @throws DataNotFoundException
      * @throws ModelNotFoundException
      * @throws DbException
@@ -309,13 +423,6 @@ class Pay
         }
         if (empty($padmin['sub_mch_id']) || empty($padmin['mch_id'])) {
             return returnData(['code' => '-1', 'msg' => "请平台商配置收款账户"]);
-        }
-        $pUser = (new Puser)->where('id', $orderDate['p_user_id'])->find();
-        if (empty($pUser)) {
-            return returnData(['code' => '-1', 'msg' => "非法请求"]);
-        }
-        if (empty($pUser['sub_mch_id']) || empty($pUser['appid']) || empty($pUser['appkey'])) {
-            return returnData(['code' => '-1', 'msg' => "请门店配置收款账户"]);
         }
         $padmin = $padmin->toArray();
         $accounts = (new Accounts)->where("mch_id", $padmin['mch_id'])->find();
@@ -356,18 +463,4 @@ class Pay
     {
         return (new Order)->where(["order_id" => $order_id])->whereIn("order_status", [3, 4])->find();
     }
-
-    /**
-     * @throws ModelNotFoundException
-     * @throws DbException
-     * @throws DataNotFoundException
-     */
-    public function dingDanWJ()
-    {
-        $dateStr = strtotime(date('Y-m-d', time()));
-        $timestamp = $dateStr - 7 * 24 * 60 * 60;
-        $timestamp1 = $dateStr - 6 * 24 * 60 * 60;
-        $Query = (new Db)->table('orders')->where(["pay_time" => ["between", [$timestamp, $timestamp1]], 'order_status' => ['<', 5], "is_checkout" => 0])->select();
-    }
-
 }

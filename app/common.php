@@ -168,6 +168,50 @@ function genggaijiage($order, $transaction_id = ""): bool
         $pAdminBalanceRecordsMoney = bcmul(bcsub($order['p_price'], $order["store_price"]), $order["goods_num"]);
         PadminBalanceRecords::create(["data_id" => $order['order_id'], "uid" => $order['p_id'], "p_price" => bcmul($order['p_price'], $order["goods_num"]), "money" => $pAdminBalanceRecordsMoney]);
         $dateEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => bcmul($order['store_price'], $order["goods_num"]), "money" => bcmul($order['store_price'], $order["goods_num"])];
+        $pUserBalancerMoney = bcmul(bcsub($order['goods_price'], $order["p_price"]), $order["goods_num"]);
+        Puserbalancerecords::create(["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => bcmul($order['goods_price'], $order["goods_num"]), "money" => $pUserBalancerMoney]);
+        if ($order['store_type'] == 1) {
+            JuserBalanceRecords::create($dateEEEEEEE);
+        } elseif ($order['store_type'] == 2) {
+            XuserBalanceRecords::create($dateEEEEEEE);
+        }
+        return true;
+    } elseif ($order['order_status'] == 4) {
+        $pAdminBalanceRecordsMoney = bcmul(bcsub($order['p_price'], $order["store_price"]), $order["surplus_num"]);
+        PadminBalanceRecords::update(["p_price" => bcmul($order['p_price'], $order["surplus_num"]), "money" => $pAdminBalanceRecordsMoney], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
+        $dateEEEEEEE = ["p_price" => bcmul($order['store_price'], $order["surplus_num"]), "money" => bcmul($order['store_price'], $order["surplus_num"])];
+        $dateEEEEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id']];
+        $pUserBalancerMoney = bcmul(bcsub($order['goods_price'], $order["p_price"]), $order["surplus_num"]);
+        Puserbalancerecords::update(["p_price" => bcmul($order['goods_price'], $order["surplus_num"]), "money" => $pUserBalancerMoney], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
+        if ($order['store_type'] == 1) {
+            JuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        } elseif ($order['store_type'] == 2) {
+            XuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        }
+        return true;
+    } elseif ($order['order_status'] == 5) {
+        PadminBalanceRecords::update(["type" => 2, "money" => 0, "p_price" => 0], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
+        $dateEEEEEEE = ["type" => 2, "money" => 0, "p_price" => 0];
+        $dateEEEEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id']];
+        Puserbalancerecords::update(["type" => 2, "money" => 0, "p_price" => 0], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
+        if ($order['store_type'] == 1) {
+            JuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        } elseif ($order['store_type'] == 2) {
+            XuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function genggaijiageMen($order, $transaction_id = ""): bool
+{
+    if ($order['order_status'] == 2) {
+        Order::update(["order_status" => 3, "transaction_id" => $transaction_id, "pay_time" => time()], ["order_id" => $order['order_id']]);
+        $pAdminBalanceRecordsMoney = bcmul(bcsub($order['p_price'], $order["store_price"]), $order["goods_num"]);
+        PadminBalanceRecords::create(["data_id" => $order['order_id'], "uid" => $order['p_id'], "p_price" => bcmul($order['p_price'], $order["goods_num"]), "money" => $pAdminBalanceRecordsMoney]);
+        $dateEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => bcmul($order['store_price'], $order["goods_num"]), "money" => bcmul($order['store_price'], $order["goods_num"])];
         if ($order['store_type'] == 1) {
             JuserBalanceRecords::create($dateEEEEEEE);
         } elseif ($order['store_type'] == 2) {
@@ -189,7 +233,6 @@ function genggaijiage($order, $transaction_id = ""): bool
         PadminBalanceRecords::update(["type" => 2, "money" => 0, "p_price" => 0], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
         $dateEEEEEEE = ["type" => 2, "money" => 0, "p_price" => 0];
         $dateEEEEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id']];
-        Puserbalancerecords::update(["type" => 2, "money" => 0, "p_price" => 0], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
         if ($order['store_type'] == 1) {
             JuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
         } elseif ($order['store_type'] == 2) {
