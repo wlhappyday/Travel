@@ -35,6 +35,7 @@ class Service
         $success_url = $_POST['success_url'];
         $error_url = $_POST['error_url'];
         $out_trade_no = $_POST['out_trade_no'];
+        $pay_trade_no = $_POST['pay_trade_no'];
         $sign = $_POST['sign'];
         $data = [
             'appid' => $appid,
@@ -44,10 +45,12 @@ class Service
             'success_url' => $success_url,
             'error_url' => $error_url,
             'out_trade_no' => $out_trade_no,
+            'pay_trade_no' => $pay_trade_no,
             'sign' => $sign,
         ];
-//        $order1 = Order::where(["order_id" => explode("_",$out_trade_no)[1], 'order_status' => 2])->find();
-        $order1 = (new Order)->where(["order_id" => "564553", 'order_status' => 2])->find();
+        $order1 = Order::where(["order_id" => explode("_", $out_trade_no)[1], 'order_status' => 2])->find();
+//        $order1 = (new Order)->where(["order_id" => $out_trade_no, 'order_status' => 2])->find();
+//        p($order1);
         if (empty($order1)) {
             return returnData(['code' => '-1', 'msg' => "非法请求36"]);
         }
@@ -69,7 +72,7 @@ class Service
         $pAdmin = $pAdmin->toArray();
         if ($appid != $pAdmin['cl_id']) return returnData(['code' => '-1', 'msg' => "非法请求75"]);
         if ($this->verifySign($data, $pAdmin['cl_key']) == $sign) {
-            if (genggaijiage($order)) {
+            if (genggaijiage($order, $pay_trade_no)) {
                 $orderDetails = (new Orderdetails)->where(["order_id" => $order['order_id']])->select()->toArray();
                 $AlibabaSMS = new AlibabaSMS();
                 foreach ($orderDetails as $detail) {

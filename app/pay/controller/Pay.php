@@ -126,28 +126,46 @@ class Pay
     public function reFund(Request $request): Json
     {
         if ($request->isPost()) {
-            $orderId = $request->post('orderId');
+            $orderId = $request->post('orderId/s');
             $orderDetailsIds = $request->post('orderDetailsIds/a');
             if (empty($orderId)) {
                 return returnData(['code' => '-1', 'msg' => "非法请求"]);
             }
             $orderDate = $this->queryOrder($orderId);
-            if (empty($orderDate)) {
-                return returnData(['code' => '-1', 'msg' => "订单无法退款"]);
-            }
+            $timeInt = (string)time();
             if (empty($orderDetailsIds)) {
-                Order::update(["order_status" => 5, "refund_time" => time()], ["order_id" => $orderDate['order_id']]);
+                $orderDetailDate = (new Orderdetails)->where(["order_id" => $orderId, "inspect_ticket_status" => 1])->where('end_time', '>', $timeInt)->whereNull("delete_time")->select()->toArray();
+                if (empty($orderDetailDate)) {
+                    return returnData(['code' => '-1', 'msg' => "143无此订单"]);
+                }
+                $count = count($orderDetailDate);
+                $surplus_num = $orderDate["goods_num"] - $count;
+                $reFundFeeTo = $this->reFundFeeTo($orderDate, $orderDate["order_amount"]);
+                if ($reFundFeeTo["code"] != 200) {
+                    return returnData($reFundFeeTo);
+                }
+                Order::update(["order_status" => 5, "refund_num" => $count, "surplus_num" => $surplus_num, "refund_time" => time()], ["order_id" => $orderDate['order_id']]);
                 if (genggaijiage((new Order())->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
-                    return returnData(['code' => '200', 'msg' => "退款成功"]);
+                    foreach ($orderDetailDate as $orderDetail) {
+                        Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"]]);
+                    }
+                    return returnData(['code' => '-1', 'msg' => "152退款成功"]);
+                } else {
+                    return returnData(['code' => '-1', 'msg' => "154退款失败"]);
                 }
             } else {
-                $timeInt = (string)time();
-                $orderDetails = (new Orderdetails)->where(["order_id" => $orderId, "inspect_ticket_status" => 1])->whereIn("id", $orderDetailsIds)->where('end_time', '>', $timeInt)->whereNull("delete_time")->select();
-                if (empty($orderDetails)) {
-                    return returnData(['code' => '-1', 'msg' => "无此订单"]);
+                $orderDetailDate = (new Orderdetails)->where(["order_id" => $orderId, "inspect_ticket_status" => 1])->whereIn("id", $orderDetailsIds)->where('end_time', '>', $timeInt)->whereNull("delete_time")->select()->toArray();
+                if (empty($orderDetailDate)) {
+                    return returnData(['code' => '-1', 'msg' => "159无此订单"]);
                 }
-                p($this->reFundorder($orderDetails->toArray()));
+                if ($this->reFundorder($orderDetailDate, $orderDate)) {
+                    return returnData(['code' => '-1', 'msg' => "162退款成功"]);
+                } else {
+                    return returnData(['code' => '-1', 'msg' => "164退款失败"]);
+                }
             }
+        } else {
+            return returnData(['code' => '-1', 'msg' => "非法请求"]);
         }
     }
 
@@ -156,23 +174,118 @@ class Pay
      * @throws DataNotFoundException
      * @throws DbException
      */
-    public function reFundOrder($orderDetails)
+    public function reFundOrder($orderDetails, $orderDate): bool
     {
-        $price = "0";
-        $refund_num = (string)count($orderDetails);
-        foreach ($orderDetails as $orderDetail) {
-            $price = bcadd($orderDetail['price'], $price);
-        }
+        $count = count($orderDetails);
         $order = new Order();
-        $orderDate = $order->where(["order_id" => $orderDetails[0]["order_id"]])->find()->toArray();
-        if (bccomp($orderDate['order_amount'], $price, 2) > 0) {
-            Order::update(["refund_price" => $price, "refund_num" => $refund_num, "order_status" => 4, "refund_time" => time(), "surplus_price" => bcsub((string)$orderDate['order_amount'], $price), "surplus_num" => bcsub((string)$orderDate['goods_num'], $refund_num)], ["order_id" => $orderDate['order_id']]);
-            if (genggaijiage($order->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
-                foreach ($orderDetails as $orderDetail) {
-                    Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"], "order_id" => $orderDate['order_id']]);
+        $price = "0";
+        foreach ($orderDetails as $orderDetail) {
+            $price = bcadd($orderDetail['price'], $price, 3);
+        }
+
+        $reFundFeeDate = $this->reFundFeeTo($orderDate, $price);
+        if ($reFundFeeDate["code"] != 200) {
+            return false;
+        }
+        if (empty($orderDate["surplus_price"])) {
+            $surplus_num = $orderDate["goods_num"] - $count;
+            if (bccomp($orderDate['order_amount'], $price, 2) > 0) {
+                Order::update(["refund_price" => $price, "refund_num" => $count, "order_status" => 4, "refund_time" => time(), "surplus_price" => bcsub((string)$orderDate['order_amount'], $price), "surplus_num" => $surplus_num], ["order_id" => $orderDate['order_id']]);
+                if (genggaijiage($order->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                    foreach ($orderDetails as $orderDetail) {
+                        Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"], "order_id" => $orderDate['order_id']]);
+                    }
+                    return true;
+                } else {
+                    return false;
                 }
+            } else {
+                return false;
+            }
+        } else {
+            $refund_price = bcadd($price, $orderDate['refund_price'], 2);
+            $refund_num = bcadd((string)$count, (string)$orderDate['refund_num']);
+            $surplus_price = bcmul((string)$orderDate['goods_price'], bcsub((string)$orderDate['goods_num'], $refund_num), 2);
+            if (bccomp($orderDate['surplus_price'], $price, 2) > -1) {
+                if (bccomp($orderDate['surplus_price'], $price, 2) == 0) {
+                    Order::update(["order_status" => 5, "refund_num" => $orderDate["goods_num"], "surplus_num" => 0, "surplus_price" => 0, "refund_price" => $orderDate['order_amount'], "refund_time" => time()], ["order_id" => $orderDate['order_id']]);
+                    if (genggaijiage((new Order())->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                        foreach ($orderDetails as $orderDetail) {
+                            Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"]]);
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                Order::update(["refund_price" => $refund_price, "refund_num" => $refund_num, "order_status" => 4, "refund_time" => time(), "surplus_price" => $surplus_price, "surplus_num" => bcsub((string)$orderDate['goods_num'], $refund_num)], ["order_id" => $orderDate['order_id']]);
+                if (genggaijiage($order->where(["order_id" => $orderDate['order_id']])->find()->toArray())) {
+                    foreach ($orderDetails as $orderDetail) {
+                        Orderdetails::update(["delete_time" => time(), "inspect_ticket_status" => 2], ["id" => $orderDetail["id"]]);
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
             }
         }
+
+    }
+
+    /**
+     * @throws DataNotFoundException
+     * @throws ModelNotFoundException
+     * @throws DbException
+     */
+    public function reFundFeeTo($orderDate, $price)
+    {
+        if (empty($orderDate)) {
+            return returnData(['code' => '-1', 'msg' => "137订单无法退款"]);
+        }
+        $padmin = (new Padmin)->where('id', $orderDate['p_id'])->find();
+        if (empty($padmin)) {
+            return returnData(['code' => '-1', 'msg' => "非法请求"]);
+        }
+        if (empty($padmin['sub_mch_id']) || empty($padmin['mch_id'])) {
+            return returnData(['code' => '-1', 'msg' => "请平台商配置收款账户"]);
+        }
+        $pUser = (new Puser)->where('id', $orderDate['p_user_id'])->find();
+        if (empty($pUser)) {
+            return returnData(['code' => '-1', 'msg' => "非法请求"]);
+        }
+        if (empty($pUser['sub_mch_id']) || empty($pUser['appid']) || empty($pUser['appkey'])) {
+            return returnData(['code' => '-1', 'msg' => "请门店配置收款账户"]);
+        }
+        $padmin = $padmin->toArray();
+        $accounts = (new Accounts)->where("mch_id", $padmin['mch_id'])->find();
+        $data['sub_mch_id'] = $padmin['sub_mch_id'];
+        $data['appid'] = $accounts['appid'];
+        $data['mch_id'] = $accounts['mch_id'];
+        $data['out_refund_no'] = md5(md5((string)time()));
+        $data['nonce_str'] = md5((string)time());
+        $data['transaction_id'] = $orderDate['transaction_id'];
+        $data['refund_fee'] = $price * 100;
+        $data['total_fee'] = $orderDate['order_amount'] * 100;
+        $result = weixinpay($data, $accounts);
+        if ($result['return_code'] == 'SUCCESS') {
+            $dataTwo['sub_mch_id'] = $padmin['sub_mch_id'];
+            $dataTwo['appid'] = $accounts['appid'];
+            $dataTwo['mch_id'] = $accounts['mch_id'];
+            $dataTwo['nonce_str'] = md5((string)time());
+            $dataTwo['transaction_id'] = $orderDate['transaction_id'];
+            $result1 = weixinpay($dataTwo, $accounts, 'refundOrder');
+            if ($result1['return_code'] == 'SUCCESS' && $result1['result_code'] == 'SUCCESS') {
+                return ['code' => 200, 'msg' => '退款申请成功'];
+            } else {
+                return ['code' => 40008, 'msg' => '退款申请失败，' . $result["err_code_des"]];
+            }
+
+        } else {
+            return ['code' => 40008, 'msg' => '退款申请失败，' . $result["err_code_des"]];
+        }
+
     }
 
     /**
@@ -182,7 +295,7 @@ class Pay
      */
     public function queryOrder($order_id)
     {
-        return (new Order)->where(["order_id" => $order_id])->whereBetween("order_status", [3, 4])->find();
+        return (new Order)->where(["order_id" => $order_id])->whereIn("order_status", [3, 4])->find();
     }
 
     /**

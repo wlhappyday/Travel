@@ -23,7 +23,7 @@ class After
         if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/apiData'){
+        if ($request->server()['REQUEST_URI'] == '/apidoc/apiData'){
             return $next($request);
         }
         $response = $next($request);

@@ -308,8 +308,7 @@ function getCity($ip = '')//获取地区
 //获取域名
 function http(){
     $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
-//    $SERVER_NAME = $_SERVER['SERVER_NAME'];
-    $SERVER_NAME = '192.168.0.124';
+    $SERVER_NAME = $_SERVER['SERVER_NAME'];
     return $http_type.$SERVER_NAME;
 }
 
