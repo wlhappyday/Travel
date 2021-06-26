@@ -164,6 +164,7 @@ class Index
     public function userinfo(Request $request){
         $id = getDecodeToken()['puser_id'];
         $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'openid'=>getDecodeToken()['openid']])->find();
+
         $collection = Pusercollection::where('user_id',$id)->count();
         return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection]);
     }
