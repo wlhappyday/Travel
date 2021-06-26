@@ -52,8 +52,6 @@ function genggaijiage($order): bool
         $pAdminBalanceRecordsMoney = bcmul(bcsub($order['p_price'], $order["store_price"]), $order["goods_num"]);
         PadminBalanceRecords::create(["data_id" => $order['order_id'], "uid" => $order['p_id'], "p_price" => bcmul($order['p_price'], $order["goods_num"]), "money" => $pAdminBalanceRecordsMoney]);
         $dateEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => bcmul($order['store_price'], $order["goods_num"]), "money" => bcmul($order['store_price'], $order["goods_num"])];
-        $pUserBalancerMoney = bcmul(bcsub($order['goods_price'], $order["p_price"]), $order["goods_num"]);
-        Puserbalancerecords::create(["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => bcmul($order['goods_price'], $order["goods_num"]), "money" => $pUserBalancerMoney]);
         if ($order['store_type'] == 1) {
             JuserBalanceRecords::create($dateEEEEEEE);
         } elseif ($order['store_type'] == 2) {
@@ -65,8 +63,6 @@ function genggaijiage($order): bool
         PadminBalanceRecords::update(["p_price" => bcmul($order['p_price'], $order["surplus_num"]), "money" => $pAdminBalanceRecordsMoney], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
         $dateEEEEEEE = ["p_price" => bcmul($order['store_price'], $order["surplus_num"]), "money" => bcmul($order['store_price'], $order["surplus_num"])];
         $dateEEEEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id']];
-        $pUserBalancerMoney = bcmul(bcsub($order['goods_price'], $order["p_price"]), $order["surplus_num"]);
-        Puserbalancerecords::update(["p_price" => bcmul($order['goods_price'], $order["surplus_num"]), "money" => $pUserBalancerMoney], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
         if ($order['store_type'] == 1) {
             JuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
         } elseif ($order['store_type'] == 2) {
@@ -341,14 +337,14 @@ function ProductReviewAdd($data,$product_id){
     if($res){
         return ['msg'=>'已存在该产品','code'=>'201'];
     }
-    Db::startTrans();
+    (new think\facade\Db)->startTrans();
     try {
         $result->insert(['product_id' => $product_id, 'uid' => $uid, 'pid' => $data['id'], 'create_time' => time()]);
         addPadminLog($data, '创建产品审核：' . $data['id']);
-        Db::commit();
+        (new think\facade\Db)->commit();
         return ['msg' => '创建成功', 'code' => '200'];
     } catch (Exception $e) {
-        Db::rollback();
+        (new think\facade\Db)->rollback();
         return ['code' => '201', 'msg' => '网络异常'];
     }
 }

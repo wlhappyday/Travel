@@ -171,7 +171,7 @@ class Service
     {
         if ($request->isPost()) {
             $orderId = $request->post('orderId');
-            $order = (new Order)->where(['order_id' => $orderId, "order_status" => 3])->find()->toArray();
+            $order = (new Order)->where(['order_id' => $orderId, "order_status" => 3])->find();
             if (empty($order)) {
                 return returnData(["code" => 201, "msg" => "待支付"]);
             } else {
