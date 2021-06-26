@@ -601,15 +601,15 @@ class Applets
         $id = $request->id;
         $rule = [
             'navigation_id'=>'require',
-            'img'=>'require',
-            'imgs'=>'require',
+            'img_id'=>'require',
+            'imgs_id'=>'require',
             'title'=>'require',
             'page_id'=>'require',
         ];
         $msg = [
             'navigation_id.require'=>'参数错误',
-            'img.require'=>'请上传未选中的图标',
-            'imgs.require'=>'请上传选中的图标',
+            'img_id.require'=>'请上传未选中的图标',
+            'imgs_id.require'=>'请上传选中的图标',
             'title.require'=>'名称不能为空',
             'page_id.require'=>'请选择页面连接',
         ];
@@ -623,8 +623,8 @@ class Applets
         try {
             $navigation_id = $request->post('navigation_id');
             $navigation = Pusernavigation::where('navigation_id',$navigation_id)->find();
-            $navigation->img = $data['img'];
-            $navigation->imgs = $data['imgs'];
+            $navigation->img = $data['img_id'];
+            $navigation->imgs = $data['imgs_id'];
             $navigation->title = $data['title'];
             $navigation->page_id = $data['page_id'];
             $navigation->save();
