@@ -30,12 +30,10 @@ class Pay
                 'js_code' => $request->post('js_code', ""),
                 'gname' => $request->post('gname', "")
             ];
-//            p(empty($exent['js_code']));
             if (empty($exent['js_code'])) {
                 return returnData(['code' => '-1', 'msg' => "非法请求"]);
             }
             $order = (new Order)->where('order_id', $orderId)->find();
-            p($order);
             if (empty($order)) {
                 return returnData(['code' => '-1', 'msg' => "非法请求"]);
             }
@@ -123,7 +121,7 @@ class Pay
         $payData['out_trade_no'] = $this->randStr(10) . "_" . $order['order_id'];
         $payData['pay_type'] = 'weChatNativeLy';
         $payData['amount'] = sprintf("%.2f", $order['order_amount']);
-        $payData['callback_url'] = url('pay/service/service')->domain(true)->build();
+        $payData['callback_url'] = url('pay/service/serviceMen')->domain(true)->build();
         $payData['success_url'] = 'http://www.baidu.com';
         $payData['error_url'] = 'http://www.baidu.com';
         $payData['extend'] = json_encode([

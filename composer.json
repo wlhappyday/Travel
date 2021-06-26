@@ -33,7 +33,9 @@
       "ext-json": "*",
       "alibabacloud/client": "^1.5",
       "ext-bcmath": "*",
-      "ext-curl": "*"
+      "ext-curl": "*",
+      "ext-libxml": "*",
+      "ext-simplexml": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",

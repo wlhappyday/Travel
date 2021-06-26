@@ -18,9 +18,7 @@ use app\common\model\XuserBalanceRecords;
 use app\common\model\XuserLog;
 use app\platform\model\Product_relation;
 use thans\jwt\facade\JWTAuth;
-use think\db\exception\DataNotFoundException;
-use think\db\exception\DbException;
-use think\db\exception\ModelNotFoundException;
+use think\facade\Db;
 use think\response\Json;
 
 function p($arr)
@@ -49,10 +47,124 @@ function get_rand_char($length): ?string
     return $str;
 }
 
-function genggaijiage($order): bool
+function curl_post_ssl($url, $xmldata, $apiData)
+{
+    $ch = curl_init();
+    $params[CURLOPT_URL] = $url;    //请求url地址
+    $params[CURLOPT_HEADER] = false; //是否返回响应头信息
+    $params[CURLOPT_RETURNTRANSFER] = true; //是否将结果返回
+    $params[CURLOPT_FOLLOWLOCATION] = true; //是否重定向
+    $params[CURLOPT_POST] = true;
+    $params[CURLOPT_POSTFIELDS] = $xmldata;
+    $params[CURLOPT_SSL_VERIFYPEER] = false;
+    $params[CURLOPT_SSL_VERIFYHOST] = false;
+    //以下是证书相关代码
+    $params[CURLOPT_SSLCERTTYPE] = 'PEM';
+    $params[CURLOPT_SSLCERT] = $apiData['apiclient_cert'];
+    $params[CURLOPT_SSLKEYTYPE] = 'PEM';
+    $params[CURLOPT_SSLKEY] = $apiData['apiclient_key'];
+    curl_setopt_array($ch, $params); //传入curl参数
+    $content = curl_exec($ch); //执行
+    curl_close($ch); //关闭连接
+    return $content;
+}
+
+function ToXml($values): string
+{
+    if (!is_array($values)
+        || count($values) <= 0) {
+        header("Content-type:text/html;charset=utf-8");
+        print_r("数组数据异常！");
+        exit;
+    }
+
+    $xml = "<xml>";
+    foreach ($values as $key => $val) {
+        if (is_numeric($val)) {
+            $xml .= "<" . $key . ">" . $val . "</" . $key . ">";
+        } else {
+            $xml .= "<" . $key . "><![CDATA[" . $val . "]]></" . $key . ">";
+        }
+    }
+    $xml .= "</xml>";
+    return $xml;
+}
+
+function FromXml($xml)
+{
+    if (!$xml) {
+        return '';
+    }
+    //将XML转为array
+    //禁止引用外部xml实体
+    libxml_disable_entity_loader();
+    return json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA), JSON_UNESCAPED_UNICODE), true);
+}
+
+function weixinpay($data, $apiData, $trade_type = 'refund')
+{
+    $data['sign'] = weixinsign($data, $apiData['key']);
+    if ($trade_type == 'refund') {
+        $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/refund";
+        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
+    } elseif ($trade_type == 'refundOrder') {
+        $apiUrl = "https://api.mch.weixin.qq.com/pay/orderquery";
+        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
+    } else {
+        return "";
+    }
+    $result = FromXml($xml);
+    if ($result['return_code'] == 'SUCCESS') {
+        return $result;
+    } else {
+        echo(json_encode($result, JSON_UNESCAPED_UNICODE));
+        exit;
+    }
+}
+
+function weixinsign($parameter, $keyword, $type = 1): string
+{
+    //签名步骤一：按字典序排序参数
+    $para = array();
+    foreach ($parameter as $key => $val) {
+        if ($key == "sign" || $key == "key" || $val == "") continue;
+        else $para[$key] = $parameter[$key];
+    }
+    ksort($para);
+    reset($para);
+    $arg = "";
+    foreach ($para as $key => $val) {
+        $arg .= $key . "=" . charset_encode($val, "UTF-8", "UTF-8") . "&";
+    }
+    $prestr = substr($arg, 0, -1);  //去掉最后一个&号
+    //签名步骤二：在string后加入KEY
+    $prestr .= "&key=" . $keyword;
+    if ($type == 1) {
+        //签名步骤三：MD5加密
+        $mysign = md5($prestr);
+    } else {
+        $s = hash_hmac('sha256', $prestr, $keyword, true);
+        $mysign = base64_encode($s);
+    }
+    return strtoupper($mysign);
+}
+
+function charset_encode($input, $_output_charset = "UTF-8", $_input_charset = "UTF-8")
+{
+    if ($_input_charset == $_output_charset || $input == null) {
+        $output = $input;
+    } elseif (function_exists("mb_convert_encoding")) {
+        $output = mb_convert_encoding($input, $_output_charset, $_input_charset);
+    } elseif (function_exists("iconv")) {
+        $output = iconv($_input_charset, $_output_charset, $input);
+    } else die("sorry, you have no libs support for charset change.");
+    return $output;
+}
+
+function genggaijiage($order, $transaction_id = ""): bool
 {
     if ($order['order_status'] == 2) {
-        Order::update(["order_status" => 3, "transaction_id" => $order['order_id'], "pay_time" => time()], ["order_id" => $order['order_id']]);
+        Order::update(["order_status" => 3, "transaction_id" => $transaction_id, "pay_time" => time()], ["order_id" => $order['order_id']]);
         $pAdminBalanceRecordsMoney = bcmul(bcsub($order['p_price'], $order["store_price"]), $order["goods_num"]);
         PadminBalanceRecords::create(["data_id" => $order['order_id'], "uid" => $order['p_id'], "p_price" => bcmul($order['p_price'], $order["goods_num"]), "money" => $pAdminBalanceRecordsMoney]);
         $dateEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id'], "p_price" => bcmul($order['store_price'], $order["goods_num"]), "money" => bcmul($order['store_price'], $order["goods_num"])];
@@ -78,10 +190,10 @@ function genggaijiage($order): bool
         }
         return true;
     } elseif ($order['order_status'] == 5) {
-        PadminBalanceRecords::update(["type" => 2], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
-        $dateEEEEEEE = ["type" => 2];
+        PadminBalanceRecords::update(["type" => 2, "money" => 0, "p_price" => 0], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
+        $dateEEEEEEE = ["type" => 2, "money" => 0, "p_price" => 0];
         $dateEEEEEEEEEE = ["data_id" => $order['order_id'], "uid" => $order['store_id']];
-        Puserbalancerecords::update(["type" => 2], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
+        Puserbalancerecords::update(["type" => 2, "money" => 0, "p_price" => 0], ["data_id" => $order['order_id'], "uid" => $order['p_user_id']]);
         if ($order['store_type'] == 1) {
             JuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
         } elseif ($order['store_type'] == 2) {
@@ -133,12 +245,12 @@ function post($url, $data)
 }
 
 /**
- * @param $passwd
+ * @param $passwd   string
  * @return array
  * @author WjngJiamao
  * @Note   密码加密
  */
-function encryptionPasswd($passwd): array
+function encryptionPasswd(string $passwd): array
 {
     $passwdSalt = get_rand_char(20);
 
@@ -185,13 +297,6 @@ function aliSms($date, $phone, $TemplateCode = "SMS_202815323"): array
     AlibabaCloud::accessKeyClient("LTAI4G4m3pm6GzdcdWQSfs9m", "rFWJ721dapSvuUxqQR7oyN0aesiOHh")
         ->regionId('cn-hangzhou')
         ->asDefaultClient();
-//    p( [
-//        'RegionId' => "cn-hangzhou",
-//        'PhoneNumbers' => $phone,
-//        'SignName' => "荣朴科技",
-//        'TemplateCode' => $TemplateCode,
-//        'TemplateParam' => $date,
-//    ]);
     $result = AlibabaCloud::rpc()
         ->product('Dysmsapi')
         ->version('2017-05-25')
@@ -237,9 +342,6 @@ function isUserToken($data, $type)
 
 /**
  * @Note   增加日志记录
- * @param $data
- * @param $info
- * @return int|string
  */
 function addXuserLog($data,$info){
     $x_user_log = new XuserLog();
@@ -286,7 +388,7 @@ function getIp($type = ''): array
         }
     }
     if(empty($type)){
-        if($realip=='::1'||$realip=='127.0.0.1'){
+        if ($realip == '::1' || $realip == '127.0.0.1') {
             $realip = '127.0.0.1';
             $city = getCity();
         } else {
@@ -297,7 +399,6 @@ function getIp($type = ''): array
     return ['ip' => $realip];
 
 }
-
 function getCity($ip = ''): array//获取地区
 {
     $url = "http://api.map.baidu.com/location/ip?ak=M7Mc1jF8vmzGNx7XL1TAgHbBWB8oyuwv&ip=" . $ip;
@@ -321,17 +422,18 @@ function http(): string
 }
 
 //GET提交
-    function httpGet($url) {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 500);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curl, CURLOPT_URL, $url);
-        $res = curl_exec($curl);
-        curl_close($curl);
-        return $res;
-    }
+function httpGet($url)
+{
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 500);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($curl, CURLOPT_URL, $url);
+    $res = curl_exec($curl);
+    curl_close($curl);
+    return $res;
+}
 
 //创建产品审核
 function ProductReviewAdd($data, $product_id): array
@@ -347,39 +449,34 @@ function ProductReviewAdd($data, $product_id): array
     if ($res) {
         return ['msg' => '已存在该产品', 'code' => '201'];
     }
-    (new think\facade\Db)->startTrans();
+    Db::startTrans();
     try {
         $result->insert(['product_id' => $product_id, 'uid' => $uid, 'pid' => $data['id'], 'create_time' => time()]);
         addPadminLog($data, '创建产品审核：' . $data['id']);
-        (new think\facade\Db)->commit();
+        Db::commit();
         return ['msg' => '创建成功', 'code' => '200'];
     } catch (Exception $e) {
-        (new think\facade\Db)->rollback();
+        Db::rollback();
         return ['code' => '201', 'msg' => '网络异常'];
     }
 }
 
-/**
- * @throws ModelNotFoundException
- * @throws DataNotFoundException
- * @throws DbException
- */
-function product_relation($pid, $product_id, $Review_id): array
+function product_relation($pid, $product_id, $Review_id)
 {
-    $j_product = (new app\common\model\Jproduct)->where(['status' => '0', 'id' => $product_id, 'mp_id' => '6'])->find();
+    $j_product = Jproduct::where(['status' => '0', 'id' => $product_id, 'mp_id' => '6'])->find();
     if ($j_product) {
-        (new think\facade\Db)->startTrans();
+        Db::startTrans();
         try {
-            $productReview = (new app\common\model\JproductReview)->find($Review_id);
+            $productReview = JproductReview::find($Review_id);
             $productReview->state = 2;
             $productReview->update_time = time();
             $productReview->save();
             $product_relation = new Product_relation();
             if ($productReview['state'] == '2') {
-                $relation = (new app\platform\model\Product_relation)->where(['uid' => $pid, 'product_id' => $product_id])->find();
-                    if ($relation){
-                        return ['code'=>'201','msg'=>'已绑定该产品'];
-                    }
+                $relation = Product_relation::where(['uid' => $pid, 'product_id' => $product_id])->find();
+                if ($relation) {
+                    return ['code' => '201', 'msg' => '已绑定该产品'];
+                }
                 $product_relation->save([
                     'uid' => $pid,
                     'type' => $j_product['type'],
@@ -387,20 +484,20 @@ function product_relation($pid, $product_id, $Review_id): array
                     'price' => $j_product['money'],
                     'mp_id' => $j_product['mp_id']
                 ]);
-                (new think\facade\Db)->commit();
-                    return ['code' => '200', 'msg' => '操作成功'];
-                } else {
-                    return ['code' => '201', 'msg' => '该产品未审核'];
-                }
-            } catch (Exception $e) {
-            (new think\facade\Db)->rollback();
-                return ['code' => '201', 'msg' => '网络异常'];
+                Db::commit();
+                return ['code' => '200', 'msg' => '操作成功'];
+            } else {
+                return ['code' => '201', 'msg' => '该产品未审核'];
             }
-        }else{
-            return ['code'=>'201','msg'=>'该产品被禁用或删除'];
+        } catch (Exception $e) {
+            Db::rollback();
+            return ['code' => '201', 'msg' => '网络异常'];
         }
-
+    } else {
+        return ['code' => '201', 'msg' => '该产品被禁用或删除'];
     }
+
+}
 
 /**
  * @param string $name
