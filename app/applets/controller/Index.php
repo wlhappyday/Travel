@@ -34,6 +34,8 @@ class Index
         $navigation = Pusernavigation::where('user_id',$puser['id'])->order('navigation_id','Desc')->field('img,imgs,page_id,title')->select();
         foreach($navigation as $key=>$value){
             $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
+            $navigation[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
+            $navigation[$key]['imgs'] = http().File::where('id',$value['imgs'])->value('file_path');
         }
         return json(['code'=>'200','msg'=>'操作成功','navigation'=>$navigation,'puser'=>$puser]);
     }

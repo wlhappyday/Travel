@@ -119,6 +119,8 @@ class Order
             $excel = $reader->load($path,$encode = 'utf-8');
 
             $sheet = $excel->getSheet(0)->toArray();
+
+
             array_shift($sheet);
             if ($product['number']<count($sheet)){
                 return json(['code'=>'201','sign'=>'库存不足，剩余'.$product['number']]);
@@ -175,7 +177,7 @@ class Order
                 'descript'=>'导入订单处理减库存'.count($sheet)
             ]);
             Db::commit();
-            return json(['code'=>'200','msg'=>'操作成功']);
+            return json(['code'=>'200','msg'=>'操作成功','orderId'=>$order['id']]);
         } catch (\Exception $e) {
             Db::rollback();
             return json(['code'=>'201','msg'=>'网络繁忙']);
