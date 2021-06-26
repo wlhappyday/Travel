@@ -1,0 +1,1 @@
+{"callbacks":"CODE_SUCCESS","appid":"1067996","pay_type":"wechat","success_url":"http:\/\/www.baidu.com","error_url":"http:\/\/www.baidu.com","out_trade_no":"SalBmbxHKa_64","amount":"24.00","sign":"828FFBCD348C43A90525396D84420A75","pay_trade_no":"4200001121202106271259057517"}

@@ -71,7 +71,7 @@ class Service
         $pAdmin = $pAdmin->toArray();
         if ($appid != $pAdmin['cl_id']) return returnData(['code' => '-1', 'msg' => "非法请求75"]);
         if ($this->verifySign($data, $pAdmin['cl_key']) == $sign) {
-            if (genggaijiage($order, $pay_trade_no)) {
+            if (genggaijiageMen($order, $pay_trade_no)) {
                 $orderDetails = (new Orderdetails)->where(["order_id" => $order['order_id']])->select()->toArray();
                 $AlibabaSMS = new AlibabaSMS();
                 foreach ($orderDetails as $detail) {
