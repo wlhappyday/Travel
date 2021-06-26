@@ -1,7 +1,9 @@
-<?php
+<?php /** @noinspection PhpRedundantClosingTagInspection */
+
+use app\middleware\After;
+use app\middleware\Auth;
 
 return [
-//    Auth::class,
-//    After::class,
-]
-?>
+    Auth::class,
+    After::class,
+];

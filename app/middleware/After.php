@@ -4,8 +4,9 @@ declare (strict_types = 1);
 namespace app\middleware;
 
 use Closure;
-use think\Request;
 use thans\jwt\facade\JWTAuth;
+use think\Request;
+
 class After
 {
     /**
@@ -15,7 +16,7 @@ class After
      * @param Closure $next
      * @return Response
      */
-    public function handle($request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
             return $next($request);
@@ -23,7 +24,7 @@ class After
         if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
             return $next($request);
         }
-        if ($request->server()['REQUEST_URI'] == '/apidoc/apiData'){
+        if ($request->server()['REQUEST_URI'] == '/apidoc/apiData') {
             return $next($request);
         }
         $response = $next($request);

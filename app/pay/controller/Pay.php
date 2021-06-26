@@ -106,7 +106,6 @@ class Pay
             return returnData(['code' => '-1', 'msg' => "非法请求"]);
         }
     }
-
     /**
      * @throws ModelNotFoundException
      * @throws DbException
@@ -133,7 +132,6 @@ class Pay
         $payData['sign'] = getSign($padmin['cl_key'], $payData);
         return post($url, $payData);
     }
-
     function randStr($len): string
     {
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz'; // characters to build the password from
@@ -144,13 +142,11 @@ class Pay
         }
         return $string;
     }
-
     /**
      * @throws ModelNotFoundException
      * @throws DbException
      * @throws DataNotFoundException
      */
-
     public function payTo($order, $padmin, $exent, $pUser)
     {
         $accounts = (new Accounts)->where("mch_id", $padmin['mch_id'])->find();
@@ -175,7 +171,6 @@ class Pay
         $payData['sign'] = getSign($padmin['cl_key'], $payData);
         return post($url, $payData);
     }
-
     /**
      * @throws ModelNotFoundException
      * @throws DbException
@@ -226,7 +221,6 @@ class Pay
             return returnData(['code' => '-1', 'msg' => "非法请求"]);
         }
     }
-
     /**
      * @throws ModelNotFoundException
      * @throws DbException
@@ -277,7 +271,6 @@ class Pay
             return returnData(['code' => '-1', 'msg' => "278非法请求"]);
         }
     }
-
     /**
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
@@ -342,7 +335,6 @@ class Pay
         }
 
     }
-
     /**
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
