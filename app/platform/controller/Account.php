@@ -243,7 +243,7 @@ class Account
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      */
     public function Balancerecords(Request $request){
-        $uid = $request->uid;0000
+        $uid = $request->uid;
         $Balancerecords = Balancerecords::paginate(20);
         return json(['code'=>'200','msg'=>'操作成功',['Balancerecords'=>$Balancerecords]]);
     }
