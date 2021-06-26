@@ -26,4 +26,12 @@ class PadminLog extends Model
             'create_time'=> time(),
         ]);
     }
+//
+    /**
+     * @field("user_name,info,ip,address,create_time")
+     */
+    public function log($id){
+        $res = $this->get($id);
+        return $res;
+    }
 }

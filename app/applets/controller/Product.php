@@ -7,6 +7,7 @@ use app\api\model\Puser;
 use app\common\model\File;
 use app\common\model\Puseruser;
 use app\platform\model\Productuser;
+use app\common\model\PuserFootprint;
 use app\common\model\PuserInfo;
 use app\common\model\Pusercollection;
 use app\common\model\Puserpassenger;
@@ -331,5 +332,19 @@ class Product
             Db::rollback();
             return json(['code'=>'201','msg'=>'操作失败']);
         }
+    }
+
+    public function footprint(Request  $request){
+        $id = getDecodeToken()['puser_id'];
+        $footprint= PuserFootprint::where('user_id',$id)->select();
+        $pid = Puseruser::where('id',$id)->value('puser_id');
+        $product = [];
+        foreach ($footprint as $key=>$val){
+            $product[] = Productuser::where('user_id',$pid)->where('product_id',$val['product_id'])->find();
+        }
+        foreach ($product as $key=>$val){
+            $product[$key]['first_id'] = http().File::where('id',$val['first_id'])->value('file_path');
+        }
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
     }
 }

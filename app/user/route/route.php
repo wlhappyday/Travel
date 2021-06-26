@@ -41,6 +41,7 @@ Route::group('account', function () {
     Route::post('enterprise_save', 'Account/enterprisesave');/*企业信息保存*/
     Route::post('password', 'Account/password');/*企业信息保存*/
     Route::get('Balancerecords', 'Account/Balancerecords');/*个人信息*/
+    Route::get('puseruser', 'Account/puseruser');/*个人信息*/
 
 });
 
@@ -63,6 +64,12 @@ Route::group('applets', function () {
 
     Route::get('magic', 'Applets/magic');/*图片魔方*/
     Route::post('magicdo', 'Applets/magic_do');/*图片魔方peizhi*/
+    Route::get('magicdetail', 'Applets/magic_detail');/*图片魔方*/
+    Route::post('magicdelete', 'Applets/magic_delete');/*图片魔方*/
+    Route::get('page', 'Applets/page');/*图片魔方*/
+    Route::get('product', 'Applets/product');/*图片魔方*/
+    Route::get('my', 'Applets/my');/*图片魔方*/
+
 
     Route::get('navigationlist', 'Applets/navigationlist');/*底部导航栏列表*/
     Route::get('navigationdetail', 'Applets/navigation_detail');/*底部导航栏詳情*/

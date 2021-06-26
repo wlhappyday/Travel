@@ -33,6 +33,8 @@ Route::group('account', function () {
     Route::get('Balancerecords', 'Account/Balancerecords');/*个人信息*/
     Route::get('signinLog', 'Account/signinLog');/*登录日志*/
     Route::get('operationLog', 'Account/operationLog');/*操作日志*/
+    Route::get('feeChange', 'Account/feeChange');/*操作日志*/
+
 });
 
 //用户模块

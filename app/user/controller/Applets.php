@@ -3,6 +3,8 @@ declare (strict_types = 1);
 
 namespace app\user\controller;
 
+use app\api\model\Juser;
+use app\api\model\Xuser;
 use app\common\model\File;
 use app\common\model\Pcarousel;
 use app\common\model\Puser;
@@ -10,9 +12,12 @@ use app\common\model\Puserpage;
 use app\common\model\Pusermagic;
 use app\common\model\Ptemplatemessage;
 use app\common\model\Pusernavigation;
+use app\common\model\Pusermy;
 use app\common\model\Puserhomenavigation;
+use app\platform\model\J_product;
 use think\facade\Db;
 use think\facade\Validate;
+use think\Model;
 use think\Request;
 use hg\apidoc\annotation as Apidoc;
 /**
@@ -176,6 +181,7 @@ class Applets
     public function carouseldetail(Request $request){
         $carousel_id = $request->get('carousel_id');
         $carousel = Pcarousel::where(['carousel_id'=>$carousel_id])->field('carousel_id,type,img,page')->find();
+
         $carousel['img'] = http(). File::where('id',$carousel['img'])->value('file_path');
         return json(['code'=>'200','msg'=>'操作成功','carousel'=>$carousel]);
     }
@@ -191,7 +197,7 @@ class Applets
      * @Apidoc\Param("carousel_id", type="number",require=true, desc="唯一id" )
      */
     public function carousel_del(Request $request){
-        $carousel_id = $request->get('carousel_id');
+        $carousel_id = $request->post('carousel_id');
         Db::startTrans();
         try {
             $carousel = Pcarousel::where('carousel_id',$carousel_id)->delete();
@@ -268,6 +274,7 @@ class Applets
     public function homenavigation_detail(Request $request){
         $navigation_id = $request->get('navigation_id');
         $navigation = Puserhomenavigation::where('id',$navigation_id)->find();
+        $navigation['img_id'] = $navigation['img'];
         $navigation['img'] =http(). File::where('id',$navigation['img'])->value('file_path');
         $navigation['page_id'] = Puserpage::where('id',$navigation['page_id'])->value('page');
         return json(['code'=>'200','msg'=>'操作成功','navigation'=>$navigation]);
@@ -282,8 +289,9 @@ class Applets
      * @Apidoc\Tag("小程序")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
      * @Apidoc\Param("navigation_id", type="number",require=true, desc="导航图标唯一id   修改的时候传入" )
-     * @Apidoc\Param("title", type="number",require=true, desc="图片id" )
-     * @Apidoc\Param("img", type="number",require=false, desc="状态 1开启 0关闭" )
+     * @Apidoc\Param("img", type="number",require=true, desc="图片id" )
+     * @Apidoc\Param("title", type="number",require=true, desc="名称" )
+     * @Apidoc\Param("type", type="number",require=false, desc="状态 1开启 0关闭" )
      * @Apidoc\Param("page_id", type="number",require=false, desc="小程序页面连接" )
      */
     public function homenavigation(Request $request){
@@ -291,12 +299,12 @@ class Applets
         $navigation_id = $request->post('navigation_id');
         $rule = [
             'title'=>'require',
-            'img'=>'require',
+            'img_id'=>'require',
             'page_id'=>'require',
         ];
         $msg = [
             'title.require'=>'请输入名称',
-            'img.require'=>'请上传图片',
+            'img_id.require'=>'请上传图片',
             'page_id.require'=>'请选择页面链接',
         ];
         $data = $request->post();
@@ -307,14 +315,14 @@ class Applets
 
         Db::startTrans();
         try {
-            if ($navigation_id){
-                $navigation = Puserhomenavigation::where('id',$navigation_id)->find();
-            }else{
+            $navigation = Puserhomenavigation::where('id',$navigation_id)->find();
+            if (empty($navigation)){
                 $navigation = new Puserhomenavigation();
                 $navigation->user_id = $id;
             }
+
             $navigation->title = $data['title'];
-            $navigation->img = $data['img'];
+            $navigation->img = $data['img_id'];
             $navigation->page_id = $data['page_id'];
             $navigation->save();
             if ($navigation_id){
@@ -361,41 +369,64 @@ class Applets
      * @Apidoc\Method("GET")
      * @Apidoc\Tag("小程序")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("navigation_id", type="number",require=true, desc="唯一id" )
+     * @Apidoc\Param("page", type="number",require=true, desc="页面id" )
+     * @Apidoc\Param("img", type="number",require=true, desc="图片id" )
+     * @Apidoc\Param("id", type="number",require=true, desc="唯一id" )
      */
     public function magic(Request $request){
         $id = $request->id;
-        $magic = Pusermagic::where(['user_id'=>$id])->find();
+        $magic = Pusermagic::where(['user_id'=>$id])->select();
+        if (!empty($magic)){
+            foreach ($magic as $key=>$value){
+                $magic[$key]['page'] = Puserpage::where('id',$value['page'])->value('name');
+                $magic[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
+            }
+        }
+
         return json(['code'=>'200','msg'=>'操作成功','magic'=>$magic]);
     }
 
 
     /**
-     * @Apidoc\Title("图片魔方配置")
-     * @Apidoc\Desc("图片魔方配置")
-     * @Apidoc\Url("user/applets/magic_do")
+     * @Apidoc\Title("图片魔方添加、修改")
+     * @Apidoc\Desc("图片魔方添加、修改")
+     * @Apidoc\Url("user/applets/magicdo")
      * @Apidoc\Method("POST")
      * @Apidoc\Tag("小程序")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Param("navigation_id", type="number",require=true, desc="唯一id" )
-     * @Apidoc\Param("img", type="number",require=true, desc="img[1][img]  img[1][page]" )
-     * @Apidoc\Param("style", type="number",require=true, desc="1为样式1" )
+     * @Apidoc\Param("magic_id", type="number",require=true, desc="唯一id" )
+     * @Apidoc\Param("img", type="number",require=true, desc="{['page'=>'1','img'=>'2','绑定产品的id'=>'1']}" )
+     * @Apidoc\Param("can", type="number",require=true, desc="1为样式1" )
+     * @Apidoc\Param("page", type="number",require=true, desc="page" )
      */
     public function magic_do(Request $request){
         $id = $request->id;
+        $magic_id = $request->post('magic_id');
         $img = $request->post('img');
-        $style = $request->post('style');
+        $img_id = $request->post('img_id');
+        $page = $request->post('page');
+        $can = $request->post('can');
         Db::startTrans();
         try {
-            $magic = Pusermagic::where('user_id',$id)->find();
-            if(!$magic){
+            $magic = Pusermagic::where('id',$magic_id)->find();
+            if(empty($magic)){
+                $count = Pusermagic::where('id',$magic_id)->count();
+                if ($count>=4){
+                    return json(['code'=>'201','msg'=>'只能添加4条']);
+                }
                 $magic = new Pusermagic();
+                $magic->user_id = $id;
             }
-            $magic->img = $img;
-            $magic->style = $style;
-            $magic->user_id= $id;
+            $magic->img = $img_id;
+            $magic->page = $page;
+            $magic->can = $can;
             $magic->save();
-            addPuserLog(getDecodeToken(),'配置图片魔方');
+            if ($magic_id){
+                addPuserLog(getDecodeToken(),'修改图片魔方:'.$magic_id);
+            }else{
+                addPuserLog(getDecodeToken(),'添加图片魔方:'.$magic['id']);
+            }
+
             Db::commit();
             return json(['code'=>'200','msg'=>'操作成功']);
         }catch (\Exception $e){
@@ -404,8 +435,107 @@ class Applets
         }
 
     }
+
     /**
-     * @Apidoc\Title("底部导航")
+     * @Apidoc\Title("图片魔方详情")
+     * @Apidoc\Desc("图片魔方详情")
+     * @Apidoc\Url("user/applets/magicdetail")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("magic_id", type="number",require=true, desc="唯一id" )
+     */
+    public function magic_detail(Request  $request){
+        $magic_id = $request->get('magic_id');
+        if (empty($magic_id)){
+            return json(['code'=>'201','msg'=>'参数错误']);
+        }
+        $magic = Pusermagic::where('id',$magic_id)->find();
+        $magic['img_id'] = $magic['img'];
+        $magic['page_id'] = $magic['page'];
+        if(!empty($magic)){
+            $magic['page'] = Puserpage::where('id',$magic['page'])->value('name');
+            $magic['img'] = http().File::where('id',$magic['img'])->value('file_path');
+        }
+
+        return json(['code'=>'200','msg'=>'操作成功','magic'=>$magic]);
+    }
+
+    /**
+     * @Apidoc\Title("图片魔方删除")
+     * @Apidoc\Desc("图片魔方删除")
+     * @Apidoc\Url("user/applets/magicdelete")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("magic_id", type="number",require=true, desc="唯一id" )
+     */
+    public function magic_delete(Request  $request){
+        $magic_id = $request->post('magic_id');
+        Db::startTrans();
+        try {
+            $magic = Pusermagic::where('id',$magic_id)->delete();
+            addPuserLog(getDecodeToken(),'删除魔方:'.$magic_id);
+            Db::commit();
+            return json(['code'=>'200','msg'=>'操作成功']);
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'201','msg'=>'网络繁忙']);
+        }
+
+    }
+
+    public function page(){
+        $page = Puserpage::select();
+        return json(['code'=>'200','msg'=>'操作成功','page'=>$page]);
+    }
+
+    /**
+     * @Apidoc\Title("产品接口")
+     * @Apidoc\Desc("产品接口")
+     * @Apidoc\Url("user/applets/product")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("name", type="number",require=true, desc="产品名称")
+     * @Apidoc\Param("pagenum", type="number",require=true, desc="分页数量")
+     * @Apidoc\Returned ("product",type="object",desc="平台商列表",
+     *     @Apidoc\Returned ("total",type="number",desc="分页总数"),
+     *     @Apidoc\Returned ("per_page",type="int",desc="首页"),
+     *     @Apidoc\Returned ("last_page",type="int",desc="最后一页"),
+     *     @Apidoc\Returned ("current_page",type="int",desc="当前页"),
+     *     @Apidoc\Returned ("data",type="object",desc="产品",ref="app\platform\model\J_product\scenic_spot"),
+     *  )
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     */
+    public function product(Request $request){
+        $uid =$request->uid;
+        $id =$request->id;
+        $name = $request->get('name');
+        $type = $request->get('type');
+        if($type == 1){
+            $id = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+        }else if($type == 2){
+            $id = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+        }else {
+            $jid = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+            $xid = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+            $id = array_merge($jid,$xid);
+        }
+        $data = J_product::where(['a.status'=>'0'])->alias('a')
+            ->whereIn('a.id',$id)
+            ->where([['a.name', 'like','%'.$name.'%']])
+            ->join('j_user b','b.id = a.uid and a.type = 1','left')
+            ->join('x_user c','c.id = a.uid and a.type = 2','left')
+            ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
+            ->join('file d','d.id=pp.first_id')
+            ->field('pp.product_id,pp.name');
+        $product = $data->paginate('20')->toArray();
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
+    }
+
+    /**
+     * @Apidoc\Title("底部导航列表")
      * @Apidoc\Desc("底部导航")
      * @Apidoc\Url("user/applets/navigationlist")
      * @Apidoc\Method("GET")
@@ -422,10 +552,12 @@ class Applets
      */
     public function navigationlist(Request $request){
         $id = $request->id;
-        $navigation = Pusernavigation::where('user_id',$id)->field('navigation_id,img,title')->select();
+        $navigation = Pusernavigation::where('user_id',$id)->field('navigation_id,img,title,imgs,page_id')->select();
         $navigations = Puser::where('id',$id)->field('dnavigationcolor,dnavigationback,dinavigationback,dinavigationtcolor,dinavigationtcolors')->find();
         foreach ($navigation as $key=>$val){
             $navigation[$key]['img'] =http().File::where('id',$val['img'])->value('file_path');
+            $navigation[$key]['imgs'] =http().File::where('id',$val['imgs'])->value('file_path');
+            $navigation[$key]['page'] =Puserpage::where('id',$val['page_id'])->value('page');
         }
         return json(['code'=>'200','msg'=>'操作成功','navigation'=>$navigation,'navigations'=>$navigations]);
     }
@@ -442,9 +574,12 @@ class Applets
     public function navigation_detail(Request $request){
         $navigation_id = $request->get('navigation_id');
         $navigation = Pusernavigation::where('navigation_id',$navigation_id)->field('navigation_id,img,imgs,page_id,title')->find();
+        $navigation['img_id'] = $navigation['img'];
+        $navigation['imgs_id'] = $navigation['imgs'];
+
         $navigation['img'] =http().File::where('id',$navigation['img'])->value('file_path');
         $navigation['imgs'] = http(). File::where('id',$navigation['imgs'])->value('file_path');
-        $navigation['page_id'] = Puserpage::where('id',$navigation['page_id'])->value('page');
+        $navigation['page'] = Puserpage::where('id',$navigation['page_id'])->value('page');
         return json(['code'=>'200','msg'=>'操作成功','navigation'=>$navigation]);
     }
 
@@ -502,6 +637,7 @@ class Applets
         }
     }
 
+
     /**
      * @Apidoc\Title("底部导航修改")
      * @Apidoc\Desc("底部导航修改")
@@ -553,6 +689,82 @@ class Applets
             Db::rollback();
             return json(['code'=>'201','msg'=>'网络繁忙']);
         }
+    }
+
+    /**
+     * @Apidoc\Title("个人中心")
+     * @Apidoc\Desc("个人中心")
+     * @Apidoc\Url("user/applets/my")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Returned ("my",type="object",desc="底部导航列表",ref="app\common\model\Pusermy\log"),
+
+     */
+    public function my(Request $request){
+        $id= $request->id;
+        $product = Pusermy::where('user_id',$id)->select();
+        foreach($product as $key=>$value){
+            $product[$key]['page'] =Puserpage::where('id',$value['page'])->value('page');
+            $product[$key]['img'] = http(). File::where('id',$value['img'])->value('file_path');
+        }
+        return json(['code'=>'200','msg'=>'操作成功','my'=>$product]);
+    }
+
+    /**
+     * @Apidoc\Title("个人中心详情")
+     * @Apidoc\Desc("个人中心详情")
+     * @Apidoc\Url("user/applets/mydetail")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param ("my_id",type="int",require=true,desc="个人中心的id"),
+     * @Apidoc\Returned ("my",type="object",desc="底部导航列表",ref="app\common\model\Pusermy\log"),
+
+     */
+    public function my_detail(Request  $request){
+        $id = $request->id;
+        $my_id = $request->get('my_id');
+        $product = Pusermy::where('user_id',$id)->where('id',$my_id)->find();
+        $product['page'] =Puserpage::where('id',$product['page'])->value('page');
+        $product['img_id'] =  $product['img'];
+        $product['img'] = http(). File::where('id',$product['img'])->value('file_path');
+        return json(['code'=>'200','msg'=>'操作成功','my'=>$product]);
+    }
+
+    /**
+     * @Apidoc\Title("个人中心修改")
+     * @Apidoc\Desc("个人中心修改")
+     * @Apidoc\Url("user/applets/mydo")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param ("my_id",type="int",require=true,desc="个人中心的id"),
+     * @Apidoc\Param ("name",type="int",require=true,desc="名称"),
+     * @Apidoc\Param ("img_id",type="int",require=true,desc="图片id"),
+     * @Apidoc\Returned ("my",type="object",desc="底部导航列表",ref="app\common\model\Pusermy\log"),
+
+     */
+    public function my_do(Request  $request){
+        $id = $request->id;
+        $my_id = $request->post('my_id');
+        $name = $request->post('name');
+        $page = $request->post('page');
+        $img_id = $request->post('img_id');
+        Db::startTrans();
+        try {
+            $product = Pusermy::where('user_id',$id)->where('id',$my_id)->find();
+            $product->name=$name;
+            $product->img_id=$img_id;
+            $product->save();
+            addPuserLog(getDecodeToken(),'修改个人中心：'.$my_id);
+            Db::commit();
+            return json(['code'=>'200','msg'=>'操作成功']);
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'201','msg'=>'网络繁忙']);
+        }
+        return json(['code'=>'200','msg'=>'操作成功','my'=>$product]);
     }
 
 

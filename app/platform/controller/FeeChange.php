@@ -13,10 +13,7 @@ use think\Request;
 class FeeChange
 {
 
-    /**
-     * @author liujiong
-     * @Note  信息费变动
-     */
+
     public function list(){
         $num = input('post.num/d','10','strip_tags');
         $type = input('post.type/d','','strip_tags');

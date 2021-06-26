@@ -127,6 +127,7 @@ class Order
             $order = new orders();
             $order->store_price =$product['money'];
             $order->p_price =$price;
+            $order->order_status='2';
             $order->order_amount = $bcmul;
             $order->total_amount = $bcmul;
             $order->add_time = time();

@@ -6,6 +6,7 @@ namespace app\user\controller;
 use app\api\model\Puser;
 use app\common\model\Log;
 use app\common\model\Puserlog;
+use app\common\model\Puseruser;
 use app\common\model\Puserenterprise;
 use app\common\model\Puserbalancerecords;
 use think\facade\Db;
@@ -235,5 +236,15 @@ class Account
         $log = PuserLog::where('uid',$id)->order('create_time','desc')->field('uname,info,ip,address,create_time')->paginate($pagenum)->toArray();
         return json(['code'=>'200','msg'=>'操作成功','log'=>$log]);
 
+    }
+
+
+    public function puseruser(Request $request){
+        $id = $request->id;
+        $nickname = $request->get('nickname');
+        $pagenum = $request->get('pagenum');
+        $phone = $request->get('phone');
+        $Puseruser = Puseruser::where('puser_id',$id)->where([['nickname', 'like','%'.$nickname.'%'],['phone','like','%'.$phone.'%']])->page($pagenum);
+        return json(['code'=>'200','msg'=>'操作成功','Puseruser'=>$Puseruser]);
     }
 }

@@ -12,5 +12,4 @@ class Pusermagic extends Model
 {
     //
     protected $name='p_user_magic';
-    protected $json=['img'];
 }

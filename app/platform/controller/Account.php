@@ -281,9 +281,9 @@ class Account
     }
 
     /**
-     * @Apidoc\Title("操作日志")
-     * @Apidoc\Desc("操作日志")
-     * @Apidoc\Url("platform/account/operationLog")
+     * @Apidoc\Title("短信支出信息")
+     * @Apidoc\Desc("短信支出信息")
+     * @Apidoc\Url("platform/account/feeChange")
      * @Apidoc\Method("GET")
      * @Apidoc\Tag("列表 基础")
      * @Apidoc\Returned("log",type="object",desc="操作日志",ref="app\common\model\JfeeChange\fee")

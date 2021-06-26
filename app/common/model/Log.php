@@ -8,4 +8,5 @@ class Log extends Model
 {
 //    protected $name = 'error_log';
 
+
 }

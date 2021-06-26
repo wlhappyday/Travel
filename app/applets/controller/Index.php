@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace app\applets\controller;
 
 use app\common\model\File;
+use app\common\model\Pusermy;
 use app\platform\model\Productuser;
 use app\user\model\Config;
 use app\common\model\Puserpage;
@@ -95,10 +96,10 @@ class Index
         $rlproduct = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','pu.is_hot'=>'1','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$puser['id']])->field('file.file_path,pu.price,pu.product_id,jp.get_city,pu.name,pu.id,pu.class_name,jp.type')
             ->join('j_product jp','jp.id=pu.product_id')->where([['get_city','like','%'.$city.'%']])->leftjoin('file file','pu.first_id=file.id')
             ->limit(5)->select()->toarray();
-        $magic = Pusermagic::where('user_id',$puser['id'])->field('style,img')->find();
-        foreach ($magic['img'] as $key=>$value) {
-            $magic['img']->$key['img'] = http().File::where('id',$value['img'])->value('file_path');
-            $magic['img']->$key['page'] = Puserpage::where('id',$value['page'])->value('page');
+        $magic = Pusermagic::where('user_id',$puser['id'])->field('page,img,can')->select();
+        foreach ($magic as $key=>$value) {
+            $magic[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
+            $magic[$key]['page'] = Puserpage::where('id',$value['page'])->value('page');
         }
         return json(['code'=>'200','msg'=>'操作成功','magic'=>$magic,'navigation'=>$navigation,'img'=>$carousel_img,'rjproduct'=>$rjproduct,'rlproduct'=>$rlproduct,'http'=>http(),'notice'=>$puser['notice']]);
     }
@@ -163,9 +164,13 @@ class Index
 
     public function userinfo(Request $request){
         $id = getDecodeToken()['puser_id'];
-        $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'openid'=>getDecodeToken()['openid']])->find();
-
+        $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'id'=>$id])->find();
         $collection = Pusercollection::where('user_id',$id)->count();
-        return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection]);
+        $product = Pusermy::where('user_id',$user['puser_id'])->select();
+        foreach($product as $key=>$value){
+            $product[$key]['page'] =Puserpage::where('id',$value['page'])->value('page');
+            $product[$key]['img'] = http(). File::where('id',$value['img'])->value('file_path');
+        }
+        return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection,'product'=>$product]);
     }
 }

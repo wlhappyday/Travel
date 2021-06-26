@@ -15,4 +15,12 @@ use think\model\concern\SoftDelete;
 class JfeeChange extends Model
 {
     protected $name = 'j_fee_change';
+
+    /**
+     * @field("id,before_money,money,after_money,state,data_id,create_time")
+     */
+    public function fee($id){
+        $res = $this->get($id);
+        return $res;
+    }
 }

@@ -23,8 +23,7 @@ Route::group('product', function () {
     Route::get('details', 'Product/details');
     Route::get('collection', 'Product/collectionlist');
     Route::post('collectiondelete', 'Product/collectiondelete');
-
-
+    Route::get('footprint', 'Product/footprint');
 });
 Route::group('order', function () {
     Route::post('orderadd', 'Order/orderadd');

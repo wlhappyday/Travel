@@ -4,6 +4,8 @@ declare (strict_types = 1);
 namespace app\platform\controller;
 use app\common\model\Paccount;
 use app\common\model\PfzAccount;
+use app\common\model\Pusermy;
+use app\common\model\Padmin;
 use app\platform\model\Adminlogin;
 use hg\apidoc\annotation as Apidoc;
 use think\Request;
@@ -76,7 +78,7 @@ class User
         $data = $request->post();
         $rule = [
             'user_name'=>'require|unique:p_user|length:4,15',
-            'newpassword'=>'require|length:6,15|confirm',
+            'newpassword'=>'require|length:6,15',
             'rate'=>'require|float'
         ];
         $msg = [
@@ -85,7 +87,7 @@ class User
             'user_name.length'=>'账号必须4-15位之内',
             'newpassword.require' => '新密码必填',
             'newpassword.length' => '密码必须6-15位之内',
-            'newpassword.confirm' => '两次密码不一致',
+//            'newpassword.confirm' => '两次密码不一致',
             'rate.require' => '费率必填',
             'rate.float' => '费率必须为小数',
         ];
@@ -115,6 +117,13 @@ class User
                     ['user_id'=>$user['id'], 'imgs'=>'/img/dingdan1.png', 'title'=>'订单列表','page_id'=>'5'],
                     ['user_id'=>$user['id'], 'imgs'=>'/img/dingdan1.png', 'title'=>'专辑', 'page_id'=>'7'],
                     ['user_id'=>$user['id'], 'imgs'=>'/img/me.png', 'title'=>'个人中心', 'page_id'=>'4']
+                ]);
+                Pusermy::insertAll([
+                    ['name'=>'核销码','img'=>'1','user_id'=>$user['id'],'page'=>'8'],
+                    ['name'=>'人员证件','img'=>'1','user_id'=>$user['id'],'page'=>'9'],
+                    ['name'=>'分销中心','img'=>'1','user_id'=>$user['id'],'page'=>'10'],
+                    ['name'=>'积分商城','img'=>'1','user_id'=>$user['id'],'page'=>'11'],
+                    ['name'=>'优惠券','img'=>'1','user_id'=>$user['id'],'page'=>'12']
                 ]);
                 addPadminLog(getDecodeToken(),'创建用户端用户：'.$user['id']);
                 Db::commit();
