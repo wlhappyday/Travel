@@ -16,10 +16,11 @@ use Exception;
 use thans\jwt\facade\JWTAuth;
 use think\facade\Db;
 use think\Request;
+use think\response\Json;
 
 class Login
 {
-    public function login()
+    public function login(): Json
     {
         $phone = input('post.phone', '123456', 'strip_tags');
         $username = input('post.username', '123456', 'strip_tags');
@@ -61,7 +62,6 @@ class Login
         if (empty($userDate)) {
             return returnData(['msg' => '用户不存在', "code" => 201]);
         }
-//        p($userDate);
         if (!checkPasswd($passwd, $userDate)) {
             return returnData(['msg' => '账号密码错误', "code" => 201]);
         }
