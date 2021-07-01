@@ -184,7 +184,7 @@ class Applets
     public function carouseldetail(Request $request){
         $carousel_id = $request->get('carousel_id');
         $carousel = Pcarousel::where(['carousel_id'=>$carousel_id])->field('carousel_id,type,img,page')->find();
-
+        $carousel['img_id'] = $carousel['img'];
         $carousel['img'] = http(). File::where('id',$carousel['img'])->value('file_path');
         return json(['code'=>'200','msg'=>'操作成功','carousel'=>$carousel]);
     }
