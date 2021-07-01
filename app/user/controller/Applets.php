@@ -149,9 +149,12 @@ class Applets
             }else{
                 $carousel = new Pcarousel();
             }
+            if ($page){
+                $type = J_product::where('id',$page)->value('type');
+                $carousel->page_type = $type;
+            }
             $carousel->appid = $appid;
             $carousel->img = $img;
-            $carousel->type = $type;
             $carousel->page = $page;
             $carousel->save();
             if ($carousel_id){

@@ -6,6 +6,7 @@ namespace app\applets\controller;
 use app\common\model\File;
 use app\common\model\Pusermy;
 use app\platform\model\Productuser;
+use app\common\model\XproductClass;
 use app\user\model\Config;
 use app\common\model\Puserpage;
 use app\common\model\Pusermagic;
@@ -80,7 +81,7 @@ class Index
             return json(['code'=>'201','msg'=>'小程序暂时无法使用']);
         }
         //获取轮播图
-        $carousel_img = Pcarousel::where(['type'=>'1','appid'=>$appid])->field('img,page')->select();
+        $carousel_img = Pcarousel::where(['type'=>'1','appid'=>$appid])->field('img,page,page_type')->select();
         foreach ($carousel_img as $key => $value){
             $carousel_img[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
         }
@@ -141,23 +142,27 @@ class Index
         $product_name = $request->get('product_name');
         $id = Puser::where('appid',getDecodeToken()['appid'])->value('id');
         $type = $request->get('type');
+        $class_id = $request->get('class_id');
         if($type=='1'){
             //景區
             $product = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','jp.type'=>'1','jp.status'=>'0','pu.user_id'=>$id])
                 ->join('j_product jp','jp.id=pu.product_id')
                 ->leftjoin('file file','pu.first_id=file.id')
-                ->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.get_city,pu.name,pu.id')
+                ->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.get_city,pu.name,pu.id,jp.type')
                 ->where([['jp.get_city','like','%'.$get_city.'%']])
+                ->where(['jp.mp_id'=>$class_id])
                 ->where([['pu.name','like','%'.$product_name.'%']])
                 ->select()->toarray();
         }else if($type=='2'){
             //綫路
+            $jt_qname = XproductClass::where('id',$class_id)->value('name');
             $product = Productuser::alias('pu')->where('jp.delete_time',null)->where(['pu.status'=>'0','jp.type'=>'2','jp.status'=>'0','pu.user_id'=>$id])
                 ->join('j_product jp','jp.id=pu.product_id')
                 ->leftjoin('file file','pu.first_id=file.id')
-                ->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.address,pu.name,pu.id')
+                ->field('file.file_path,pu.class_name,pu.price,pu.product_id,jp.address,pu.name,pu.id,jp.type')
                 ->where([['jp.get_city','like','%'.$get_city.'%']])
                 ->where([['pu.name','like','%'.$product_name.'%']])
+                ->where(['jp.jt_qname'=>$jt_qname])
                 ->select()->toarray();
         }else{
             return json(['code'=>'201','msg'=>'type不能为空']);

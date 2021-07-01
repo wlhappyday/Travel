@@ -8,6 +8,8 @@ use app\common\model\File;
 use app\common\model\Puseruser;
 use app\platform\model\Productuser;
 use app\common\model\PuserFootprint;
+use app\common\model\JproductClass;
+use app\common\model\XproductClass;
 use app\common\model\PuserInfo;
 use app\common\model\Pusercollection;
 use app\common\model\Puserpassenger;
@@ -96,6 +98,7 @@ class Product
         }
         return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
     }
+
 
     /**
      * @Apidoc\Title("获取用户乘客")
@@ -346,5 +349,24 @@ class Product
             $product[$key]['first_id'] = http().File::where('id',$val['first_id'])->value('file_path');
         }
         return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
+    }
+
+    public function product_class(Request  $request){
+        $id = getDecodeToken()['puser_id'];
+        $type = $request->get('type');
+        switch ($type){
+            case 1:
+                $class = JproductClass::where('type','2')->select();
+                break;
+            case 2:
+                $class = XproductClass::where('type','3')->select();
+                break;
+        }
+        foreach ($class as $key=>$val){
+            $class[$key]['text'] = $val['name'];
+            $class[$key]['value'] = $val['id'];
+        }
+        return json(['code'=>'200','msg'=>'操作成功','class'=>$class]);
+
     }
 }

@@ -120,7 +120,10 @@ class Order
         if($order_status){
             if($order_status =='5'){
                 $order->whereIn('order.order_status',[4,5]);
-            }else{
+            }else if($order_status =='6'){
+                $order->whereIn('order.order_status',[3,6]);
+            }
+            else{
                 $order->where('order.order_status',$order_status);
             }
 
