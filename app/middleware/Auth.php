@@ -15,7 +15,7 @@ class Auth
         '3' => 'scenic',
         '4' => 'line',
         '5' => 'user',
-        '6'=>'applets'
+        '6' => 'applets'
     ];
     /**
      * 处理请求
@@ -25,15 +25,6 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
-        if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
-            return $next($request);
-        }
-        if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
-            return $next($request);
-        }
-        if ($request->server()['REQUEST_URI'] == '/apidoc/apiData') {
-            return $next($request);
-        }
         if ($request->server()['REQUEST_URI'] == "/api/login/SignLogin") {
             return $next($request);
         }
