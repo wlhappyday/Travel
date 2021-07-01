@@ -7,6 +7,7 @@ use app\common\model\File;
 use app\common\model\Pproductreview;
 use app\platform\model\J_product;
 use app\platform\model\Product_relation;
+use app\api\model\Padmin;
 use app\platform\model\Admin;
 use app\common\model\PfzAccount;
 use app\common\model\Paccount;
@@ -134,7 +135,7 @@ class Product
                 if (Product_relation::where(['product_id'=>$product_id,'uid'=>$uid])->find()){
                     return json(['code'=>'201','msg'=>'您已经绑定该产品']);
                 }
-                if($j_product['mp_id']=='6'){
+                if($j_product['mp_id']=='6'&&$j_product['type']=='1'){
                     $JproductReview = JproductReview::where(['pid'=>$uid,'product_id'=>$product_id,'uid'=>$j_product['uid']])->whereIn('state',[1,2])->find();
                     if ($JproductReview){
                         return json(['code'=>'201','msg'=>'绑定该产品需要审核，请耐心等待']);

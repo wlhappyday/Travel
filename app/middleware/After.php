@@ -7,6 +7,10 @@ use Closure;
 use thans\jwt\facade\JWTAuth;
 use think\Request;
 
+/**
+ * Class After
+ * @package app\middleware
+ */
 class After
 {
     /**
@@ -16,7 +20,7 @@ class After
      * @param Closure $next
      * @return Response
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
         if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
             return $next($request);

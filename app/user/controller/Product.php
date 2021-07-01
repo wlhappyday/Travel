@@ -70,7 +70,7 @@ class Product
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('file d','d.id=a.first_id')
-            ->field('a.id,a.type,a.name,a.class_name,a.title,pr.price,a.number,a.end_time,a.desc,d.file_path,a.get_city,a.set_city,a.mp_name,pr.price,a.get_city')
+            ->field('pr.product_id,a.id,a.type,a.name,a.class_name,a.title,pr.price,a.number,a.end_time,a.desc,d.file_path,a.get_city,a.set_city,a.mp_name,pr.price,a.get_city')
             ->join('p_product_relation pr','pr.product_id=a.id')->where('pr.uid',$uid)->order('pr.id','desc');
         if ($start_time){
             $data->whereTime('pr.create_time', '>=', strtotime($start_time));

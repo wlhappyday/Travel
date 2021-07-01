@@ -24,6 +24,8 @@ Route::group('product', function () {
     Route::get('collection', 'Product/collectionlist');
     Route::post('collectiondelete', 'Product/collectiondelete');
     Route::get('footprint', 'Product/footprint');
+    Route::get('productclass', 'Product/product_class');
+
 });
 Route::group('order', function () {
     Route::post('orderadd', 'Order/orderadd');
