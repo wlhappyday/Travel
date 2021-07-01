@@ -642,6 +642,61 @@
         ]
     },
     {
+        "name": "guzzlehttp/uri-template",
+        "version": "v0.2.0",
+        "version_normalized": "0.2.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/guzzle/uri-template.git",
+            "reference": "db46525d6d8fee71033b73cc07160f3e5271a8ce"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/guzzle/uri-template/zipball/db46525d6d8fee71033b73cc07160f3e5271a8ce",
+            "reference": "db46525d6d8fee71033b73cc07160f3e5271a8ce",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^7.1 || ^8.0",
+            "symfony/polyfill-php80": "^1.17"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^7.5.15 || ^8.5 || ^9.3",
+            "uri-template/tests": "1.0.0"
+        },
+        "time": "2020-07-21T13:45:09+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.0-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "GuzzleHttp\\UriTemplate\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "George Mponos",
+                "email": "gmponos@gmail.com",
+                "homepage": "https://github.com/gmponos",
+                "role": "Developer"
+            }
+        ],
+        "description": "A polyfill class for uri_template of PHP",
+        "homepage": "https://github.com/guzzlehttp/uri-template",
+        "keywords": [
+            "guzzlehttp",
+            "uri-template"
+        ]
+    },
+    {
         "name": "hg/apidoc",
         "version": "v2.5.2",
         "version_normalized": "2.5.2.0",
@@ -698,11 +753,7 @@
             "接口文档",
             "注释生成",
             "自动生成"
-        ],
-        "support": {
-            "issues": "https://github.com/HGthecode/thinkphp-apidoc/issues",
-            "source": "https://github.com/HGthecode/thinkphp-apidoc/tree/v2.5.2"
-        }
+        ]
     },
     {
         "name": "lcobucci/jwt",
@@ -2344,5 +2395,66 @@
             }
         ],
         "description": "thinkphp template driver"
+    },
+    {
+        "name": "wechatpay/wechatpay",
+        "version": "1.0.3",
+        "version_normalized": "1.0.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/wechatpay-apiv3/wechatpay-php.git",
+            "reference": "fba9ed312dae43b615018a9cd2455f2e9781f4cd"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/wechatpay-apiv3/wechatpay-php/zipball/fba9ed312dae43b615018a9cd2455f2e9781f4cd",
+            "reference": "fba9ed312dae43b615018a9cd2455f2e9781f4cd",
+            "shasum": ""
+        },
+        "require": {
+            "ext-curl": "*",
+            "ext-libxml": "*",
+            "ext-openssl": "*",
+            "ext-simplexml": "*",
+            "guzzlehttp/guzzle": "^7.0",
+            "guzzlehttp/uri-template": "^0.2",
+            "php": ">=7.2"
+        },
+        "require-dev": {
+            "phpstan/phpstan": "^0.12.89",
+            "phpunit/phpunit": "^8.5.5 || ^9.3.5"
+        },
+        "time": "2021-06-29T07:56:37+00:00",
+        "bin": [
+            "bin/CertificateDownloader.php"
+        ],
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "WeChatPay\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "WeChatPay Community",
+                "homepage": "https://developers.weixin.qq.com/community/pay"
+            }
+        ],
+        "description": "[A]Sync Chainable WeChatPay v2&v3's OpenAPI SDK for PHP",
+        "homepage": "https://pay.weixin.qq.com/",
+        "keywords": [
+            "AES-GCM",
+            "aes-ecb",
+            "chainable HTTP requests client",
+            "rsa-oaep",
+            "wechatpay",
+            "xml-builder",
+            "xml-parser"
+        ]
     }
 ]
