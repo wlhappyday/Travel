@@ -179,6 +179,7 @@ class Index
             $product[$key]['page'] =Puserpage::where('id',$value['page'])->value('page');
             $product[$key]['img'] = http(). File::where('id',$value['img'])->value('file_path');
         }
-        return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection,'product'=>$product]);
+        $order = \app\common\model\Order::where(['user_id'=>$id,'order_status'=>'2'])->count();
+        return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection,'product'=>$product,'ordercount'=>$order]);
     }
 }
