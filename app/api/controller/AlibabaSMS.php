@@ -39,9 +39,7 @@ class AlibabaSMS
             } else {
                 return returnData(['msg' => '成功', "code" => 200]);
             }
-
         }
-
     }
 
     /**

@@ -14,6 +14,7 @@ use app\common\model\PadminBalanceRecords;
 use app\common\model\PadminLog;
 use app\common\model\Puserbalancerecords;
 use app\common\model\Puserlog;
+use app\common\model\PuserUserBalanceRecords;
 use app\common\model\XuserBalanceRecords;
 use app\common\model\XuserLog;
 use app\platform\model\Product_relation;
@@ -175,6 +176,9 @@ function genggaijiage($order, $transaction_id = ""): bool
         } elseif ($order['store_type'] == 2) {
             XuserBalanceRecords::create($dateEEEEEEE);
         }
+        if (!empty($order["u_user_id"]) && bccomp($order['good_distribution'], "0.00") > 0) {
+            PuserUserBalanceRecords::create(["data_id" => $order['order_id'], "uid" => $order['u_user_id'], "p_price" => $order["order_amount"], "money" => bcmul($order["order_amount"], $order['good_distribution'])]);
+        }
         return true;
     } elseif ($order['order_status'] == 4) {
         $pAdminBalanceRecordsMoney = bcmul(bcsub($order['p_price'], $order["store_price"]), $order["surplus_num"]);
@@ -188,6 +192,9 @@ function genggaijiage($order, $transaction_id = ""): bool
         } elseif ($order['store_type'] == 2) {
             XuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
         }
+        if (!empty($order["u_user_id"]) && bccomp($order['good_distribution'], "0.00") > 0) {
+            PuserUserBalanceRecords::update(["p_price" => $order["surplus_price"], "money" => bcmul($order["surplus_price"], $order['good_distribution'])], ["data_id" => $order['order_id'], "uid" => $order['u_user_id']]);
+        }
         return true;
     } elseif ($order['order_status'] == 5) {
         PadminBalanceRecords::update(["type" => 2, "money" => 0, "p_price" => 0], ["data_id" => $order['order_id'], "uid" => $order['p_id']]);
@@ -199,12 +206,14 @@ function genggaijiage($order, $transaction_id = ""): bool
         } elseif ($order['store_type'] == 2) {
             XuserBalanceRecords::update($dateEEEEEEE, $dateEEEEEEEEEE);
         }
+        if (!empty($order["u_user_id"]) && bccomp($order['good_distribution'], "0.00") > 0) {
+            PuserUserBalanceRecords::create(["type" => 2, "money" => 0, "p_price" => 0], ["data_id" => $order['order_id'], "uid" => $order['u_user_id']]);
+        }
         return true;
     } else {
         return false;
     }
 }
-
 function genggaijiageMen($order, $transaction_id = ""): bool
 {
     if ($order['order_status'] == 2) {
@@ -548,7 +557,7 @@ function product_relation($pid, $product_id, $Review_id)
  * @Note   获取系统变量
  *
  */
-function getVariable(string $name = ''): array
+function getVariable(string $name = '')
 {
     $result = new Config();
     return $result->where(['title' => $name])->value('value');

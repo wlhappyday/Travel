@@ -4,7 +4,7 @@
     "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
     "This file is @generated automatically"
   ],
-  "content-hash": "4130a023e4559f58ccb7df7348903b2d",
+  "content-hash": "4c729bc6d1c8cbd48568374dc5fccb2a",
   "packages": [
     {
       "name": "adbario/php-dot-notation",
@@ -254,16 +254,16 @@
       "dist": {
         "type": "zip",
         "url": "https://api.github.com/repos/doctrine/annotations/zipball/b17c5014ef81d212ac539f07a1001832df1b6d3b",
-                "reference": "b17c5014ef81d212ac539f07a1001832df1b6d3b",
-                "shasum": ""
-            },
-            "require": {
-                "doctrine/lexer": "1.*",
-                "ext-tokenizer": "*",
-                "php": "^7.1 || ^8.0"
-            },
-            "require-dev": {
-                "doctrine/cache": "1.*",
+        "reference": "b17c5014ef81d212ac539f07a1001832df1b6d3b",
+        "shasum": ""
+      },
+      "require": {
+        "doctrine/lexer": "1.*",
+        "ext-tokenizer": "*",
+        "php": "^7.1 || ^8.0"
+      },
+      "require-dev": {
+        "doctrine/cache": "1.*",
                 "doctrine/coding-standard": "^6.0 || ^8.1",
                 "phpstan/phpstan": "^0.12.20",
                 "phpunit/phpunit": "^7.5 || ^9.1.5"
@@ -409,16 +409,16 @@
                 },
                 {
                     "name": "Anant Narayanan",
-                    "email": "anant@php.net",
-                    "role": "Developer"
+                  "email": "anant@php.net",
+                  "role": "Developer"
                 }
             ],
-            "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
-            "homepage": "https://github.com/firebase/php-jwt",
-            "keywords": [
-              "jwt",
-              "php"
-            ],
+          "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
+          "homepage": "https://github.com/firebase/php-jwt",
+          "keywords": [
+            "jwt",
+            "php"
+          ],
           "support": {
             "issues": "https://github.com/firebase/php-jwt/issues",
             "source": "https://github.com/firebase/php-jwt/tree/v5.2.1"
@@ -629,6 +629,59 @@
       "time": "2021-04-26T09:17:50+00:00"
     },
     {
+      "name": "guzzlehttp/uri-template",
+      "version": "v0.2.0",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/guzzle/uri-template.git",
+        "reference": "db46525d6d8fee71033b73cc07160f3e5271a8ce"
+      },
+      "dist": {
+        "type": "zip",
+        "url": "https://api.github.com/repos/guzzle/uri-template/zipball/db46525d6d8fee71033b73cc07160f3e5271a8ce",
+        "reference": "db46525d6d8fee71033b73cc07160f3e5271a8ce",
+        "shasum": ""
+      },
+      "require": {
+        "php": "^7.1 || ^8.0",
+        "symfony/polyfill-php80": "^1.17"
+      },
+      "require-dev": {
+        "phpunit/phpunit": "^7.5.15 || ^8.5 || ^9.3",
+        "uri-template/tests": "1.0.0"
+      },
+      "type": "library",
+      "extra": {
+        "branch-alias": {
+          "dev-master": "1.0-dev"
+        }
+      },
+      "autoload": {
+        "psr-4": {
+          "GuzzleHttp\\UriTemplate\\": "src"
+        }
+      },
+      "notification-url": "https://packagist.org/downloads/",
+      "license": [
+        "MIT"
+      ],
+      "authors": [
+        {
+          "name": "George Mponos",
+          "email": "gmponos@gmail.com",
+          "homepage": "https://github.com/gmponos",
+          "role": "Developer"
+        }
+      ],
+      "description": "A polyfill class for uri_template of PHP",
+      "homepage": "https://github.com/guzzlehttp/uri-template",
+      "keywords": [
+        "guzzlehttp",
+        "uri-template"
+      ],
+      "time": "2020-07-21T13:45:09+00:00"
+    },
+    {
       "name": "hg/apidoc",
       "version": "v2.5.2",
       "source": {
@@ -639,16 +692,16 @@
       "dist": {
         "type": "zip",
         "url": "https://api.github.com/repos/HGthecode/thinkphp-apidoc/zipball/c36c77081a17586cc9ff873afd34dc6d78409dea",
-                "reference": "c36c77081a17586cc9ff873afd34dc6d78409dea",
-                "shasum": ""
-            },
-            "require": {
-                "doctrine/annotations": "^1.6",
-                "symfony/class-loader": "~3.2.0"
-            },
-            "type": "think-extend",
-            "extra": {
-                "think": {
+        "reference": "c36c77081a17586cc9ff873afd34dc6d78409dea",
+        "shasum": ""
+      },
+      "require": {
+        "doctrine/annotations": "^1.6",
+        "symfony/class-loader": "~3.2.0"
+      },
+      "type": "think-extend",
+      "extra": {
+        "think": {
                     "services": [
                         "hg\\apidoc\\Service"
                     ],
@@ -683,10 +736,6 @@
                 "注释生成",
                 "自动生成"
             ],
-            "support": {
-                "issues": "https://github.com/HGthecode/thinkphp-apidoc/issues",
-                "source": "https://github.com/HGthecode/thinkphp-apidoc/tree/v2.5.2"
-            },
             "time": "2021-05-04T05:02:36+00:00"
         },
         {
@@ -727,16 +776,16 @@
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                  "name": "Luís Otávio Cobucci Oblonczyk",
-                  "email": "lcobucci@gmail.com",
-                  "role": "Developer"
-                }
-            ],
+          "license": [
+            "BSD-3-Clause"
+          ],
+          "authors": [
+            {
+              "name": "Luís Otávio Cobucci Oblonczyk",
+              "email": "lcobucci@gmail.com",
+              "role": "Developer"
+            }
+          ],
           "description": "A simple library to work with JSON Web Token and JSON Web Signature",
           "keywords": [
             "JWS",
@@ -813,14 +862,14 @@
             ],
             "description": "Filesystem abstraction: Many filesystems, one API.",
             "keywords": [
-                "Cloud Files",
-                "WebDAV",
-                "abstraction",
-                "aws",
-                "cloud",
-                "copy.com",
-                "dropbox",
-                "file systems",
+              "Cloud Files",
+              "WebDAV",
+              "abstraction",
+              "aws",
+              "cloud",
+              "copy.com",
+              "dropbox",
+              "file systems",
               "files",
               "filesystem",
               "filesystems",
@@ -862,16 +911,16 @@
                 "predis/predis": "~1.0",
                 "tedivm/stash": "~0.12"
             },
-            "suggest": {
-                "ext-phpredis": "Pure C implemented extension for PHP"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "League\\Flysystem\\Cached\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
+          "suggest": {
+            "ext-phpredis": "Pure C implemented extension for PHP"
+          },
+          "type": "library",
+          "autoload": {
+            "psr-4": {
+              "League\\Flysystem\\Cached\\": "src/"
+            }
+          },
+          "notification-url": "https://packagist.org/downloads/",
           "license": [
             "MIT"
           ],
@@ -908,16 +957,16 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^2.18",
-                "phpstan/phpstan": "^0.12.68",
-                "phpunit/phpunit": "^8.5.8 || ^9.3"
+              "phpstan/phpstan": "^0.12.68",
+              "phpunit/phpunit": "^8.5.8 || ^9.3"
             },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "League\\MimeTypeDetection\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
+          "type": "library",
+          "autoload": {
+            "psr-4": {
+              "League\\MimeTypeDetection\\": "src"
+            }
+          },
+          "notification-url": "https://packagist.org/downloads/",
           "license": [
             "MIT"
           ],
@@ -1002,16 +1051,16 @@
       "dist": {
         "type": "zip",
         "url": "https://api.github.com/repos/PHPOffice/PHPExcel/zipball/1441011fb7ecdd8cc689878f54f8b58a6805f870",
-                "reference": "1441011fb7ecdd8cc689878f54f8b58a6805f870",
-                "shasum": ""
-            },
-            "require": {
-                "ext-mbstring": "*",
-                "ext-xml": "*",
-                "ext-xmlwriter": "*",
-                "php": "^5.2|^7.0"
-            },
-            "require-dev": {
+        "reference": "1441011fb7ecdd8cc689878f54f8b58a6805f870",
+        "shasum": ""
+      },
+      "require": {
+        "ext-mbstring": "*",
+        "ext-xml": "*",
+        "ext-xmlwriter": "*",
+        "php": "^5.2|^7.0"
+      },
+      "require-dev": {
                 "squizlabs/php_codesniffer": "2.*"
             },
             "type": "library",
@@ -1086,16 +1135,16 @@
                     "Psr\\Cache\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                  "name": "PHP-FIG",
-                  "homepage": "http://www.php-fig.org/"
-                }
-            ],
+          "notification-url": "https://packagist.org/downloads/",
+          "license": [
+            "MIT"
+          ],
+          "authors": [
+            {
+              "name": "PHP-FIG",
+              "homepage": "http://www.php-fig.org/"
+            }
+          ],
           "description": "Common interface for caching libraries",
           "keywords": [
             "cache",
@@ -1130,16 +1179,16 @@
                     "Psr\\Container\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
-                }
-            ],
+          "notification-url": "https://packagist.org/downloads/",
+          "license": [
+            "MIT"
+          ],
+          "authors": [
+            {
+              "name": "PHP-FIG",
+              "homepage": "https://www.php-fig.org/"
+            }
+          ],
           "description": "Common Container Interface (PHP FIG PSR-11)",
           "homepage": "https://github.com/php-fig/container",
           "keywords": [
@@ -1265,16 +1314,16 @@
       "dist": {
         "type": "zip",
         "url": "https://api.github.com/repos/php-fig/log/zipball/0f73288fd15629204f9d42b7055f72dacbe811fc",
-                "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.1.x-dev"
+        "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc",
+        "shasum": ""
+      },
+      "require": {
+        "php": ">=5.3.0"
+      },
+      "type": "library",
+      "extra": {
+        "branch-alias": {
+          "dev-master": "1.1.x-dev"
                 }
             },
             "autoload": {
@@ -1282,16 +1331,16 @@
                     "Psr\\Log\\": "Psr/Log/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                  "homepage": "http://www.php-fig.org/"
-                }
-            ],
+      "notification-url": "https://packagist.org/downloads/",
+      "license": [
+        "MIT"
+      ],
+      "authors": [
+        {
+          "name": "PHP-FIG",
+          "homepage": "http://www.php-fig.org/"
+        }
+      ],
       "description": "Common interface for logging libraries",
       "homepage": "https://github.com/php-fig/log",
       "keywords": [
@@ -1304,16 +1353,16 @@
       },
       "time": "2020-03-23T09:12:05+00:00"
     },
-        {
-            "name": "psr/simple-cache",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/simple-cache.git",
-                "reference": "408d5eafb83c57f6365a3ca330ff23aa4a5fa39b"
-            },
-            "dist": {
-                "type": "zip",
+    {
+      "name": "psr/simple-cache",
+      "version": "1.0.1",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/php-fig/simple-cache.git",
+        "reference": "408d5eafb83c57f6365a3ca330ff23aa4a5fa39b"
+      },
+      "dist": {
+        "type": "zip",
                 "url": "https://api.github.com/repos/php-fig/simple-cache/zipball/408d5eafb83c57f6365a3ca330ff23aa4a5fa39b",
                 "reference": "408d5eafb83c57f6365a3ca330ff23aa4a5fa39b",
                 "shasum": ""
@@ -1332,29 +1381,29 @@
                     "Psr\\SimpleCache\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
-                }
-            ],
-          "description": "Common interfaces for simple caching",
-          "keywords": [
-            "cache",
-            "caching",
-            "psr",
-            "psr-16",
-            "simple-cache"
-          ],
-          "support": {
-            "source": "https://github.com/php-fig/simple-cache/tree/master"
-          },
-          "time": "2017-10-23T01:57:42+00:00"
-        },
+      "notification-url": "https://packagist.org/downloads/",
+      "license": [
+        "MIT"
+      ],
+      "authors": [
+        {
+          "name": "PHP-FIG",
+          "homepage": "http://www.php-fig.org/"
+        }
+      ],
+      "description": "Common interfaces for simple caching",
+      "keywords": [
+        "cache",
+        "caching",
+        "psr",
+        "psr-16",
+        "simple-cache"
+      ],
+      "support": {
+        "source": "https://github.com/php-fig/simple-cache/tree/master"
+      },
+      "time": "2017-10-23T01:57:42+00:00"
+    },
     {
       "name": "ralouphie/getallheaders",
       "version": "3.0.3",
@@ -1406,16 +1455,16 @@
       "dist": {
         "type": "zip",
         "url": "https://api.github.com/repos/symfony/class-loader/zipball/e192d96b15fdd168bdb1c91001d26c93ba4af482",
-                "reference": "e192d96b15fdd168bdb1c91001d26c93ba4af482",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.5.9"
-            },
-            "require-dev": {
-                "symfony/finder": "~2.8|~3.0",
-                "symfony/polyfill-apcu": "~1.1"
-            },
+        "reference": "e192d96b15fdd168bdb1c91001d26c93ba4af482",
+        "shasum": ""
+      },
+      "require": {
+        "php": ">=5.5.9"
+      },
+      "require-dev": {
+        "symfony/finder": "~2.8|~3.0",
+        "symfony/polyfill-apcu": "~1.1"
+      },
             "suggest": {
                 "symfony/polyfill-apcu": "For using ApcClassLoader on HHVM"
             },
@@ -1437,16 +1486,16 @@
             "license": [
                 "MIT"
             ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-              {
-                "name": "Symfony Community",
-                "homepage": "https://symfony.com/contributors"
-              }
-            ],
+      "authors": [
+        {
+          "name": "Fabien Potencier",
+          "email": "fabien@symfony.com"
+        },
+        {
+          "name": "Symfony Community",
+          "homepage": "https://symfony.com/contributors"
+        }
+      ],
       "description": "Symfony ClassLoader Component",
       "homepage": "https://symfony.com",
       "time": "2017-06-01T21:00:24+00:00"
@@ -1580,6 +1629,75 @@
       "time": "2021-01-22T09:19:47+00:00"
     },
     {
+      "name": "symfony/polyfill-php80",
+      "version": "v1.22.1",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/symfony/polyfill-php80.git",
+        "reference": "dc3063ba22c2a1fd2f45ed856374d79114998f91"
+      },
+      "dist": {
+        "type": "zip",
+        "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/dc3063ba22c2a1fd2f45ed856374d79114998f91",
+        "reference": "dc3063ba22c2a1fd2f45ed856374d79114998f91",
+        "shasum": ""
+      },
+      "require": {
+        "php": ">=7.1"
+      },
+      "type": "library",
+      "extra": {
+        "branch-alias": {
+          "dev-main": "1.22-dev"
+        },
+        "thanks": {
+          "name": "symfony/polyfill",
+          "url": "https://github.com/symfony/polyfill"
+        }
+      },
+      "autoload": {
+        "psr-4": {
+          "Symfony\\Polyfill\\Php80\\": ""
+        },
+        "files": [
+          "bootstrap.php"
+        ],
+        "classmap": [
+          "Resources/stubs"
+        ]
+      },
+      "notification-url": "https://packagist.org/downloads/",
+      "license": [
+        "MIT"
+      ],
+      "authors": [
+        {
+          "name": "Ion Bazan",
+          "email": "ion.bazan@gmail.com"
+        },
+        {
+          "name": "Nicolas Grekas",
+          "email": "p@tchwork.com"
+        },
+        {
+          "name": "Symfony Community",
+          "homepage": "https://symfony.com/contributors"
+        }
+      ],
+      "description": "Symfony polyfill backporting some PHP 8.0+ features to lower PHP versions",
+      "homepage": "https://symfony.com",
+      "keywords": [
+        "compatibility",
+        "polyfill",
+        "portable",
+        "shim"
+      ],
+      "support": {
+        "source": "https://github.com/symfony/polyfill-php80/tree/v1.22.1"
+      },
+      "time": "2021-01-07T16:49:33+00:00"
+    },
+    {
       "name": "symfony/yaml",
       "version": "v2.8.52",
       "source": {
@@ -1640,16 +1758,16 @@
       "dist": {
         "type": "zip",
         "url": "https://api.github.com/repos/QThans/jwt-auth/zipball/cbd596ef27a938a9176880a3340529842930d5da",
-                "reference": "cbd596ef27a938a9176880a3340529842930d5da",
-                "shasum": ""
-            },
-            "require": {
-                "lcobucci/jwt": "3.3.*",
-                "php": "^7.0",
-                "topthink/framework": "^5.1.10 || ^6.0.0"
-            },
-            "type": "library",
-            "extra": {
+        "reference": "cbd596ef27a938a9176880a3340529842930d5da",
+        "shasum": ""
+      },
+      "require": {
+        "lcobucci/jwt": "3.3.*",
+        "php": "^7.0",
+        "topthink/framework": "^5.1.10 || ^6.0.0"
+      },
+      "type": "library",
+      "extra": {
                 "think": {
                     "services": [
                         "thans\\jwt\\Service"
@@ -1722,16 +1840,16 @@
             "license": [
                 "Apache-2.0"
             ],
-            "authors": [
-                {
-                    "name": "liu21st",
-                    "email": "liu21st@gmail.com"
-                },
-                {
-                    "name": "yunwuxin",
-                  "email": "448901948@qq.com"
-                }
-            ],
+          "authors": [
+            {
+              "name": "liu21st",
+              "email": "liu21st@gmail.com"
+            },
+            {
+              "name": "yunwuxin",
+              "email": "448901948@qq.com"
+            }
+          ],
           "description": "The ThinkPHP Framework.",
           "homepage": "http://thinkphp.cn/",
           "keywords": [
@@ -1762,16 +1880,16 @@
             "require": {
                 "php": ">=7.1.0"
             },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "think\\": "src"
-                },
-                "files": [
-                    "src/helper.php"
-                ]
+          "type": "library",
+          "autoload": {
+            "psr-4": {
+              "think\\": "src"
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "files": [
+              "src/helper.php"
+            ]
+          },
+          "notification-url": "https://packagist.org/downloads/",
           "license": [
             "Apache-2.0"
           ],
@@ -1860,16 +1978,16 @@
             "extra": {
                 "think": {
                     "services": [
-                        "think\\app\\Service"
+                      "think\\app\\Service"
                     ]
                 }
             },
-            "autoload": {
-                "psr-4": {
-                    "think\\app\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
+          "autoload": {
+            "psr-4": {
+              "think\\app\\": "src"
+            }
+          },
+          "notification-url": "https://packagist.org/downloads/",
           "license": [
             "Apache-2.0"
           ],
@@ -1920,16 +2038,16 @@
                     "stubs/load_stubs.php"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-              {
-                "name": "liu21st",
-                "email": "liu21st@gmail.com"
-              }
-            ],
+          "notification-url": "https://packagist.org/downloads/",
+          "license": [
+            "Apache-2.0"
+          ],
+          "authors": [
+            {
+              "name": "liu21st",
+              "email": "liu21st@gmail.com"
+            }
+          ],
           "description": "think orm",
           "keywords": [
             "database",
@@ -2004,33 +2122,92 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "Apache-2.0"
+              "Apache-2.0"
             ],
-            "authors": [
-                {
-                    "name": "liu21st",
-                    "email": "liu21st@gmail.com"
-                }
-            ],
-            "description": "thinkphp template driver",
-            "time": "2019-11-06T11:40:13+00:00"
+          "authors": [
+            {
+              "name": "liu21st",
+              "email": "liu21st@gmail.com"
+            }
+          ],
+          "description": "thinkphp template driver",
+          "time": "2019-11-06T11:40:13+00:00"
+        },
+    {
+      "name": "wechatpay/wechatpay",
+      "version": "1.0.3",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/wechatpay-apiv3/wechatpay-php.git",
+        "reference": "fba9ed312dae43b615018a9cd2455f2e9781f4cd"
+      },
+      "dist": {
+        "type": "zip",
+        "url": "https://api.github.com/repos/wechatpay-apiv3/wechatpay-php/zipball/fba9ed312dae43b615018a9cd2455f2e9781f4cd",
+        "reference": "fba9ed312dae43b615018a9cd2455f2e9781f4cd",
+        "shasum": ""
+      },
+      "require": {
+        "ext-curl": "*",
+        "ext-libxml": "*",
+        "ext-openssl": "*",
+        "ext-simplexml": "*",
+        "guzzlehttp/guzzle": "^7.0",
+        "guzzlehttp/uri-template": "^0.2",
+        "php": ">=7.2"
+      },
+      "require-dev": {
+        "phpstan/phpstan": "^0.12.89",
+        "phpunit/phpunit": "^8.5.5 || ^9.3.5"
+      },
+      "bin": [
+        "bin/CertificateDownloader.php"
+      ],
+      "type": "library",
+      "autoload": {
+        "psr-4": {
+          "WeChatPay\\": "src/"
         }
-    ],
-    "packages-dev": [
+      },
+      "notification-url": "https://packagist.org/downloads/",
+      "license": [
+        "Apache-2.0"
+      ],
+      "authors": [
         {
-            "name": "symfony/polyfill-php72",
-            "version": "v1.22.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/polyfill-php72.git",
-                "reference": "cc6e6f9b39fe8075b3dabfbaf5b5f645ae1340c9"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/cc6e6f9b39fe8075b3dabfbaf5b5f645ae1340c9",
-                "reference": "cc6e6f9b39fe8075b3dabfbaf5b5f645ae1340c9",
-                "shasum": ""
-            },
+          "name": "WeChatPay Community",
+          "homepage": "https://developers.weixin.qq.com/community/pay"
+        }
+      ],
+      "description": "[A]Sync Chainable WeChatPay v2&v3's OpenAPI SDK for PHP",
+      "homepage": "https://pay.weixin.qq.com/",
+      "keywords": [
+        "AES-GCM",
+        "aes-ecb",
+        "chainable HTTP requests client",
+        "rsa-oaep",
+        "wechatpay",
+        "xml-builder",
+        "xml-parser"
+      ],
+      "time": "2021-06-29T07:56:37+00:00"
+    }
+  ],
+  "packages-dev": [
+    {
+      "name": "symfony/polyfill-php72",
+      "version": "v1.22.1",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/symfony/polyfill-php72.git",
+        "reference": "cc6e6f9b39fe8075b3dabfbaf5b5f645ae1340c9"
+      },
+      "dist": {
+        "type": "zip",
+        "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/cc6e6f9b39fe8075b3dabfbaf5b5f645ae1340c9",
+        "reference": "cc6e6f9b39fe8075b3dabfbaf5b5f645ae1340c9",
+        "shasum": ""
+      },
             "require": {
                 "php": ">=7.1"
             },
@@ -2046,7 +2223,7 @@
             },
             "autoload": {
                 "psr-4": {
-                    "Symfony\\Polyfill\\Php72\\": ""
+                  "Symfony\\Polyfill\\Php72\\": ""
                 },
                 "files": [
                     "bootstrap.php"
@@ -2056,98 +2233,29 @@
             "license": [
                 "MIT"
             ],
-            "authors": [
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-          "description": "Symfony polyfill backporting some PHP 7.2+ features to lower PHP versions",
-          "homepage": "https://symfony.com",
-          "keywords": [
-            "compatibility",
-            "polyfill",
-            "portable",
-            "shim"
-          ],
-          "support": {
-            "source": "https://github.com/symfony/polyfill-php72/tree/v1.22.1"
-          },
-          "time": "2021-01-07T16:49:33+00:00"
+      "authors": [
+        {
+          "name": "Nicolas Grekas",
+          "email": "p@tchwork.com"
         },
         {
-            "name": "symfony/polyfill-php80",
-            "version": "v1.22.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/polyfill-php80.git",
-                "reference": "dc3063ba22c2a1fd2f45ed856374d79114998f91"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/dc3063ba22c2a1fd2f45ed856374d79114998f91",
-                "reference": "dc3063ba22c2a1fd2f45ed856374d79114998f91",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "1.22-dev"
-                },
-                "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Php80\\": ""
-                },
-                "files": [
-                    "bootstrap.php"
-                ],
-                "classmap": [
-                    "Resources/stubs"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ion Bazan",
-                    "email": "ion.bazan@gmail.com"
-                },
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-          "description": "Symfony polyfill backporting some PHP 8.0+ features to lower PHP versions",
-          "homepage": "https://symfony.com",
-          "keywords": [
-            "compatibility",
-            "polyfill",
-            "portable",
-            "shim"
-          ],
-          "support": {
-            "source": "https://github.com/symfony/polyfill-php80/tree/v1.22.1"
-          },
-          "time": "2021-01-07T16:49:33+00:00"
-        },
+          "name": "Symfony Community",
+          "homepage": "https://symfony.com/contributors"
+        }
+      ],
+      "description": "Symfony polyfill backporting some PHP 7.2+ features to lower PHP versions",
+      "homepage": "https://symfony.com",
+      "keywords": [
+        "compatibility",
+        "polyfill",
+        "portable",
+        "shim"
+      ],
+      "support": {
+        "source": "https://github.com/symfony/polyfill-php72/tree/v1.22.1"
+      },
+      "time": "2021-01-07T16:49:33+00:00"
+    },
         {
             "name": "symfony/var-dumper",
             "version": "v4.4.21",
@@ -2202,16 +2310,16 @@
             "license": [
                 "MIT"
             ],
-            "authors": [
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                  "name": "Symfony Community",
-                  "homepage": "https://symfony.com/contributors"
-                }
-            ],
+          "authors": [
+            {
+              "name": "Nicolas Grekas",
+              "email": "p@tchwork.com"
+            },
+            {
+              "name": "Symfony Community",
+              "homepage": "https://symfony.com/contributors"
+            }
+          ],
           "description": "Provides mechanisms for walking through any arbitrary PHP variable",
           "homepage": "https://symfony.com",
           "keywords": [
@@ -2248,16 +2356,16 @@
                         "think\\trace\\Service"
                     ],
                     "config": {
-                        "trace": "src/config.php"
+                      "trace": "src/config.php"
                     }
                 }
             },
-            "autoload": {
-                "psr-4": {
-                    "think\\trace\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
+          "autoload": {
+            "psr-4": {
+              "think\\trace\\": "src"
+            }
+          },
+          "notification-url": "https://packagist.org/downloads/",
           "license": [
             "Apache-2.0"
           ],
@@ -2282,7 +2390,11 @@
     "prefer-lowest": false,
     "platform": {
       "php": ">=7.1.0",
-      "ext-json": "*"
+      "ext-json": "*",
+      "ext-bcmath": "*",
+      "ext-curl": "*",
+      "ext-libxml": "*",
+      "ext-simplexml": "*"
     },
   "platform-dev": []
 }
