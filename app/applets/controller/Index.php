@@ -12,6 +12,7 @@ use app\common\model\Puserpage;
 use app\common\model\Pusermagic;
 use app\common\model\Puserhomenavigation;
 use app\common\model\Pusernavigation;
+use think\facade\Db;
 use think\Request;
 use app\common\model\Puseruser;
 use app\api\model\Puser;
@@ -86,7 +87,7 @@ class Index
             $carousel_img[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
         }
 
-        $navigation = Puserhomenavigation::where(['user_id'=>$puser['id'],'type'=>'1'])->field('title,img,page_id')->select();
+        $navigation = Puserhomenavigation::where(['user_id'=>$puser['id'],'type'=>'1'])->order('id','Desc')->field('title,img,page_id')->select();
         foreach ($navigation as $key => $value){
             $navigation[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
             $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
@@ -174,12 +175,45 @@ class Index
         $id = getDecodeToken()['puser_id'];
         $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'id'=>$id])->find();
         $collection = Pusercollection::where('user_id',$id)->count();
-        $product = Pusermy::where('user_id',$user['puser_id'])->select();
+        $product = Pusermy::where(['user_id'=>$user['puser_id'],'type'=>'1'])->select();
         foreach($product as $key=>$value){
             $product[$key]['page'] =Puserpage::where('id',$value['page'])->value('page');
             $product[$key]['img'] = http(). File::where('id',$value['img'])->value('file_path');
         }
+        $distcenter= Puseruser::where('id',$id)->value('is_distcenter');
         $order = \app\common\model\Order::where(['user_id'=>$id,'order_status'=>'2'])->count();
-        return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection,'product'=>$product,'ordercount'=>$order]);
+        return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection,'product'=>$product,'ordercount'=>$order,'distcenter'=>$distcenter]);
+    }
+
+    public function distcenter(Request  $request){
+        $id = getDecodeToken()['puser_id'];
+        $name = $request->post('name');
+        $phone = $request->post('phone');
+        $region = $request->post('region');
+        $textarea = $request->post('textarea');
+        $remarks = $request->post('remarks');
+        Db::startTrans();
+        try {
+            $puseruser= Puseruser::where('id',$id)->find();
+            $puseruser->name = $name;
+            $puseruser->phone = $phone;
+            $puseruser->region = $region;
+            $puseruser->textarea = $textarea;
+            $puseruser->remarks = $remarks;
+            $request->is_distcenter = '3';
+            $puseruser->save();
+            Db::commit();
+            return json(['code'=>'200','msg'=>'操作成功']);
+        }catch (\Exception $e){
+            Db::rollback();
+            return json(['code'=>'201','msg'=>'操作失败']);
+        }
+    }
+
+    public function isdistcenter(Request $request){
+        $id = getDecodeToken()['puser_id'];
+        $puseruser= Puseruser::where('id',$id)->value('is_distcenter');
+        $refuse= Puseruser::where('id',$id)->value('refuse');
+        return json(['code'=>'200','msg'=>'操作成功','is_distcenter'=>$puseruser,'refuse'=>$refuse]);
     }
 }

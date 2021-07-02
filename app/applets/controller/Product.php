@@ -5,6 +5,7 @@ namespace app\applets\controller;
 
 use app\api\model\Puser;
 use app\common\model\File;
+use app\common\model\Jproduct;
 use app\common\model\Puseruser;
 use app\platform\model\Productuser;
 use app\common\model\PuserFootprint;
@@ -249,17 +250,17 @@ class Product
         }
         return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
     }
-
     public function poster_detail(Request $request){
         $id = getDecodeToken()['puser_id'];
-        $prid = $request->get('id');
+        $product_id = $request->get('product_id');
         $pr = Productuser::where('id',$id)->field('img,first_id,product_id,type,name')->find();
         $puser_id = Puseruser::where('id',$id)->value('puser_id');
         $data = Puser::where('id',$puser_id)->field('appid,appkey')->find();
+        $jp = Jproduct::where(['id'=>$product_id])->find();
         $tokenUrl = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.$data['appid'].'&secret='.$data['appkey'];
         $token = json_decode(httpGet($tokenUrl));
         $data = [
-            'path' => 'pages/productdetail/productdetail?product_id='.$pr['product_id'].'&type='.$pr['type'], //扫码后进入页面
+            'path' => 'pages/productdetail/productdetail?product_id='.$jp['id'].'&type='.$jp['type'].'&uid='.$id, //扫码后进入页面
         ];
         $URL = 'https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token='.$token->access_token;
         $json = json_encode($data); //数组加密
@@ -278,7 +279,7 @@ class Product
         $path = $path.'/'.$filename.'.png'; //最后要写入的目录及文件名
         //  创建将数据流文件写入我们创建的文件内容中
         file_put_contents($path,$result);
-        return json(['code'=>'200','msg'=>'操作成功','name'=>$pr['name'],'product'=>http().'/storage/topic/'.$data.'/'.$filename.'.png']);
+        return json(['code'=>'200','msg'=>'操作成功','product'=>http().'/storage/topic/'.$data.'/'.$filename.'.png']);
     }
 
     public function details(Request $request){

@@ -770,7 +770,6 @@ class Applets
             Db::rollback();
             return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'200','msg'=>'操作成功','my'=>$product]);
     }
 
     /**

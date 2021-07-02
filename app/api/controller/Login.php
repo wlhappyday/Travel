@@ -170,6 +170,7 @@ class Login
     }
     public function SignLogin(Request $request){
         if ($request->isPost()){
+            $puseruser = $request->post('uid');
             $appid = $request->post('appid');
             $nickName = $request->post('nickName');
             $address = $request->post('address');
@@ -186,7 +187,14 @@ class Login
                     $save['type'] = $type;
                     try{
                         $uid = Puseruser::where(['openid'=>$session_key['openid'],'appid'=>$appid])->find();
+
                         if ($uid){
+                            if ($uid['is_distcenter']=='1'&&$puseruser!=$uid['id']){
+                                if ($puseruser){
+                                    $uid->pid = $puseruser;
+                                }
+                            }
+
                             $save['appid']= $uid['appid'];
                             $save['nickname'] = $uid['nickname'];
                             $save['sex'] = $uid['sex'];
@@ -207,8 +215,8 @@ class Login
                             $save['openid'] = $session_key['openid'];
                             $save['last_time'] = time();
                             $Puseruser->save($save);
-                            DB::commit();
                         }
+                        DB::commit();
                         header('Authorization:' . "Bearer " . JWTAuth::builder($save));
                         return json(['code' => '200', 'msg' => '操作成功', 'session_key' => $session_key]);
                     } catch (Exception $e) {
