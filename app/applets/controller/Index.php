@@ -200,6 +200,7 @@ class Index
             $puseruser->region = $region;
             $puseruser->textarea = $textarea;
             $puseruser->remarks = $remarks;
+            $request->distcenter_time = date('Y-m-d H:i:s');
             $request->is_distcenter = '3';
             $puseruser->save();
             Db::commit();

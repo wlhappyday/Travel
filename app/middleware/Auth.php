@@ -25,6 +25,18 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
+        if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
+            return $next($request);
+        }
+        if ($request['s'] == '/apidoc/apiData') {
+            return $next($request);
+        }
+
+
+
         if ($request->server()['REQUEST_URI'] == "/api/login/SignLogin") {
             return $next($request);
         }
@@ -43,9 +55,9 @@ class Auth
         if ($request->server()['REQUEST_URI'] == "/applets/index/index") {
             return $next($request);
         }
-        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
-            return $next($request);
-        }
+//        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
+//            return $next($request);
+//        }
         if ($request->server()['REQUEST_URI'] != "/api/login/login") {
             $auth = JWTAuth::auth();
             if (isset($auth['code1'])) {

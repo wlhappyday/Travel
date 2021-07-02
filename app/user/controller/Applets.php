@@ -15,6 +15,7 @@ use app\common\model\Pusernavigation;
 use app\common\model\Pusermy;
 use app\common\model\Puserhomenavigation;
 use app\platform\model\J_product;
+use app\platform\model\P_user;
 use think\facade\Db;
 use think\facade\Validate;
 use think\Model;
@@ -803,5 +804,37 @@ class Applets
         }
     }
 
-
+    /**
+     * @Apidoc\Title("个人中心修改状态")
+     * @Apidoc\Desc("个人中心修改状态")
+     * @Apidoc\Url("user/applets/notice")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     *  @Apidoc\Param("my_id", type="number",require=true, desc="唯一id" )
+     *  @Apidoc\Param("type", type="number",require=true, desc="状态值" )
+     */
+    public function notices(Request  $request){
+        if($request->isPost()){
+            $id = $request->id;
+            $notice = $request->post('notice');
+            if (empty($notice)){
+                return json(['code'=>'201','msg'=>'公告不能为空']);
+            }
+            Db::startTrans();
+            try {
+                $admin = P_user::where('id',$id)->field('notice')->find();
+                $admin->notice=$notice;
+                $admin->save();
+                addPuserLog(getDecodeToken(),'修改公告');
+                Db::commit();
+                return json(['code'=>'200','msg'=>'操作成功']);
+            }catch (\Exception $e){
+                Db::rollback();
+                return json(['code'=>'201','msg'=>'网络繁忙']);
+            }
+        }else{
+            return json(['code'=>'201','msg'=>'请用POST提交']);
+        }
+    }
 }

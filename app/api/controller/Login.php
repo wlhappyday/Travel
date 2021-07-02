@@ -170,7 +170,7 @@ class Login
     }
     public function SignLogin(Request $request){
         if ($request->isPost()){
-            $puseruser = $request->post('uid');
+            $puseruser_id = $request->post('uid');
             $appid = $request->post('appid');
             $nickName = $request->post('nickName');
             $address = $request->post('address');
@@ -183,17 +183,13 @@ class Login
                 if ($user){
                     $secret =Puser::where(['appid'=>$appid])->value('appkey');
                     $session_key = json_decode(httpGet("https://api.weixin.qq.com/sns/jscode2session?appid=".$appid."&secret=".$secret."&js_code=".$code."&grant_type=authorization_code"),true);
+//                    dd($session_key);
                     Db::startTrans();
-                    $save['type'] = $type;
+
                     try{
                         $uid = Puseruser::where(['openid'=>$session_key['openid'],'appid'=>$appid])->find();
 
                         if ($uid){
-                            if ($uid['is_distcenter']=='1'&&$puseruser!=$uid['id']){
-                                if ($puseruser){
-                                    $uid->pid = $puseruser;
-                                }
-                            }
 
                             $save['appid']= $uid['appid'];
                             $save['nickname'] = $uid['nickname'];
@@ -211,12 +207,14 @@ class Login
                             $save['sex'] = $gender;
                             $save['address'] = $address;
                             $save['avatar'] = $avatar;
-                            $save['puser_id'] = $user['id'];
+                            $save['type'] = '1';
                             $save['openid'] = $session_key['openid'];
                             $save['last_time'] = time();
                             $Puseruser->save($save);
+                            $save['puser_id'] = $Puseruser['id'];
                         }
                         DB::commit();
+                        $save['type'] = '6';
                         header('Authorization:' . "Bearer " . JWTAuth::builder($save));
                         return json(['code' => '200', 'msg' => '操作成功', 'session_key' => $session_key]);
                     } catch (Exception $e) {

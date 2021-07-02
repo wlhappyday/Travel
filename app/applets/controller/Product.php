@@ -63,9 +63,10 @@ class Product
 
     public function detail(Request $request){
         $product_id = $request->post('product_id');
-        $appid = $request->post('appid');
+        $puseruser_id = $request->post('uid');
+        $uid = getDecodeToken()['puser_id'];
+        $appid = getDecodeToken()['appid'];
         $type = $request->post('type');
-        $uid = $request->post('uid');
         $id = Puser::where('appid',$appid)->value('id');
         if($type=='1'){
             //景區
@@ -97,7 +98,23 @@ class Product
                 $product['collection'] = true;
             }
         }
-        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
+        if ($puseruser_id){
+            $puserusers = Puseruser::where(['id'=>$puseruser_id,'is_distcenter'=>'1'])->find();
+            if ($puserusers){
+                $puseruser = Puseruser::where(['id'=>$uid,'pid'=>'0'])->where('is_distcenter','<>','1')->find();
+                if ($uid !=$puseruser_id){
+                    if (!empty($puseruser)){
+                        $puseruser->pid = $puseruser_id;
+                        $puseruser->save();
+                         Puseruser::where(['id'=>$puseruser_id,'is_distcenter'=>'1'])->inc('offline_count')->update();;
+                    }
+                }
+
+            }
+
+        }
+
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product,'data'=>getDecodeToken()]);
     }
 
 

@@ -77,9 +77,17 @@ Route::group('applets', function () {
     Route::post('navigations', 'Applets/navigations');/*导航栏修改*/
 
     Route::post('mytype', 'Applets/my_type');/*导航栏修改*/
-
     Route::get('mydetail', 'Applets/my_detail');/*底部导航栏列表*/
 
+    Route::post('notice', 'Applets/notices');/*导航栏修改*/
+
+
+});
+//分销
+Route::group('distribution', function () {
+    Route::get('userlist', 'Distribution/userlist');/*分销商列表*/
+    Route::POST('isDistcenter', 'Distribution/isDistcenter');/*审核分销商*/
+    Route::POST('distcenterPrice', 'Distribution/distcenterPrice');/*修改分销商比例*/
 });
 
 ?>
