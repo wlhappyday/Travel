@@ -63,7 +63,6 @@ class Pay
             return returnData(['code' => '-1', 'msg' => "1111111111非法请求"]);
         }
     }
-
     /**
      * @throws DataNotFoundException
      * @throws ModelNotFoundException
@@ -448,7 +447,6 @@ class Pay
         }
 
     }
-
     /**
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
