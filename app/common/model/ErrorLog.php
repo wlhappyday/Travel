@@ -6,6 +6,6 @@ use think\Model;
 
 class ErrorLog extends Model
 {
-//    protected $name = 'error_log';
+    protected $name = 'error_log';
 
 }
