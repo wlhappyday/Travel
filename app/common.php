@@ -122,15 +122,31 @@ function FromXml($xml)
     return json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA), JSON_UNESCAPED_UNICODE), true);
 }
 
+function weixinpay(&$data, $apiData, $trade_type = 'refund')
 function weixinpay($data, $apiData, $trade_type = 'refund',$orderInfo=[])
 {
     $chanrgeResult = new OrderCharge();
     $data['sign'] = weixinsign($data, $apiData['key']);
     if ($trade_type == 'refund') {
         $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/refund";
-        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
     } elseif ($trade_type == 'refundOrder') {
         $apiUrl = "https://api.mch.weixin.qq.com/pay/orderquery";
+    } elseif ($trade_type == 'fenzhang') {
+        $data['sign'] = createWechatPaySignWithHash($data, $apiData['key']);
+        $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/multiprofitsharing";
+    } elseif ($trade_type == 'fenzhangwj') {
+        $data['sign'] = createWechatPaySignWithHash($data, $apiData['key']);
+        $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/profitsharingfinish";
+    } elseif ($trade_type == 'NATIVE' || $trade_type == 'JSAPI') {
+        $apiUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+        $xml = postHTTPS($apiUrl, ToXml($data));
+    } else {
+        return ["code" => -1, "msg" => "请求错误"];
+    }
+    if (empty($apiUrl)) {
+        return ["code" => -1, "msg" => "参数错误"];
+    }
+    $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
         $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
     } elseif ($trade_type == 'NATIVE' || $trade_type == 'JSAPI') {
         $apiUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder";
@@ -220,6 +236,24 @@ function weixinJsPay($wx_h5_data){
     $wx_h5_html .= '</script>';
     print_r($wx_h5_html);
     exit;
+}
+
+function createWechatPaySignWithHash($data, $mach_key): string
+{
+    $para = array();
+    foreach ($data as $key => $val) {
+        if ($key == "sign" || $key == "key" || $val == "") continue;
+        else    $para[$key] = $data[$key];
+    }
+    ksort($para);
+    reset($para);
+    $arg = "";
+    foreach ($para as $key => $val) {
+        $arg .= $key . "=" . charset_encode($val, "UTF-8", "UTF-8") . "&";
+    }
+    $prestr = substr($arg, 0, -1);  //去掉最后一个&号
+    $str = $prestr . "&key=" . $mach_key;
+    return strtoupper(hash_hmac("sha256", $str, $mach_key));
 }
 
 function weixinsign($parameter, $keyword, $type = 1): string

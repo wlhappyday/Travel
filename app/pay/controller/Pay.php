@@ -4,10 +4,15 @@ declare (strict_types=1);
 namespace app\pay\controller;
 
 use app\common\model\Accounts;
+use app\common\model\JuserBalanceRecords;
 use app\common\model\Order;
 use app\common\model\Orderdetails;
 use app\common\model\Padmin;
+use app\common\model\PfzAccount;
 use app\common\model\Puser;
+use app\common\model\Puserbalancerecords;
+use app\common\model\PuserUserBalanceRecords;
+use app\common\model\XuserBalanceRecords;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\DbException;
 use think\db\exception\ModelNotFoundException;
@@ -447,6 +452,7 @@ class Pay
         }
 
     }
+
     /**
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
@@ -455,5 +461,169 @@ class Pay
     public function queryOrder($order_id)
     {
         return (new Order)->where(["order_id" => $order_id])->whereIn("order_status", [3, 4])->find();
+    }
+
+    /**
+     * @throws DataNotFoundException
+     * @throws ModelNotFoundException
+     * @throws DbException
+     */
+    public function orderFinish(Request $request): Json
+    {
+        $orderId = $request->post('orderId/s');
+        if (empty($orderId)) {
+            return returnData(['code' => '-1', 'msg' => "非法请求468"]);
+        }
+        $orderDate = (new Order)->where(['order_id' => $orderId])->whereIn('order_status', [3, 4])->find();
+        if (empty($orderDate)) {
+            return returnData(['code' => '-1', 'msg' => "非法请求472"]);
+        }
+        $orderDate = $orderDate->toArray();
+        $padmin = (new Padmin)->where('id', $orderDate['p_id'])->find();
+        if (empty($padmin)) {
+            return returnData(['code' => '-1', 'msg' => "非法请求"]);
+        }
+        if (empty($padmin['sub_mch_id']) || empty($padmin['mch_id'])) {
+            return returnData(['code' => '-1', 'msg' => "请平台商配置收款账户"]);
+        }
+        $padmin = $padmin->toArray();
+
+        $accounts = (new Accounts)->where("mch_id", $padmin['mch_id'])->find();
+        $receiversData = [];
+        $rateMoney = getVariable("rate_money");
+        if (empty($rateMoney)) {
+            return returnData(['code' => '-1', 'msg' => "费率错误"]);
+        }
+        $money = "0";
+        if (bccomp((string)$rateMoney, "0", 2) == 1) {
+            if (empty($orderDate["surplus_price"])) {
+                $money = bcmul((string)$rateMoney, $orderDate["order_amount"], 2);
+            } else {
+                $money = bcmul((string)$rateMoney, $orderDate["surplus_price"], 2);
+            }
+            array_push($receiversData, [
+                'amount' => bcmul($money, "100"),
+                'description' => "订单：" . $orderDate['order_id'] . ",手续费",
+                'type' => "MERCHANT_ID",
+                'account' => getVariable("mch_id")
+            ]);
+        }
+        if ($orderDate["store_type"] == 1) {
+            $jAccounts = (new PfzAccount)->where(["pid" => $padmin["id"], "state" => 1, "uid" => $orderDate["store_id"], "mch_id" => $padmin['mch_id'], "sub_mch_id" => $padmin['sub_mch_id']])->find();
+            if (!empty($jAccounts)) {
+                $jAmount = (new JuserBalanceRecords)->where(["data_id" => $orderDate['order_id'], "is_checkout" => 0, "uid" => $orderDate['store_id']])->value("money");
+                if ($orderDate["store_type_type"] == 1) {
+                    $jAmount = bcsub($jAmount, $money, 2);
+                }
+                if (empty($jAmount)) {
+                    return returnData(['code' => '-1', 'msg' => "景区盈利错误"]);
+                }
+                array_push($receiversData, [
+                    'amount' => bcmul($jAmount, "100"),
+                    'description' => "订单：" . $orderDate['order_id'] . "盈利",
+                    'type' => $jAccounts['type'],
+                    'account' => $jAccounts['account']
+                ]);
+                JuserBalanceRecords::update(["is_checkout" => 1], ["data_id" => $orderDate['order_id'], "uid" => $orderDate['store_id']]);
+            } else {
+                return returnData(['code' => '-1', 'msg' => "请景区配置收款账户"]);
+            }
+        } elseif ($orderDate["store_type"] == 2) {
+            $xAccounts = (new PfzAccount)->where(["pid" => $padmin["id"], "state" => 2, "uid" => $orderDate["store_id"], "mch_id" => $padmin['mch_id'], "sub_mch_id" => $padmin['sub_mch_id']])->find();
+            if (!empty($xAccounts)) {
+                $xAmount = (new XuserBalanceRecords)->where(["data_id" => $orderDate['order_id'], "is_checkout" => 0, "uid" => $orderDate['store_id']])->value("money");
+                if (empty($xAmount)) {
+                    return returnData(['code' => '-1', 'msg' => "线路盈利错误"]);
+                }
+                if ($orderDate["store_type_type"] == 2) {
+                    $xAmount = bcsub($xAmount, $money, 2);
+                }
+                array_push($receiversData, [
+                    'amount' => bcmul($xAmount, "100"),
+                    'description' => "订单：" . $orderDate['order_id'] . "盈利",
+                    'type' => $xAccounts['type'],
+                    'account' => $xAccounts['account']
+                ]);
+                XuserBalanceRecords::update(["is_checkout" => 1], ["data_id" => $orderDate['order_id'], "uid" => $orderDate['store_id']]);
+            } else {
+                return returnData(['code' => '-1', 'msg' => "请供应商配置收款账户"]);
+            }
+        }
+        if ($orderDate["user_id"] != 0) {
+            $mAccounts = (new PfzAccount)->where(["pid" => $padmin["id"], "state" => 3, "uid" => $orderDate["p_user_id"], "mch_id" => $padmin['mch_id'], "sub_mch_id" => $padmin['sub_mch_id']])->find();
+            if (!empty($mAccounts)) {
+                $mAmount = (new Puserbalancerecords)->where(["data_id" => $orderDate['order_id'], "is_checkout" => 0, "uid" => $orderDate['p_user_id']])->value("money");
+                if (empty($mAmount)) {
+                    return returnData(['code' => '-1', 'msg' => "门店盈利错误"]);
+                }
+                if ($orderDate["store_type_type"] == 3) {
+                    $mAmount = bcsub($mAmount, $money, 2);
+                }
+                array_push($receiversData, [
+                    'amount' => bcmul($mAmount, "100"),
+                    'description' => "订单：" . $orderDate['order_id'] . "盈利",
+                    'type' => $mAccounts['type'],
+                    'account' => $mAccounts['account']
+                ]);
+                Puserbalancerecords::update(["is_checkout" => 1], ["data_id" => $orderDate['order_id'], "uid" => $orderDate['p_user_id']]);
+            } else {
+                return returnData(['code' => '-1', 'msg' => "请门店配置收款账户"]);
+            }
+        }
+        if (!empty($orderDate["u_user_id"]) && bccomp($orderDate['good_distribution'], "0.00") > 0) {
+            $mAccounts = (new PfzAccount)->where(["pid" => $padmin["id"], "state" => 3, "uid" => $orderDate["u_user_id"], "mch_id" => $padmin['mch_id'], "sub_mch_id" => $padmin['sub_mch_id']])->find();
+            if (!empty($mAccounts)) {
+                $mAmount = (new PuserUserBalanceRecords)->where(["data_id" => $orderDate['order_id'], "is_checkout" => 0, "uid" => $orderDate['u_user_id']])->value("money");
+                if (empty($mAmount)) {
+                    return returnData(['code' => '-1', 'msg' => "门店盈利错误"]);
+                }
+                if ($orderDate["store_type_type"] == 3) {
+                    $mAmount = bcsub($mAmount, $money, 2);
+                }
+                array_push($receiversData, [
+                    'amount' => bcmul($mAmount, "100"),
+                    'description' => "订单：" . $orderDate['order_id'] . "盈利",
+                    'type' => $mAccounts['type'],
+                    'account' => $mAccounts['account']
+                ]);
+                PuserUserBalanceRecords::update(["is_checkout" => 1], ["data_id" => $orderDate['order_id'], "uid" => $orderDate['u_user_id']]);
+            } else {
+                return returnData(['code' => '-1', 'msg' => "请分销商配置收款账户"]);
+            }
+        }
+        $data['sub_mch_id'] = $padmin['sub_mch_id'];
+        $data['appid'] = $accounts['appid'];
+        $data['mch_id'] = $accounts['mch_id'];
+        $data['out_order_no'] = $orderDate["order_id"];
+        $data['nonce_str'] = md5((string)time());
+        $data['sign_type'] = "HMAC-SHA256";
+        $data['transaction_id'] = $orderDate['transaction_id'];
+        $data['receivers'] = json_encode($receiversData, JSON_UNESCAPED_UNICODE);
+        $result = weixinpay($data, $accounts, "fenzhang");
+        if ($result['return_code'] == 'SUCCESS') {
+            Order::update(["order_status" => 6], ["order_id" => $orderDate["order_id"]]);
+            if ($result['result_code'] == 'SUCCESS') {
+                /** @noinspection PhpArrayUsedOnlyForWriteInspection */
+                $dataWj = [];
+                $dataWj['sub_mch_id'] = $padmin['sub_mch_id'];
+                $dataWj['appid'] = $accounts['appid'];
+                $dataWj['mch_id'] = $accounts['mch_id'];
+                $dataWj['out_order_no'] = $orderDate["order_id"];
+                $dataWj['nonce_str'] = md5((string)time());
+                $dataWj['sign_type'] = "HMAC-SHA256";
+                $dataWj['description'] = '分账完成';
+                $dataWj['transaction_id'] = $orderDate['transaction_id'];
+                if ($result['return_code'] == 'SUCCESS' && $result['result_code'] == 'SUCCESS') {
+                    return returnData(['code' => 200, 'msg' => '订单完结成功']);
+                } else {
+                    return returnData(['code' => 40008, 'msg' => '订单完结失败，' . $result]);
+                }
+            } else {
+                return returnData(['code' => 40008, 'msg' => '分账错误，' . $result]);
+            }
+
+        } else {
+            return returnData(['code' => 40008, 'msg' => '分账申请失败，' . $result["err_code_des"]]);
+        }
     }
 }
