@@ -36,14 +36,15 @@ class Order
         $userinfo = json_decode($request->post('check'), true);
         $puser_id = getDecodeToken()['puser_id'];
         $appid = getDecodeToken()['appid'];
-        $Puseruser = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->field('pid,puser_id')->find();
-        $puser = Puser::where('id',$Puseruser['puser_id'])->field('uid,distribution')->find();
-        $productuser =  Productuser::where(['user_id'=>$Puseruser['puser_id'],'product_id'=>$product_id,'status'=>'0'])->find();
-        $product = J_product::where('id',$product_id)->field('uid,type,money,mp_id,end_time')->find();
-        $productrelationprice = Product_relation::where(['uid'=>$puser['uid'],'product_id'=>$product_id])->value('price');
-        $price = bcmul(''.count($userinfo).'' ,$productuser['price'],2);
+
         Db::startTrans();
         try {
+            $Puseruser = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->field('pid,puser_id')->find();
+            $puser = Puser::where('id',$Puseruser['puser_id'])->field('uid,distribution')->find();
+            $productuser =  Productuser::where(['user_id'=>$Puseruser['puser_id'],'product_id'=>$product_id,'status'=>'0'])->find();
+            $product = J_product::where('id',$product_id)->field('uid,type,money,mp_id,end_time')->find();
+            $productrelationprice = Product_relation::where(['uid'=>$puser['uid'],'product_id'=>$product_id])->value('price');
+            $price = bcmul(''.count($userinfo).'' ,$productuser['price'],2);
             $order = new orders;
             $order->order_amount=$price;
             $order->order_status='2';
@@ -61,7 +62,10 @@ class Order
             $order->goods_name = $productuser['name'];
             $order->goods_num = count($userinfo);
             $order->goods_price = $productuser['price'];
-            $order->good_distribution = $puser['distribution'];
+            if ($productuser['distribution']>'0.00'){
+                $order->good_distribution = $productuser['distribution'];
+            }
+
             $order->u_user_id = $Puseruser['pid'];
             $order->save();
             foreach ($userinfo as $val){
@@ -138,7 +142,6 @@ class Order
         $order = orders::where(['order_id'=>$order_id])->with(['orderdetail','product'])->field('goods_id,goods_price,order_id,order_status,order_amount,add_time,goods_num,add_time')->find();
         $order['file_path'] = File::where('id',$order['product']['first_id'])->value('file_path');
         return json(['code'=>'200','msg'=>'操作成功','order'=>$order,'http'=>http()]);
-
     }
 
 }

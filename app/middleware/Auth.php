@@ -31,11 +31,6 @@ class Auth
         if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
             return $next($request);
         }
-        if ($request['s'] == '/apidoc/apiData') {
-            return $next($request);
-        }
-
-
 
         if ($request->server()['REQUEST_URI'] == "/api/login/SignLogin") {
             return $next($request);

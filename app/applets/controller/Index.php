@@ -11,6 +11,7 @@ use app\user\model\Config;
 use app\common\model\Puserpage;
 use app\common\model\Pusermagic;
 use app\common\model\Puserhomenavigation;
+use app\common\model\PuserUserBalanceRecords;
 use app\common\model\Pusernavigation;
 use think\facade\Db;
 use think\Request;
@@ -180,6 +181,13 @@ class Index
             $product[$key]['page'] =Puserpage::where('id',$value['page'])->value('page');
             $product[$key]['img'] = http(). File::where('id',$value['img'])->value('file_path');
         }
+        $ordercount = PuserUserBalanceRecords::where(['scene'=>'1','uid'=>$id])->count();
+        $distribution_price = PuserUserBalanceRecords::where(['scene'=>'1','uid'=>$id])->sum('money');
+        $withdrawal_price = PuserUserBalanceRecords::where(['scene'=>'1','uid'=>$id,'is_checkout'=>'1'])->sum('money');
+        $user['order_count'] = $ordercount;
+        $user['distribution_price'] = $distribution_price;
+        $user['withdrawal_price'] = $withdrawal_price;
+
         $distcenter= Puseruser::where('id',$id)->value('is_distcenter');
         $order = \app\common\model\Order::where(['user_id'=>$id,'order_status'=>'2'])->count();
         return json(['code'=>'200','msg'=>'操作成功','user'=>$user,'collection'=>$collection,'product'=>$product,'ordercount'=>$order,'distcenter'=>$distcenter]);

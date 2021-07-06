@@ -466,7 +466,6 @@ function http(): string
 {
     $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
     $SERVER_NAME = $_SERVER['SERVER_NAME'];
-//    $SERVER_NAME = '192.168.0.124';
     return $http_type . $SERVER_NAME;
 }
 

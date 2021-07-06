@@ -106,7 +106,7 @@ class Product
                     if (!empty($puseruser)){
                         $puseruser->pid = $puseruser_id;
                         $puseruser->save();
-                         Puseruser::where(['id'=>$puseruser_id,'is_distcenter'=>'1'])->inc('offline_count')->update();;
+                         Puseruser::where(['id'=>$puseruser_id,'is_distcenter'=>'1'])->inc('offline_count')->update();
                     }
                 }
 

@@ -170,7 +170,6 @@ class Login
     }
     public function SignLogin(Request $request){
         if ($request->isPost()){
-            $puseruser_id = $request->post('uid');
             $appid = $request->post('appid');
             $nickName = $request->post('nickName');
             $address = $request->post('address');
@@ -210,6 +209,7 @@ class Login
                             $save['type'] = '1';
                             $save['openid'] = $session_key['openid'];
                             $save['last_time'] = time();
+                            $save['puser_id'] = $user['id'];
                             $Puseruser->save($save);
                             $save['puser_id'] = $Puseruser['id'];
                         }

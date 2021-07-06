@@ -15,7 +15,10 @@ Route::group('product', function () {
     Route::get('posterimg', 'Product/posterimg');
     Route::get('previewlist', 'Product/preview_list');
     Route::get('posterdetail', 'Product/poster_detail');
+    Route::get('productrelatiolistx', 'Product/product_relatio_listx');
 });
+
+
 Route::group('systems', function () {
     Route::get('index', 'Systems/index');
     Route::get('config', 'Systems/config');
@@ -79,7 +82,8 @@ Route::group('applets', function () {
     Route::post('mytype', 'Applets/my_type');/*导航栏修改*/
     Route::get('mydetail', 'Applets/my_detail');/*底部导航栏列表*/
 
-    Route::post('notice', 'Applets/notices');/*导航栏修改*/
+    Route::get('notice', 'Applets/notices');/*公告详情*/
+    Route::post('noticedo', 'Applets/notice_do');/*公告配置*/
 
 
 });
@@ -88,6 +92,7 @@ Route::group('distribution', function () {
     Route::get('userlist', 'Distribution/userlist');/*分销商列表*/
     Route::POST('isDistcenter', 'Distribution/isDistcenter');/*审核分销商*/
     Route::POST('distcenterPrice', 'Distribution/distcenterPrice');/*修改分销商比例*/
+    Route::get('distcenterOrder', 'Distribution/distcenterOrder');/*分销商列表*/
 });
 
 ?>

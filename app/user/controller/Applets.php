@@ -805,16 +805,33 @@ class Applets
     }
 
     /**
-     * @Apidoc\Title("个人中心修改状态")
-     * @Apidoc\Desc("个人中心修改状态")
+     * @Apidoc\Title("公告配置详情")
+     * @Apidoc\Desc("公告配置详情")
      * @Apidoc\Url("user/applets/notice")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Returned("notice",type="string",desc="公告")
+     */
+    public function notices(Request $request){
+        if($request->isGet()){
+            $id = $request->id;
+            $notice = P_user::where('id',$id)->value('notice');
+            return json(['code'=>'200','msg'=>'操作成功','notice'=>$notice]);
+        }else{
+            return json(['code'=>'201','msg'=>'请用GET访问']);
+        }
+    }
+    /**
+     * @Apidoc\Title("公告配置")
+     * @Apidoc\Desc("公告配置")
+     * @Apidoc\Url("user/applets/noticedo")
      * @Apidoc\Method("POST")
      * @Apidoc\Tag("小程序")
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     *  @Apidoc\Param("my_id", type="number",require=true, desc="唯一id" )
-     *  @Apidoc\Param("type", type="number",require=true, desc="状态值" )
+     *  @Apidoc\Param("notice", type="number",require=true, desc="公告" )
      */
-    public function notices(Request  $request){
+    public function notice_do(Request  $request){
         if($request->isPost()){
             $id = $request->id;
             $notice = $request->post('notice');
