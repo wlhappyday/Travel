@@ -15,6 +15,7 @@ use app\common\model\Pusernavigation;
 use app\common\model\Pusermy;
 use app\common\model\Puserhomenavigation;
 use app\platform\model\J_product;
+use app\platform\model\P_user;
 use think\facade\Db;
 use think\facade\Validate;
 use think\Model;
@@ -770,7 +771,6 @@ class Applets
             Db::rollback();
             return json(['code'=>'201','msg'=>'网络繁忙']);
         }
-        return json(['code'=>'200','msg'=>'操作成功','my'=>$product]);
     }
 
     /**
@@ -804,5 +804,54 @@ class Applets
         }
     }
 
-
+    /**
+     * @Apidoc\Title("公告配置详情")
+     * @Apidoc\Desc("公告配置详情")
+     * @Apidoc\Url("user/applets/notice")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Returned("notice",type="string",desc="公告")
+     */
+    public function notices(Request $request){
+        if($request->isGet()){
+            $id = $request->id;
+            $notice = P_user::where('id',$id)->value('notice');
+            return json(['code'=>'200','msg'=>'操作成功','notice'=>$notice]);
+        }else{
+            return json(['code'=>'201','msg'=>'请用GET访问']);
+        }
+    }
+    /**
+     * @Apidoc\Title("公告配置")
+     * @Apidoc\Desc("公告配置")
+     * @Apidoc\Url("user/applets/noticedo")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Tag("小程序")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     *  @Apidoc\Param("notice", type="number",require=true, desc="公告" )
+     */
+    public function notice_do(Request  $request){
+        if($request->isPost()){
+            $id = $request->id;
+            $notice = $request->post('notice');
+            if (empty($notice)){
+                return json(['code'=>'201','msg'=>'公告不能为空']);
+            }
+            Db::startTrans();
+            try {
+                $admin = P_user::where('id',$id)->field('notice')->find();
+                $admin->notice=$notice;
+                $admin->save();
+                addPuserLog(getDecodeToken(),'修改公告');
+                Db::commit();
+                return json(['code'=>'200','msg'=>'操作成功']);
+            }catch (\Exception $e){
+                Db::rollback();
+                return json(['code'=>'201','msg'=>'网络繁忙']);
+            }
+        }else{
+            return json(['code'=>'201','msg'=>'请用POST提交']);
+        }
+    }
 }

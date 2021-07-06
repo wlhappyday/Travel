@@ -64,14 +64,11 @@ class Padmin
 
         Db::startTrans();
         try {
-            $id = P_admin::insertGetId($data);
-
-            addAdminLog(getDecodeToken(),'添加平台商：'.$data['user_name'].' 手机号: '.$data['phone']);
 
             $apiUrl = empty(getVariable('api_url'))?'https://apibei.payunke.com':getVariable('api_url');
             $user_data['name'] = $data['user_name'].'-'.$data['phone'];
             $user_data['passwd'] = $data['passwd'];
-            $user_data['phone'] = $id;
+            $user_data['phone'] = $data['phone'];
             $url = $apiUrl.'/index/userAdd';
             $post_data = json_encode($user_data);
             $ch = curl_init ();
@@ -94,12 +91,16 @@ class Padmin
 
             if($result['code'] != '200'){
                 Db::rollback();
-                return returnData(['msg'=>$result['msg'],'code'=>'201']);
+                return returnData(['msg'=>'畅联：'.$result['msg'],'code'=>'201']);
             }else{
+                $id = P_admin::insertGetId($data);
+
+                addAdminLog(getDecodeToken(),'添加平台商：'.$data['user_name'].' 手机号: '.$data['phone']);
                 Db::commit();
                 $add['money'] = '10';
                 $add['cl_id'] = $result['data']['mch_id'];
                 $add['cl_key'] = $result['data']['mch_key'];
+                $add['pay_user_id'] = $result['data']['id'];
                 P_admin::where(['id'=>$id])->update($add);
                 return returnData(['msg'=>'操作成功','code'=>'200']);
             }

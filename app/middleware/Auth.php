@@ -34,6 +34,12 @@ class Auth
         if ($request->server()['REQUEST_URI'] == "/pay/service/service") {
             return $next($request);
         }
+        if ($request->server()['REQUEST_URI'] == "/pay/Charge/notifyurl") {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == "/pay/Charge/addFee") {
+            return $next($request);
+        }
         if ($request->server()['REQUEST_URI'] == "/api/AlibabaSMS/sendSMS") {
             return $next($request);
         }
@@ -41,9 +47,6 @@ class Auth
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] == "/applets/index/index") {
-            return $next($request);
-        }
-        if ($request->server()['REQUEST_URI'] == '/applets/product/detail') {
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] == '/pay/pay/orderFinish') {

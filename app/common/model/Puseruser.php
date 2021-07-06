@@ -25,4 +25,12 @@ class Puseruser extends Model
         $res = $this->get($id);
         return $res;
     }
+
+    /**
+     * @field("id,avatar,nickname,name,phone,is_distcenter,offline_count,distcenter_time,distcenters_time")
+     */
+    public function zhu($id){
+        $res = $this->get($id);
+        return $res;
+    }
 }

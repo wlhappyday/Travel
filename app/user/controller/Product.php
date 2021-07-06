@@ -199,6 +199,65 @@ class Product
         }
         $data = J_product::where(['a.status'=>'0'])->alias('a')
             ->whereIn('a.id',$id)
+            ->where('pp.status','0')
+            ->where([['a.name', 'like','%'.$name.'%']])
+            ->join('j_user b','b.id = a.uid and a.type = 1','left')
+            ->join('x_user c','c.id = a.uid and a.type = 2','left')
+            ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
+            ->join('file d','d.id=pp.first_id')
+            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,d.file_path,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
+        if ($start_time){
+            $data->whereTime('pp.create_time', '>=', strtotime($start_time));
+        }
+        if ($end_time){
+            $data->whereTime('pp.create_time', '<=', strtotime($end_time));
+        }
+        $product = $data->paginate($pagenum)->toArray();
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product]);
+    }
+
+    /**
+     * @Apidoc\Title("用户产品表仓库列表")
+     * @Apidoc\Desc("用户产品表仓库列表")
+     * @Apidoc\Url("user/product/productrelatiolistx")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Tag("列表 基础")
+     * @Apidoc\Header("Authorization", require=true, desc="Token")
+     * @Apidoc\Param("name", type="number",require=true, desc="产品名称")
+     * @Apidoc\Param("type", type="number",require=true, desc="产品类型1 或者 2")
+     * @Apidoc\Param("end_time", type="number",require=true, desc="结束时间")
+     * @Apidoc\Param("start_time", type="number",require=true, desc="开始时间")
+     * @Apidoc\Returned ("product",type="object",desc="平台商列表",
+     *     @Apidoc\Returned ("total",type="number",desc="分页总数"),
+     *     @Apidoc\Returned ("total",type="number",desc="分页总数"),
+     *     @Apidoc\Returned ("per_page",type="int",desc="首页"),
+     *     @Apidoc\Returned ("last_page",type="int",desc="最后一页"),
+     *     @Apidoc\Returned ("current_page",type="int",desc="当前页"),
+     *     @Apidoc\Returned ("data",type="object",desc="产品",ref="app\platform\model\J_product\scenic_spot"),
+     *     @Apidoc\Returned ("price",type="double(10,2)	",desc="价格"),
+     *  )
+     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     */
+    public function product_relatio_listx(Request $request){
+        $uid =$request->uid;
+        $id =$request->id;
+        $name = $request->get('name');
+        $start_time = $request->get('start_time');
+        $end_time = $request->get('end_time');
+        $type = $request->get('type');
+        $pagenum = $request->get('pagenum');
+        if($type == 1){
+            $id = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+        }else if($type == 2){
+            $id = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+        }else {
+            $jid = Juser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=1')->column('b.id');
+            $xid = Xuser::where(['a.status'=>'0'])->alias('a')->join('j_product b','b.uid=a.id and b.type=2')->column('b.id');
+            $id = array_merge($jid,$xid);
+        }
+        $data = J_product::where(['a.status'=>'0'])->alias('a')
+            ->whereIn('a.id',$id)
+            ->where('pp.status','9')
             ->where([['a.name', 'like','%'.$name.'%']])
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
@@ -242,7 +301,7 @@ class Product
             'price'=>'require',
             'img_id'=>'require',
             // 'first_id'=>'require',
-            'video_id'=>'require',
+//            'video_id'=>'require',
         ];
         $msg = [
             'name.require'=>'产品名称不能为空',
@@ -252,7 +311,7 @@ class Product
             'price.require'=>'价格必填',
             'img_id.require'=>'图片不能为空',
             // 'first_id.require'=>'首图不能为空',
-            'video_id.require'=>'视频不能为空'
+//            'video_id.require'=>'视频不能为空'
 
         ];
         if (!is_numeric($request->post('price'))) {
@@ -282,11 +341,11 @@ class Product
                     $productuser->class_name = $data['name'].'-'.$mp_name;
                 }
                 $productuser->name = $data['name'];
-                $productuser->first_id = $data['first_id'];
+                $productuser->first_id = $data['img_id'][0];
                 $productuser->desc = $data['desc'];
                 $productuser->img_id = $data['img_id'];
-                $productuser->video_id = $data['video_id'];
-                $productuser->img = $data['img'];
+                $productuser->img = $request->post('img');
+                $productuser->distcenter = $data['distcenter'];
                 $productuser->save();
                 addPuserLog(getDecodeToken(),'修改产品'.$product_id);
                 Db::commit();
@@ -410,7 +469,6 @@ class Product
         $uid =$request->uid;
         $id = $request->id;
         $product_id = $request->get('product_id');//产品id
-
         if ($product_id){
             $J_product = Productuser::where(['user_id'=>$id,'product_id'=>$product_id])->with(['Product'=>function($query){
                 $query->where('status','0');
