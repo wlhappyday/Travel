@@ -17,6 +17,9 @@ use app\common\model\Puserlog;
 use app\common\model\PuserUserBalanceRecords;
 use app\common\model\XuserBalanceRecords;
 use app\common\model\XuserLog;
+use app\common\model\OrderCharge;
+use app\common\model\Sms;
+use app\common\model\JfeeChange;
 use app\platform\model\Product_relation;
 use thans\jwt\facade\JWTAuth;
 use think\facade\Db;
@@ -69,6 +72,23 @@ function curl_post_ssl($url, $xmldata, $apiData)
     curl_close($ch); //关闭连接
     return $content;
 }
+function postHTTPS($url, $post_data = '', $timeout = 5){
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    if ($post_data != '') {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+    }
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_REFERER, 'http://api.payunk.com/');
+    $file_contents = curl_exec($ch);
+    curl_close($ch);
+    return $file_contents;
+}
 
 function ToXml($values): string
 {
@@ -102,8 +122,9 @@ function FromXml($xml)
     return json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA), JSON_UNESCAPED_UNICODE), true);
 }
 
-function weixinpay($data, $apiData, $trade_type = 'refund')
+function weixinpay($data, $apiData, $trade_type = 'refund',$orderInfo=[])
 {
+    $chanrgeResult = new OrderCharge();
     $data['sign'] = weixinsign($data, $apiData['key']);
     if ($trade_type == 'refund') {
         $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/refund";
@@ -111,16 +132,125 @@ function weixinpay($data, $apiData, $trade_type = 'refund')
     } elseif ($trade_type == 'refundOrder') {
         $apiUrl = "https://api.mch.weixin.qq.com/pay/orderquery";
         $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
+    } elseif ($trade_type == 'fenzhang') {
+        $data['sign'] = createWechatPaySignWithHash($data, $apiData['key']);
+        $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/multiprofitsharing";
+        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
+    } elseif ($trade_type == 'fenzhangwj') {
+        $data['sign'] = createWechatPaySignWithHash($data, $apiData['key']);
+        $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/profitsharingfinish";
+        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
+    } elseif ($trade_type == 'NATIVE' || $trade_type == 'JSAPI') {
+        $apiUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+        $xml = postHTTPS($apiUrl, ToXml($data));
     } else {
-        return "";
+        return ["code" => -1, "msg" => "请求错误"];
     }
+    if (empty($apiUrl)) {
+        return ["code" => -1, "msg" => "参数错误"];
+    }
+
+
     $result = FromXml($xml);
-    if ($result['return_code'] == 'SUCCESS') {
-        return $result;
+
+    if ($result['return_code'] == 'SUCCESS' && $result['result_code'] == 'SUCCESS') {
+        switch ($trade_type){
+            case 'NATIVE' :
+                $url = $result['code_url'];//二维码连接
+                $chanrgeResult->where(['order_no'=>$orderInfo['order_no']])->update(['qrcode'=>$url]);
+                return $url;
+                break;
+            case 'JSAPI':
+                $success_url=url('api/index/success');
+                $error_url=url('api/index/success');
+                $wx_h5_data = array(
+                    'appId'=>$data['appid'],
+                    'nonceStr'=>md5(time()),
+                    'package'=>'prepay_id='.$result['prepay_id'],
+                    'signType'=>'MD5',
+                    'timeStamp'=>time()
+                );
+                $wx_h5_sign = weixinsign($wx_h5_data,$apiData['key']);
+                $wx_h5_data['paySign'] = $wx_h5_sign;
+                $wx_h5_data['success_url']=$success_url;
+                $wx_h5_data['error_url']=$error_url;
+                $wx_h5_data['out_trade_no']=$orderInfo['order_no'];
+                weixinJsPay($wx_h5_data);
+                exit;
+                break;
+            default:
+                return $result;
+                break;
+        }
+
     } else {
         echo(json_encode($result, JSON_UNESCAPED_UNICODE));
         exit;
     }
+}
+
+function weixinJsPay($wx_h5_data){
+    $out_trade_no=isset($wx_h5_data['out_trade_no'])?$wx_h5_data['out_trade_no']:'';
+    $success_url=isset($wx_h5_data['success_url'])?$wx_h5_data['success_url']:'';
+    $error_url=isset($wx_h5_data['error_url'])?$wx_h5_data['error_url']:'';
+    $wx_h5_html = '<script type="text/javascript">';
+    $wx_h5_html .= 'function onBridgeReady(){
+									 WeixinJSBridge.invoke(
+						      \'getBrandWCPayRequest\', {
+						         "appId":"'.$wx_h5_data['appId'].'",
+						         "timeStamp":"'.$wx_h5_data['timeStamp'].'",
+						         "nonceStr":"'.$wx_h5_data['nonceStr'].'",   
+						         "package":"'.$wx_h5_data['package'].'",
+						         "signType":"'.$wx_h5_data['signType'].'",
+						         "paySign":"'.$wx_h5_data['paySign'].'"
+						      },
+						      function(res){
+						      if(res.err_msg == "get_brand_wcpay_request:ok" ){
+						            window.location.href="'.$success_url.'";
+						      }else{
+						          window.location.href="'.$error_url.'?ordernumber='.$out_trade_no.'";
+						      }
+						      
+						   }); 
+						}
+						window.onload = function(){
+                            callpay(); 
+                        }
+						function callpay()
+                            	{
+                            		if (typeof WeixinJSBridge == "undefined"){
+                            			if( document.addEventListener ){
+                            				document.addEventListener(\'WeixinJSBridgeReady\', onBridgeReady, false);
+                            			}else if (document.attachEvent){
+                            				document.attachEvent(\'WeixinJSBridgeReady\', onBridgeReady); 
+                            				document.attachEvent(\'onWeixinJSBridgeReady\', onBridgeReady);
+                            			}
+                            		}else{
+                            			onBridgeReady();
+                            		}
+                            	}
+								';
+    $wx_h5_html .= '</script>';
+    print_r($wx_h5_html);
+    exit;
+}
+
+function createWechatPaySignWithHash($data, $mach_key): string
+{
+    $para = array();
+    foreach ($data as $key => $val) {
+        if ($key == "sign" || $key == "key" || $val == "") continue;
+        else    $para[$key] = $data[$key];
+    }
+    ksort($para);
+    reset($para);
+    $arg = "";
+    foreach ($para as $key => $val) {
+        $arg .= $key . "=" . charset_encode($val, "UTF-8", "UTF-8") . "&";
+    }
+    $prestr = substr($arg, 0, -1);  //去掉最后一个&号
+    $str = $prestr . "&key=" . $mach_key;
+    return strtoupper(hash_hmac("sha256", $str, $mach_key));
 }
 
 function weixinsign($parameter, $keyword, $type = 1): string
@@ -336,6 +466,31 @@ function getDecodeToken(): array
     return $date;
 }
 
+function aliSmsSend($phone,$userType,$user_id,$type){
+    $sms_result = new Sms();
+    $datas= $sms_result->where(['type'=>$type])->paginate(10,false, ['query'=>request()->param()])->toArray()['data'][0];
+
+    $TemplateCode=$datas['TemplateCode'];
+    if($type == '3'){
+        $code2=rand('100000','999999');
+        $code=json_encode(['code'=>$code2]);
+    }
+    $result=aliSms($code,$phone,$TemplateCode);
+    switch ($result['Code']){
+        case "OK":
+            $fee_result = new JfeeChange();
+            $fee_result->subFee($userType,$user_id);
+            return ['code'=>1000,'msg'=>'获取成功'];
+            break;
+        case "isv.MOBILE_NUMBER_ILLEGAL":
+            return ['code'=>404,'msg'=>'手机号有误，请重新填写'];
+            break;
+        default:
+            return ['code'=>404,'msg'=>'验证码发送失败，请重试'];
+            break;
+    }
+
+}
 /**
  * @throws ClientException
  * @throws ServerException
@@ -560,4 +715,36 @@ function getVariable(string $name = '')
 {
     $result = new Config();
     return $result->where(['title' => $name])->value('value');
+}
+
+/**
+ * 生成唯一订单号
+ */
+function make_order_no(){
+    $yCode = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
+    $orderSn =
+        $yCode[intval(date('Y')) - 2017] . strtoupper(dechex(date('m'))) . date(
+            'd') . substr(time(), -5) . substr(microtime(), 3, 6) . sprintf(
+            '%04d', rand(10000, 99999));
+    $order_result = new OrderCharge();
+
+    if($order_result->where(['order_no' => $orderSn])->find())make_order_no();
+    return $orderSn;
+}
+function isQQBrowser(){
+    // p(strpos($_SERVER['HTTP_USER_AGENT'], 'QQ') );
+    if(strpos($_SERVER['HTTP_USER_AGENT'], 'QQ') !== false){
+        if(strpos($_SERVER['HTTP_USER_AGENT'], '_SQ_') !== false){
+            return "QQ";  //QQ内置浏览器
+        }elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'WeChat') !== false){
+            return "WeChat";//微信浏览器
+        }else{
+            return "QQBrowser";  //QQ浏览器
+        }
+    }elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') !== false){
+        return "WeChat";//微信浏览器
+    }elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone') !== false){
+        return false;
+    }
+    return false;
 }

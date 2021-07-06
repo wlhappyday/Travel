@@ -25,13 +25,6 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
-        if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
-            return $next($request);
-        }
-        if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
-            return $next($request);
-        }
-
         if ($request->server()['REQUEST_URI'] == "/api/login/SignLogin") {
             return $next($request);
         }
@@ -39,6 +32,12 @@ class Auth
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] == "/pay/service/service") {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == "/pay/Charge/notifyurl") {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == "/pay/Charge/addFee") {
             return $next($request);
         }
         if ($request->server()['REQUEST_URI'] == "/api/AlibabaSMS/sendSMS") {
@@ -50,9 +49,12 @@ class Auth
         if ($request->server()['REQUEST_URI'] == "/applets/index/index") {
             return $next($request);
         }
-//        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
-//            return $next($request);
-//        }
+        if ($request->server()['REQUEST_URI'] == '/applets/product/detail') {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == '/pay/pay/orderFinish') {
+            return $next($request);
+        }
         if ($request->server()['REQUEST_URI'] != "/api/login/login") {
             $auth = JWTAuth::auth();
             if (isset($auth['code1'])) {

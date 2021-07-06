@@ -28,6 +28,9 @@ class After
         if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
             return $next($request);
         }
+        if ($request->server()['REQUEST_URI'] == '/apidoc/apiData') {
+            return $next($request);
+        }
         $response = $next($request);
         if($request->server()['REQUEST_URI']=="/api/login/SignLogin"){
             return $response;
@@ -38,9 +41,9 @@ class After
         if ($request->server()['REQUEST_URI'] == '/applets/index/tabBar'){
             return $response;
         }
-//        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
-//            return $response;
-//        }
+        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
+            return $response;
+        }
         if($request->server()['REQUEST_URI']!="/api/login/login"){
             $response->header(["Authorization"=>"Bearer ".JWTAuth::refresh(),'Access-Control-Expose-Headers'=>"Authorization"]);
         }
