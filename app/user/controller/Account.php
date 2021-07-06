@@ -61,15 +61,15 @@ class Account
      * @Apidoc\Param("phone", type="number",require=false, desc="手机号" )
      * @Apidoc\Param("notice", type="number",require=false, desc="公告" )
      * @Apidoc\Header("Authorization", require=true, desc="Token")
-     * @Apidoc\Returned("sign",type="string",desc="错误提示")
+     *
      */
     public function personalsave(Request $request){
-        $uid = $request->uid;
+        $id = $request->id;
         $type = $request->type;
         $data = $request->post();
         Db::startTrans();
         try {
-            $admin = P_user::where('id',$uid)->field('notice,weach,QQ,avatar,nickname,phone,position,address')->find();
+            $admin = P_user::where('id',$id)->field('notice,weach,QQ,avatar,nickname,phone,position,address')->find();
             $admin->weach = $data['weach'];
             $admin->QQ = $data['QQ'];
             $admin->avatar = $data['avatar_id'];
@@ -80,7 +80,6 @@ class Account
             $admin->appid = $data['appid'];
             $admin->appkey = $data['appkey'];
             $admin->payment = $data['payment'];
-            $admin->notice = $data['notice'];
             $admin->save();
             addPuserLog(getDecodeToken(),'修改个人信息');
             Db::commit();
@@ -201,7 +200,7 @@ class Account
      * @Apidoc\Returned("sign",type="string",desc="错误提示")
      */
     public function Balancerecords(Request $request){
-        $uid = $request->uid;
+        $id = $request->id;
         $Balancerecords = Puserbalancerecords::paginate(20);
         return json(['code'=>'200','msg'=>'操作成功',['Balancerecords'=>$Balancerecords]]);
     }

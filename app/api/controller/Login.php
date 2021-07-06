@@ -182,11 +182,14 @@ class Login
                 if ($user){
                     $secret =Puser::where(['appid'=>$appid])->value('appkey');
                     $session_key = json_decode(httpGet("https://api.weixin.qq.com/sns/jscode2session?appid=".$appid."&secret=".$secret."&js_code=".$code."&grant_type=authorization_code"),true);
+//                    dd($session_key);
                     Db::startTrans();
-                    $save['type'] = $type;
+
                     try{
                         $uid = Puseruser::where(['openid'=>$session_key['openid'],'appid'=>$appid])->find();
+
                         if ($uid){
+
                             $save['appid']= $uid['appid'];
                             $save['nickname'] = $uid['nickname'];
                             $save['sex'] = $uid['sex'];
@@ -203,12 +206,15 @@ class Login
                             $save['sex'] = $gender;
                             $save['address'] = $address;
                             $save['avatar'] = $avatar;
-                            $save['puser_id'] = $user['id'];
+                            $save['type'] = '1';
                             $save['openid'] = $session_key['openid'];
                             $save['last_time'] = time();
+                            $save['puser_id'] = $user['id'];
                             $Puseruser->save($save);
-                            DB::commit();
+                            $save['puser_id'] = $Puseruser['id'];
                         }
+                        DB::commit();
+                        $save['type'] = '6';
                         header('Authorization:' . "Bearer " . JWTAuth::builder($save));
                         return json(['code' => '200', 'msg' => '操作成功', 'session_key' => $session_key]);
                     } catch (Exception $e) {

@@ -24,9 +24,6 @@ class token
         if ($request->server()['REQUEST_URI'] == '/applets/index/tabBar'){
             return $response;
         }
-        if ($request->server()['REQUEST_URI'] == '/applets/product/detail'){
-            return $response;
-        }
         $user = Puseruser::where(['appid'=>getDecodeToken()['appid'],'openid'=>getDecodeToken()['openid']])->find();
         if ($user){
             if ($user['type']!='1'){

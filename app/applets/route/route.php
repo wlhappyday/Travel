@@ -6,6 +6,8 @@ Route::group('index', function () {
     Route::get('search', 'Index/search');
     Route::get('userinfo', 'Index/userinfo');
     Route::POST('tabBar', 'Index/tabBar');
+    Route::POST('distcenter', 'Index/distcenter');
+    Route::get('isdistcenter', 'Index/isdistcenter');
 
 });
 Route::group('product', function () {

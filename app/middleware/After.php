@@ -18,20 +18,27 @@ class After
      *
      * @param Request $request
      * @param Closure $next
+     * @return Response
      */
     public function handle(Request $request, Closure $next)
     {
+        if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
+            return $next($request);
+        }
+        if ($request->server()['REQUEST_URI'] == '/apidoc/apiData') {
+            return $next($request);
+        }
         $response = $next($request);
-        if ($request->server()['REQUEST_URI'] == "/api/login/SignLogin") {
+        if($request->server()['REQUEST_URI']=="/api/login/SignLogin"){
             return $response;
         }
-        if ($request->server()['REQUEST_URI'] == '/pay/pay/orderFinish') {
+        if ($request->server()['REQUEST_URI'] == '/applets/index/index'){
             return $response;
         }
-        if ($request->server()['REQUEST_URI'] == '/applets/index/index') {
-            return $response;
-        }
-        if ($request->server()['REQUEST_URI'] == '/applets/index/tabBar') {
+        if ($request->server()['REQUEST_URI'] == '/applets/index/tabBar'){
             return $response;
         }
         if ($request->server()['REQUEST_URI'] == '/applets/product/detail') {
