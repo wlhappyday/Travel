@@ -117,7 +117,7 @@ class Product
 
         }
 
-        return json(['code'=>'200','msg'=>'操作成功','product'=>null,'data'=>getDecodeToken()]);
+        return json(['code'=>'200','msg'=>'操作成功','product'=>$product,'data'=>getDecodeToken()]);
     }
 
 
