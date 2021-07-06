@@ -49,9 +49,6 @@ class Auth
         if ($request->server()['REQUEST_URI'] == "/applets/index/index") {
             return $next($request);
         }
-        if ($request->server()['REQUEST_URI'] == '/applets/product/detail') {
-            return $next($request);
-        }
         if ($request->server()['REQUEST_URI'] == '/pay/pay/orderFinish') {
             return $next($request);
         }
