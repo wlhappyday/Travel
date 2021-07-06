@@ -37,8 +37,14 @@ class After
         if ($request->server()['REQUEST_URI'] == '/applets/product/detail') {
             return $response;
         }
-        if ($request->server()['REQUEST_URI'] != "/api/login/login") {
-            $response->header(["Authorization" => "Bearer " . JWTAuth::refresh(), 'Access-Control-Expose-Headers' => "Authorization"]);
+        if ($request->server()['REQUEST_URI'] == '/pay/Charge/notifyurl'){
+            return $response;
+        }
+        if ($request->server()['REQUEST_URI'] == '/pay/Charge/addFee'){
+            return $response;
+        }
+        if($request->server()['REQUEST_URI']!="/api/login/login"){
+            $response->header(["Authorization"=>"Bearer ".JWTAuth::refresh(),'Access-Control-Expose-Headers'=>"Authorization"]);
         }
         return $response;
     }

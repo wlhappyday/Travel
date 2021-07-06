@@ -122,21 +122,24 @@ function FromXml($xml)
     return json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA), JSON_UNESCAPED_UNICODE), true);
 }
 
-function weixinpay(&$data, $apiData, $trade_type = 'refund')
 function weixinpay($data, $apiData, $trade_type = 'refund',$orderInfo=[])
 {
     $chanrgeResult = new OrderCharge();
     $data['sign'] = weixinsign($data, $apiData['key']);
     if ($trade_type == 'refund') {
         $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/refund";
+        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
     } elseif ($trade_type == 'refundOrder') {
         $apiUrl = "https://api.mch.weixin.qq.com/pay/orderquery";
+        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
     } elseif ($trade_type == 'fenzhang') {
         $data['sign'] = createWechatPaySignWithHash($data, $apiData['key']);
         $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/multiprofitsharing";
+        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
     } elseif ($trade_type == 'fenzhangwj') {
         $data['sign'] = createWechatPaySignWithHash($data, $apiData['key']);
         $apiUrl = "https://api.mch.weixin.qq.com/secapi/pay/profitsharingfinish";
+        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
     } elseif ($trade_type == 'NATIVE' || $trade_type == 'JSAPI') {
         $apiUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder";
         $xml = postHTTPS($apiUrl, ToXml($data));
@@ -146,14 +149,8 @@ function weixinpay($data, $apiData, $trade_type = 'refund',$orderInfo=[])
     if (empty($apiUrl)) {
         return ["code" => -1, "msg" => "参数错误"];
     }
-    $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
-        $xml = curl_post_ssl($apiUrl, ToXml($data), $apiData);
-    } elseif ($trade_type == 'NATIVE' || $trade_type == 'JSAPI') {
-        $apiUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder";
-        $xml = postHTTPS($apiUrl, ToXml($data));
-    } else {
-        return "";
-    }
+
+
     $result = FromXml($xml);
 
     if ($result['return_code'] == 'SUCCESS' && $result['result_code'] == 'SUCCESS') {
