@@ -85,6 +85,9 @@ class Product
         }else{
             return json(['code'=>'201','msg'=>'type不能为空']);
         }
+        if (empty($product)){
+            return json(['code'=>'201','msg'=>'该产品不存']);
+        }
         $product['video_id'] =http(). File::where('id',$product['video_id'])->value('file_path');
         $product['file_path'] = http().$product['file_path'];
         foreach($product['img_id'] as $key => $val){
@@ -114,7 +117,7 @@ class Product
 
         }
 
-        return json(['code'=>'200','msg'=>'操作成功','product'=>$product,'data'=>getDecodeToken()]);
+        return json(['code'=>'200','msg'=>'操作成功','product'=>null,'data'=>getDecodeToken()]);
     }
 
 
