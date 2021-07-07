@@ -53,12 +53,6 @@ class Juser
             'phone.status' => '用户状态必须在 0,9 范围内',
         ];
 
-        if(J_user::where(['user_name'=>$data['user_name']])->find()){
-            unset($rule['user_name']);
-        }
-        if(J_user::where(['phone'=>$data['phone']])->find()){
-            unset($rule['phone']);
-        }
         $validate = Validate::rule($rule)->message($msg);
         if (!$validate->check($data)) {
             return json(['code'=>'201','msg'=>$validate->getError()]);
