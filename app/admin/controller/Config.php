@@ -29,7 +29,7 @@ class Config
         $data['key'] = getVariable('key');
         $data['apiclient_cert'] = getVariable('apiclient_cert');
         $data['apiclient_key'] = getVariable('apiclient_key');
-        $apiData['body'] = getVariable('body');
+        $data['body'] = getVariable('body');
 
         return returnData(['data'=>$data,'code'=>'200']);
     }
