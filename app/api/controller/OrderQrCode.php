@@ -47,6 +47,6 @@ class OrderQrCode
             return returnData(['msg' => '门票已过期', "name" => $orderDetails["name"], "code" => 201]);
         }
         Orderdetails::update(["inspect_ticket_status" => 3], ["id" => $orderDate["id"], "order_id" => $orderDate["order_id"]]);
-        return returnData(['type' => $orderDetails["admission_ticket_type"], "order_id" => $orderDetails["order_id"], "status" => $orderDetails["inspect_ticket_status"], "name" => $orderDetails["name"], "code" => 200]);
+        return returnData(['type' => $orderDetails["admission_ticket_type"], "status" => $orderDetails["inspect_ticket_status"], "name" => $orderDetails["name"], "code" => 200]);
     }
 }
