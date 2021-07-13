@@ -1,8 +1,9 @@
 <?php
-use app\middleware\Auth;
-use app\middleware\After;
+
+use app\middleware\AllowCrossDomain;
+
 return [
-    Auth::class,
-    After::class,
-]
-?>
+    AllowCrossDomain::class,
+//    Auth::class,
+//    After::class,
+];

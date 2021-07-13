@@ -11,6 +11,8 @@ use app\common\model\Order;
 use app\common\model\Orderdetails;
 use app\common\model\Padmin;
 use app\common\model\Puser;
+use lib\Haxi;
+use lib\OrderQrCode;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\DbException;
 use think\db\exception\ModelNotFoundException;
@@ -75,12 +77,26 @@ class Service
                 $orderDetails = (new Orderdetails)->where(["order_id" => $order['order_id']])->select()->toArray();
                 $AlibabaSMS = new AlibabaSMS();
                 foreach ($orderDetails as $detail) {
+                    $this->changOrderDatails($detail["id"], $detail["order_id"]);
                     $AlibabaSMS->sendSMS($detail['phone'], json_encode(['balance' => $detail['admission_ticket_type']]));
                 }
                 exit('success');
             }
         }
         return returnData(['code' => '-1', 'msg' => "非法请求86"]);
+    }
+
+    function changOrderDatails($id, $order_id)
+    {
+        $numberOrderId = numberOrderId();
+        $arr = [
+            "id" => $id,
+            "order_id" => $order_id
+        ];
+        $Haxi = new Haxi();
+        $OrderQrCode = new OrderQrCode();
+        $inspect_ticket_details = $OrderQrCode->returnQrcodePath($Haxi->encrypt($arr), numberOrderId());
+        Orderdetails::update(["ticket_number" => $numberOrderId, "inspect_ticket_details" => $inspect_ticket_details, "inspect_ticket_status" => 1], ["id" => $id, "order_id" => $order_id]);
     }
 
     /**
@@ -132,6 +148,7 @@ class Service
                 $orderDetails = (new Orderdetails)->where(["order_id" => $order['order_id']])->select()->toArray();
                 $AlibabaSMS = new AlibabaSMS();
                 foreach ($orderDetails as $detail) {
+                    $this->changOrderDatails($detail["id"], $detail["order_id"]);
                     $AlibabaSMS->sendSMS($detail['phone'], json_encode(['balance' => $detail['admission_ticket_type']]));
                 }
                 exit('success');
