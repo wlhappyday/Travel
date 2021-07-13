@@ -143,5 +143,18 @@ class Order
         $order['file_path'] = File::where('id',$order['product']['first_id'])->value('file_path');
         return json(['code'=>'200','msg'=>'操作成功','order'=>$order,'http'=>http()]);
     }
-
+    public function writeOff(Request       $request){
+        $puser_id = getDecodeToken()['puser_id'];
+        $appid = getDecodeToken()['appid'];
+        $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
+        $order = orders::alias('order')->where(['order.user_id'=>$puser_id])
+            ->field('pu.class_name,jp.type,order.order_id,order.store_good_id,order.goods_name,order.goods_num,order.order_amount,order.add_time,order.order_status')
+            ->join('j_product jp','order.store_good_id=jp.id')->field('jp.end_time')
+            ->join('p_productuser pu','order.store_good_id=pu.product_id and pu.user_id='.$id)->field('pu.first_id')
+            ->join('file file','file.id=pu.first_id')->field('file.file_path')->order('order.add_time','Desc')
+            ->join('order_details ode','ode.order_id=order.order_id')
+            ->where(['ode.inspect_ticket_status'=>'1'])
+            ->whereIn('order.order_status',[4,5])->select();
+        return json(['code'=>'200','msg'=>'操作成功','order'=>$order,'http'=>http()]);
+    }
 }

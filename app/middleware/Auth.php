@@ -25,6 +25,7 @@ class Auth
      */
     public function handle($request, Closure $next)
     {
+
         if ($request->server()['REQUEST_URI'] == "/api/login/SignLogin") {
             return $next($request);
         }
