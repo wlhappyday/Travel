@@ -22,15 +22,7 @@ class After
      */
     public function handle(Request $request, Closure $next)
     {
-        if ($request->server()['REQUEST_URI'] == '/apidoc/config') {
-            return $next($request);
-        }
-        if ($request->server()['REQUEST_URI'] == '/apidoc/verifyAuth') {
-            return $next($request);
-        }
-        if ($request->server()['REQUEST_URI'] == '/apidoc/apiData') {
-            return $next($request);
-        }
+
         $response = $next($request);
         if($request->server()['REQUEST_URI']=="/api/login/SignLogin"){
             return $response;

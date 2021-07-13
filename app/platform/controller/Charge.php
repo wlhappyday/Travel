@@ -12,10 +12,7 @@ use think\Request;
 
 class Charge
 {
-    /**
-     * @author liujiong
-     * @Note  信息费充值列表
-     */
+
     public function list(){
         $where = [];
 
@@ -51,10 +48,7 @@ class Charge
 
         return returnData(['data'=>$data,'code'=>'200']);
     }
-    /**
-     * @author liujiong
-     * @Note  更新用户余额
-     */
+
     public function updMoney(){
         $id = getDecodeToken()['id'];
 
@@ -111,10 +105,7 @@ class Charge
 
 
     }
-    /**
-     * @author liujiong
-     * @Note  用户余额明细
-     */
+
     public function moneyList(){
         $id = getDecodeToken()['id'];
         $page = input('post.page/d','','strip_tags');
@@ -183,10 +174,8 @@ class Charge
 
 
     }
-    /**
-     * @author liujiong
-     * @Note  用户余额充值订单
-     */
+
+
     public function moneyCharge(){
         $id = getDecodeToken()['id'];
         $page = input('post.page/d','','strip_tags');

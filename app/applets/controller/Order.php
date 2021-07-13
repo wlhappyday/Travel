@@ -143,7 +143,7 @@ class Order
         $order['file_path'] = File::where('id',$order['product']['first_id'])->value('file_path');
         return json(['code'=>'200','msg'=>'操作成功','order'=>$order,'http'=>http()]);
     }
-    public function writeOff(Request $request){
+    public function writeOff(Request       $request){
         $puser_id = getDecodeToken()['puser_id'];
         $appid = getDecodeToken()['appid'];
         $id = Puseruser::where(['appid'=>$appid,'id'=>$puser_id])->value('puser_id');
