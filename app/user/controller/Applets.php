@@ -762,7 +762,7 @@ class Applets
             $product = Pusermy::where('user_id',$id)->where('id',$my_id)->find();
             $product->name=$name;
             $product->type=$type;
-            $product->img_id=$img_id;
+            $product->img=$img_id;
             $product->save();
             addPuserLog(getDecodeToken(),'修改个人中心：'.$my_id);
             Db::commit();

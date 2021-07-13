@@ -26,7 +26,7 @@ class Order extends Model
 
     public function orderdetail()
     {
-        return $this->hasMany(Orderdetails::class,'order_id','order_id');
+        return $this->hasMany(Orderdetails::class,'order_id','order_id')->removeOption('soft_delete');
     }
     public function product()
     {
