@@ -1,0 +1,9 @@
+{
+  "name": "laravel_demo接口文档",
+  "version": "0.23.0",
+  "description": "接口文档",
+  "apidoc": {
+    "title": "接口文档",
+    "url" : "http://apidemo.youkac.com/apidoc/"
+  }
+}
