@@ -1,1 +1,1 @@
-{"callbacks":"CODE_SUCCESS","appid":"1067996","pay_type":"wechat","success_url":"http:\/\/www.baidu.com","error_url":"http:\/\/www.baidu.com","out_trade_no":"nmSZ4DGzVP_67","amount":"24.00","pay_trade_no":"4200001124202106276526543198","sign":"A264D9D430049AF9523B4919ED6CB77E"}
+{"callbacks":"CODE_SUCCESS","appid":"1067996","pay_type":"wechat","success_url":"http:\/\/www.baidu.com","error_url":"http:\/\/www.baidu.com","out_trade_no":"0Wfv4d6tzx_100000000003","amount":"12.00","pay_trade_no":"0","sign":"FCDB6F2B7E3BD29CCF939254F5DB354F"}

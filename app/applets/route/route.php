@@ -33,5 +33,6 @@ Route::group('order', function () {
     Route::post('orderadd', 'Order/orderadd');
     Route::get('orderlist', 'Order/orderlist');
      Route::get('orderdetail', 'Order/orderdetail');
+    Route::get('writeOff', 'Order/writeOff');
 });
 ?>

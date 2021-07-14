@@ -5,21 +5,21 @@ use AlibabaCloud\Client\Exception\ClientException;
 use AlibabaCloud\Client\Exception\ServerException;
 use app\common\model\AdminLog;
 use app\common\model\Config;
+use app\common\model\JfeeChange;
 use app\common\model\Jproduct;
 use app\common\model\JproductReview;
 use app\common\model\JuserBalanceRecords;
 use app\common\model\JuserLog;
 use app\common\model\Order;
+use app\common\model\OrderCharge;
 use app\common\model\PadminBalanceRecords;
 use app\common\model\PadminLog;
 use app\common\model\Puserbalancerecords;
 use app\common\model\Puserlog;
 use app\common\model\PuserUserBalanceRecords;
+use app\common\model\Sms;
 use app\common\model\XuserBalanceRecords;
 use app\common\model\XuserLog;
-use app\common\model\OrderCharge;
-use app\common\model\Sms;
-use app\common\model\JfeeChange;
 use app\platform\model\Product_relation;
 use thans\jwt\facade\JWTAuth;
 use think\facade\Db;
@@ -189,16 +189,22 @@ function weixinpay($data, $apiData, $trade_type = 'refund',$orderInfo=[])
     }
 }
 
-function weixinJsPay($wx_h5_data){
-    $out_trade_no=isset($wx_h5_data['out_trade_no'])?$wx_h5_data['out_trade_no']:'';
-    $success_url=isset($wx_h5_data['success_url'])?$wx_h5_data['success_url']:'';
-    $error_url=isset($wx_h5_data['error_url'])?$wx_h5_data['error_url']:'';
+function numberOrderId()
+{
+    return date('Ymd') . substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8) . substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8) . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+}
+
+function weixinJsPay($wx_h5_data)
+{
+    $out_trade_no = isset($wx_h5_data['out_trade_no']) ? $wx_h5_data['out_trade_no'] : '';
+    $success_url = isset($wx_h5_data['success_url']) ? $wx_h5_data['success_url'] : '';
+    $error_url = isset($wx_h5_data['error_url']) ? $wx_h5_data['error_url'] : '';
     $wx_h5_html = '<script type="text/javascript">';
     $wx_h5_html .= 'function onBridgeReady(){
 									 WeixinJSBridge.invoke(
 						      \'getBrandWCPayRequest\', {
-						         "appId":"'.$wx_h5_data['appId'].'",
-						         "timeStamp":"'.$wx_h5_data['timeStamp'].'",
+						         "appId":"' . $wx_h5_data['appId'] . '",
+						         "timeStamp":"' . $wx_h5_data['timeStamp'] . '",
 						         "nonceStr":"'.$wx_h5_data['nonceStr'].'",   
 						         "package":"'.$wx_h5_data['package'].'",
 						         "signType":"'.$wx_h5_data['signType'].'",

@@ -452,7 +452,6 @@ class Pay
         }
 
     }
-
     /**
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
@@ -462,7 +461,6 @@ class Pay
     {
         return (new Order)->where(["order_id" => $order_id])->whereIn("order_status", [3, 4])->find();
     }
-
     /**
      * @throws DataNotFoundException
      * @throws ModelNotFoundException
