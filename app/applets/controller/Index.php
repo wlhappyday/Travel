@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace app\applets\controller;
 
 use app\common\model\File;
+use app\common\model\JtestUser;
 use app\common\model\Pusermy;
 use app\platform\model\Productuser;
 use app\common\model\XproductClass;
@@ -13,6 +14,7 @@ use app\common\model\Pusermagic;
 use app\common\model\Puserhomenavigation;
 use app\common\model\PuserUserBalanceRecords;
 use app\common\model\Pusernavigation;
+use thans\jwt\facade\JWTAuth;
 use think\facade\Db;
 use think\Request;
 use app\common\model\Puseruser;
@@ -91,7 +93,7 @@ class Index
         $navigation = Puserhomenavigation::where(['user_id'=>$puser['id'],'type'=>'1'])->order('id','Desc')->field('title,img,page_id')->select();
         foreach ($navigation as $key => $value){
             $navigation[$key]['img'] = http().File::where('id',$value['img'])->value('file_path');
-            $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
+            // $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
         }
         //热门景区
         $time = strtotime(date('Y-m-d H:i:s', strtotime('+30minute')));
@@ -224,5 +226,24 @@ class Index
         $puseruser= Puseruser::where('id',$id)->value('is_distcenter');
         $refuse= Puseruser::where('id',$id)->value('refuse');
         return json(['code'=>'200','msg'=>'操作成功','is_distcenter'=>$puseruser,'refuse'=>$refuse]);
+    }
+
+    public function login(Request $request){
+        if ($request->isPost()){
+            $user_name = $request->post('username');
+            $pwd = $request->post('password');
+            $JtestUser = JtestUser::where(['user_name'=>$user_name])->find();
+            if ($JtestUser){
+                if (!checkPasswd($pwd, $JtestUser)) {
+
+                    return json(['code'=>'201','msg'=>'密码错误']);
+                }
+                header('Authorization:' . "Bearer " . JWTAuth::builder($JtestUser->toArray()));
+                return json(['code'=>'200','  '=>$JtestUser['user_name']]);
+            }else{
+                return json(['code'=>'201','msg'=>'账号错误']);
+            }
+        }
+        return json(['code'=>'201','msg'=>'提交错误']);
     }
 }
