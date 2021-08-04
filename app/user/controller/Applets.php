@@ -228,11 +228,11 @@ class Applets
         $navigation = Puserhomenavigation::where('user_id',$id)->field('id,type,title,img,page_id')->select();
         foreach ($navigation as $key => $value) {
             $navigation[$key]['img'] =http(). File::where('id',$value['img'])->value('file_path');
-            $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
+            // $navigation[$key]['page_id'] = Puserpage::where('id',$value['page_id'])->value('page');
         }
         return json(['code'=>'200','msg'=>'操作成功','navigation'=>$navigation]);
-
     }
+
 
 
     /**
