@@ -211,10 +211,10 @@ class Index
             $puseruser->textarea = $textarea;
             $puseruser->remarks = $remarks;
             $request->distcenter_time = date('Y-m-d H:i:s');
-            $request->is_distcenter = '3';
+            $request->is_distcenter = 3;
             $puseruser->save();
             Db::commit();
-            return json(['code'=>'200','msg'=>'操作成功']);
+            return json(['code'=>'200','msg'=>'操作成功','data'=>getDecodeToken()]);
         }catch (\Exception $e){
             Db::rollback();
             return json(['code'=>'201','msg'=>'操作失败']);
