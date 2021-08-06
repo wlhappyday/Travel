@@ -204,7 +204,7 @@ class Product
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
-            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
+            ->field('pp.product_id,pp.is_hot,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
         if ($start_time){
             $data->whereTime('pp.create_time', '>=', strtotime($start_time));
         }
@@ -261,7 +261,7 @@ class Product
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
-            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
+            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,pp.is_hot,a.end_time,pp.desc,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
         if ($start_time){
             $data->whereTime('pp.create_time', '>=', strtotime($start_time));
         }
@@ -413,7 +413,12 @@ class Product
         Db::startTrans();
         try {
             $Productuser = Productuser::where(['product_id'=>$product_id,'user_id'=>$id])->find();
-            $Productuser->is_hot = $hot;
+            if ($Productuser['is_hot']=='1'){
+                $Productuser->is_hot = '0';
+            }else{
+                $Productuser->is_hot = '1';
+            }
+
             $Productuser->save();
             Db::commit();
             return json(['code'=>'200','msg'=>'操作成功']);
