@@ -204,8 +204,7 @@ class Product
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
-            ->join('file d','d.id=pp.first_id')
-            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,d.file_path,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
+            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
         if ($start_time){
             $data->whereTime('pp.create_time', '>=', strtotime($start_time));
         }
@@ -262,8 +261,7 @@ class Product
             ->join('j_user b','b.id = a.uid and a.type = 1','left')
             ->join('x_user c','c.id = a.uid and a.type = 2','left')
             ->join('p_productuser pp','pp.product_id=a.id')->where(['pp.user_id'=>$id])->order('pp.id','desc')
-            ->join('file d','d.id=pp.first_id')
-            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,d.file_path,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
+            ->field('pp.product_id,a.type,pp.name,pp.title,pp.price,pp.status,a.end_time,pp.desc,pp.is_poster,a.mp_name,a.set_city,a.get_city,a.number');
         if ($start_time){
             $data->whereTime('pp.create_time', '>=', strtotime($start_time));
         }
