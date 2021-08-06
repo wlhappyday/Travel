@@ -57,13 +57,14 @@ class Product
         $data['first_id'] = input('post.first_id/s','','strip_tags');
         $data['video_id'] = input('post.video_id/s','','strip_tags');
         $data['desc'] = input('post.desc/s','','strip_tags');
-        $data['state'] = input('post.state/d','','strip_tags');
+        $data['state'] = input('post.state/s','','strip_tags');
 
         $address = input('post.address');
         $address = json_decode($address,true);
         $data['get_province'] = $address['0'];
         $data['get_city'] = $address['1'];
         $data['address'] = json_encode($address,320);
+
         $data['class_name'] = $data['get_province'].'-'.$data['get_city'].'-'.$data['name'].'-'.$data['mp_name'];
 
         if(Jproduct::where(['class_name'=>$data['class_name'],'name'=>$data['name'],'type'=>'1'])->value('id')){
