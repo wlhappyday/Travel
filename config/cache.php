@@ -23,5 +23,16 @@ return [
             'serialize'  => [],
         ],
         // 更多的缓存连接
+        'redis'=>[
+            //驱动方式
+            'type'=>'redis',
+            'host'=>'81.68.229.97',
+            'port'=>6379,
+            'password'=>'admin123654..',
+            'select'   => '0',
+            'expire'   => 0,
+            'prefix'   => '',
+            'timeout'  => 0,
+        ]
     ],
 ];

@@ -13,8 +13,6 @@ class Charge
     public function list(){
         $where = [];
 
-        p(aliSmsSend('15210174216',3,1,3));
-
         $num = input('post.num/d','10','strip_tags');
         $order_no = input('post.order_no/s','','strip_tags');
         if ($order_no){
